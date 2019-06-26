@@ -1,0 +1,30 @@
+dist: xenial
+language: python
+services:
+  - xvfb
+python:
+  - "3.6"
+before_install:
+ - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
+ - sudo apt-get update -qq
+ - sudo apt-get install qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev
+ - sudo apt-get install qt5-default qttools5-dev-tools
+install:
+  - cur=`pwd`
+  # Pull V-REP
+  - wget http://coppeliarobotics.com/files/V-REP_PRO_EDU_V3_6_2_Ubuntu16_04.tar.xz
+  - tar -xf V-REP_PRO_EDU_V3_6_2_Ubuntu16_04.tar.xz
+  - export VREP_ROOT="$cur/V-REP_PRO_EDU_V3_6_2_Ubuntu16_04"
+  - echo $VREP_ROOT
+  # $VREP_ROOT/platforms needed otherwise will get:
+  # qt.qpa.plugin: Could not load the Qt platform plugin "xcb"
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VREP_ROOT:$VREP_ROOT/platforms
+  - export QT_QPA_PLATFORM_PLUGIN_PATH=$VREP_ROOT
+  - pip3 install -r requirements.txt
+  - python3 setup.py install
+# command to run tests
+script:
+  # We need to rename the local folder otherwise we will test this rather than
+  # the installed version.
+  - mv pyrep _pyrep
+  - python3 -m unittest discover tests
