@@ -1,4 +1,5 @@
-# PyRep [![Build Status](https://travis-ci.com/stepjam/PyRep.svg?token=bQxtiYV3p3bPYhzWMoLi&branch=master)](https://travis-ci.com/stepjam/PyRep)
+# PyRep [![Build Status](https://travis-ci.com/stepjam/PyRep.svg?token=bQxtiYV3p3bPYhzWMoLi&branch=master)](https://travis-ci.com/stepjam/PyRep) [![Documentation Status](https://readthedocs.org/projects/pyrep/badge/?version=latest)](https://pyrep.readthedocs.io/en/latest/?badge=latest)
+
 
 __PyRep is a toolkit for robot learning research, built on top of the virtual
 robotics experimentation platform ([V-REP](www.coppeliarobotics.com/)).__
@@ -9,6 +10,7 @@ robotics experimentation platform ([V-REP](www.coppeliarobotics.com/)).__
 - [Supported Robots](#supported-robots)
 - [Planned Future Updates](#planned-future-updates)
 - [Contributing](#contributing)
+- [Projects Using PyRep](#projects-using-pyrep)
 
 
 ## Install
@@ -183,3 +185,11 @@ Feel free to send pull requests for new robots!
 We want to make PyRep the best tool for rapid robot learning research. If you would like to get involved, then please [get in contact](https://www.doc.ic.ac.uk/~slj12/)!
 
 Pull requests welcome for bug fixes!
+
+## Projects Using PyRep
+
+If you use PyRep in your work, then get in contact and we can add you to the list!
+
+- [Task-Embedded Control Networks for Few-Shot Imitation Learning, CoRL 2018](https://arxiv.org/abs/1810.03237)
+- [Transferring End-to-End Visuomotor Control from Simulation to Real World for a Multi-Stage Task
+, CoRL 2017](https://arxiv.org/abs/1707.02267)
