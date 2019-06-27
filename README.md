@@ -38,6 +38,7 @@ __Remember to source your bashrc after this:__ ```source ~/.bashrc```.
 Finally install the python library:
 
 ```bash
+pip3 install -r requirements.txt
 python3 setup.py install --user
 ```
 
