@@ -11,6 +11,7 @@ robotics experimentation platform ([V-REP](www.coppeliarobotics.com/)).__
 - [Planned Future Updates](#planned-future-updates)
 - [Contributing](#contributing)
 - [Projects Using PyRep](#projects-using-pyrep)
+- [Citation](#citation)
 
 
 ## Install
@@ -193,3 +194,14 @@ If you use PyRep in your work, then get in contact and we can add you to the lis
 - [Task-Embedded Control Networks for Few-Shot Imitation Learning, CoRL 2018](https://arxiv.org/abs/1810.03237)
 - [Transferring End-to-End Visuomotor Control from Simulation to Real World for a Multi-Stage Task
 , CoRL 2017](https://arxiv.org/abs/1707.02267)
+
+## Citation
+
+```
+@article{james2019pyrep,
+  title={PyRep: Bringing V-REP to Deep Robot Learning},
+  author={James, Stephen and Freese, Marc and Davison, Andrew J.},
+  journal={arXiv preprint arXiv:1906.11176},
+  year={2019}
+}
+```
