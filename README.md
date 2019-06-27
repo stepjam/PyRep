@@ -75,7 +75,7 @@ pr.start()  # Start the simulation
 
 # Do some stuff
 
-pr.start()  # Stop the simulation
+pr.stop()  # Stop the simulation
 pr.shutdown()  # Close the application
 ```
 
