@@ -200,6 +200,10 @@ class TestObjects(TestCore):
         c2 = Shape('colliding_cube1')
         self.assertTrue(c1.check_collision(c2))
 
+    def test_check_collision_all(self):
+        c1 = Shape('colliding_cube0')
+        self.assertTrue(c1.check_collision(None))
+
     def test_copy(self):
         cube1 = self.cube0.copy()
         self.assertGreater(cube1.get_handle(), 0)

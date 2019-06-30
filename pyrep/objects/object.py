@@ -421,14 +421,16 @@ class Object(object):
         m = vrep.simRotateAroundAxis(m, x_axis, axis_pos, rotation[0])
         vrep.simSetObjectMatrix(self._handle, -1, m)
 
-    def check_collision(self, obj: Union['Object', ObjectType]) -> bool:
+    def check_collision(self, obj: 'Object' = None) -> bool:
         """Checks whether two entities are colliding.
 
         :param obj: The other collidable object to check collision against,
-            or ObjectType.ALL to check against all collidable objects.
+            or None to check against all collidable objects. Note that objects
+            must be marked as collidable!
         :return: If the object is colliding.
         """
-        return vrep.simCheckCollision(self._handle, obj.get_handle()) == 1
+        handle = vrep.sim_handle_all if obj is None else obj.get_handle()
+        return vrep.simCheckCollision(self._handle, handle) == 1
 
     # === Model specific methods ===
 
