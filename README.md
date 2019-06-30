@@ -2,7 +2,7 @@
 
 
 __PyRep is a toolkit for robot learning research, built on top of the virtual
-robotics experimentation platform ([V-REP](www.coppeliarobotics.com/)).__
+robotics experimentation platform ([V-REP](http://www.coppeliarobotics.com/)).__
 
 - [Install](#install)
 - [Getting Started](#getting-started)
