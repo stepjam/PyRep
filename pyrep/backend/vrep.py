@@ -931,3 +931,10 @@ def simGetShapeTextureId(objectHandle):
     ret = lib.simGetShapeTextureId(objectHandle)
     _check_return(ret)
     return ret
+
+
+def simCopyPasteObjects(objectHandles, options):
+    handles = ffi.new('int[]', objectHandles)
+    ret = lib.simCopyPasteObjects(handles, len(objectHandles), options)
+    _check_return(ret)
+    return list(handles)

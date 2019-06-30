@@ -592,6 +592,16 @@ class Object(object):
             objects.append(Object(h))
         return objects
 
+    def copy(self) -> 'Object':
+        """Copy and pastes object in the scene.
+
+        The object is copied together with all its associated calculation
+        objects and associated scripts.
+
+        :return: The new pasted object.
+        """
+        return self.__class__((vrep.simCopyPasteObjects([self._handle], 0)[0]))
+
     # === Private methods ===
 
     def _check_model(self) -> None:
