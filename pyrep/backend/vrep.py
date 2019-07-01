@@ -200,7 +200,7 @@ def simGetVisionSensorImage(sensorHandle, resolution):
 def simGetVisionSensorDepthBuffer(sensorHandle, resolution):
     img_buffer = lib.simGetVisionSensorDepthBuffer(sensorHandle)
     img = np.array(list(img_buffer[0:resolution[0]*resolution[1]]))
-    imga = np.split(img, resolution[0])  # gives(res[0], res[1])
+    imga = np.split(img, resolution[1])  # gives(res[1], res[0])
     simReleaseBuffer(ffi.cast('char *', img_buffer))
     imgb = np.flip(imga, 0)  # Image is upside-down
     return imgb
