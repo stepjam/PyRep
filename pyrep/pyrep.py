@@ -81,6 +81,7 @@ class PyRep(object):
         if len(scene_file) > 0 and not os.path.isfile(
                 os.path.abspath(scene_file)):
             raise PyRepError('Scene file does not exist: %s' % scene_file)
+        cwd = os.getcwd()
         self._ui_thread = threading.Thread(target=self._run_ui_thread,
                                            args=(scene_file, headless))
         self._ui_thread.daemon = True
@@ -109,6 +110,7 @@ class PyRep(object):
             self.step()
         else:
             self.step()
+        os.chdir(cwd)  # Go back to the previous cwd
 
     def script_call(self, function_name_at_script_name: str,
                     script_handle_or_type: int,
