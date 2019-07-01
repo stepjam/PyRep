@@ -2,7 +2,7 @@
 
 
 __PyRep is a toolkit for robot learning research, built on top of the virtual
-robotics experimentation platform ([V-REP](www.coppeliarobotics.com/)).__
+robotics experimentation platform ([V-REP](http://www.coppeliarobotics.com/)).__
 
 - [Install](#install)
 - [Getting Started](#getting-started)
@@ -55,6 +55,15 @@ If you plan to run on a headless machine, you will also need to run with a virtu
 sudo apt-get install xvfb
 xvfb-run python3 my_pyrep_app.py
 ```
+
+#### Troubleshooting
+
+Below are some problems you may encounter during installation. If none of these solve your problem, please raise an issue.
+
+- ModuleNotFoundError: No module named 'pyrep.backend._v_rep_cffi'
+  - If you are getting this error, then please check that you are not running the interpreter from the project root. If you are, then your Python interpreter will try to import those files rather the installed files.
+- error: command 'x86_64-linux-gnu-gcc' failed
+  - You may be missing packages needed for building python extensions. Try: `sudo apt-get install python3-dev`, and then re-run the installation.
 
 ## Getting Started
 
