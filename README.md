@@ -56,6 +56,15 @@ sudo apt-get install xvfb
 xvfb-run python3 my_pyrep_app.py
 ```
 
+#### Troubleshooting
+
+Below are some problems you may encounter during installation. If none of these solve your problem, please raise an issue.
+
+- ModuleNotFoundError: No module named 'pyrep.backend._v_rep_cffi'
+  - If you are getting this error, then please check that you are not running the interpreter from the project root. If you are, then your Python interpreter will try to import those files rather the installed files.
+- error: command 'x86_64-linux-gnu-gcc' failed
+  - You may be missing packages needed for building python extensions. Try: `sudo apt-get install python3-dev`, and then re-run the installation.
+
 ## Getting Started
 
 1. First take a look at [Usage](#usage) and the examples in the *examples/* folder to see if PyRep might be able to accelerate your research.
