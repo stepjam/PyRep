@@ -35,7 +35,8 @@ class Gripper(RobotComponent):
         :return: True if the object was detected/grasped.
         """
         detected = self._proximity_sensor.is_detected(obj)
-        if detected:
+        # Check if detected and that we are not already grasping it.
+        if detected and obj not in self._grasped_objects:
             self._grasped_objects.append(obj)
             self._old_parents.append(obj.get_parent())
             obj.set_parent(self._attach_point, keep_in_place=True)
