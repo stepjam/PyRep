@@ -188,22 +188,28 @@ def simReadVisionSensor(sensorHandle):
 
 def simGetVisionSensorImage(sensorHandle, resolution):
     img_buffer = lib.simGetVisionSensorImage(sensorHandle)
-    img = np.array(list(img_buffer[0:resolution[0]*resolution[1]*3]))
-    imga = np.split(img, resolution[1])  # gives(res[1], res[0]*3)
-    imgb = np.split(np.array(imga), resolution[0], axis=1)  # gives (res[1], res[0], 3)
-    imgb = np.transpose(imgb, (1, 0, 2))
+    T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
+    s = ffi.sizeof(T)  # datatype size
+    np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
+    # Wrap the buffer with numpy. Take a copy otherwise the data is lost when we release the buffer
+    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*3*s ), np_T).copy()
+    img = img.reshape(resolution[1], resolution[0], 3)
+    img = np.flip(img, 0)  # Image is upside-down
     simReleaseBuffer(ffi.cast('char *', img_buffer))
-    imgb = np.flip(imgb, 0)  # Image is upside-down
-    return imgb
+    return img
 
 
 def simGetVisionSensorDepthBuffer(sensorHandle, resolution):
     img_buffer = lib.simGetVisionSensorDepthBuffer(sensorHandle)
-    img = np.array(list(img_buffer[0:resolution[0]*resolution[1]]))
-    imga = np.split(img, resolution[1])  # gives(res[1], res[0])
+    T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
+    s = ffi.sizeof(T)  # datatype size
+    np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
+    # Wrap the buffer with numpy. Take a copy otherwise the data is lost when we release the buffer
+    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*s ), np_T).copy()
+    img = img.reshape(resolution[1], resolution[0])
+    img = np.flip(img, 0)  # Image is upside-down
     simReleaseBuffer(ffi.cast('char *', img_buffer))
-    imgb = np.flip(imga, 0)  # Image is upside-down
-    return imgb
+    return img
 
 
 def simGetVisionSensorResolution(sensorHandle):
