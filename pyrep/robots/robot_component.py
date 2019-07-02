@@ -12,13 +12,33 @@ class RobotComponent(Object):
 
     def __init__(self, count: int, name: str, joint_names: List[str],
                  base_name: str = None):
-        super().__init__(name if base_name is None else base_name)
+        suffix = '' if count == 0 else '#%d' % (count - 1)
+        super().__init__(
+            name + suffix if base_name is None else base_name + suffix)
         self._num_joints = len(joint_names)
 
         # Joint handles
-        suffix = '' if count == 0 else '%d' % (count - 1)
         self.joints = [Joint(jname + suffix)
                        for jname in joint_names]
+
+    def copy(self) -> 'RobotComponent':
+        """Copy and pastes the arm in the scene.
+
+        The arm is copied together with all its associated calculation
+        objects and associated scripts.
+
+        :return: The new pasted arm.
+        """
+        # Copy whole model
+        handle = vrep.simCopyPasteObjects([self._handle], 1)[0]
+        name = vrep.simGetObjectName(handle)
+        # Find the number of this arm
+        num = name[name.rfind('#') + 1:]
+        if len(num) > 0:
+            num = int(num) + 1
+        else:
+            num = 0
+        return self.__class__(num)
 
     def get_type(self) -> ObjectType:
         """Gets the type of the object.

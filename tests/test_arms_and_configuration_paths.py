@@ -103,6 +103,15 @@ class TestArmsAndConfigurationPaths(TestCore):
         # Check that it does not error
         path.visualize()
 
+    def test_get_duplicate_arm(self):
+        arm = UR3(1)
+        self.assertIsInstance(arm, UR3)
+
+    def test_copy_arm(self):
+        arm = UR10()
+        new_arm = arm.copy()
+        self.assertNotEqual(arm, new_arm)
+
 
 if __name__ == '__main__':
     unittest.main()
