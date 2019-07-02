@@ -21,7 +21,7 @@ class Arm(RobotComponent):
                  base_name: str = None,
                  max_velocity=1.0, max_acceleration=4.0, max_jerk=1000):
         """Count is used for when we have multiple copies of arms"""
-        joint_names = [name + '_joint' + str(i+1) for i in range(num_joints)]
+        joint_names = ['%s_joint%d' % (name, i+1) for i in range(num_joints)]
         super().__init__(count, name, joint_names, base_name)
 
         # Used for motion planning
@@ -30,7 +30,7 @@ class Arm(RobotComponent):
         self.max_jerk = max_jerk
 
         # Motion planning handles
-        suffix = '' if count == 0 else '#%d' % count
+        suffix = '' if count == 0 else '#%d' % (count - 1)
         self._ik_target = Dummy('%s_target%s' % (name, suffix))
         self._ik_tip = Dummy('%s_tip%s' % (name, suffix))
         self._ik_group = vrep.simGetIkGroupHandle('%s_ik%s' % (name, suffix))

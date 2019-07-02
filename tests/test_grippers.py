@@ -57,6 +57,15 @@ class TestArmsAndConfigurationPaths(TestCore):
                 self.assertAlmostEqual(
                     gripper.get_open_amount()[0], 0.8, delta=0.05)
 
+    def test_get_duplicate_gripper(self):
+        g = BaxterGripper(1)
+        self.assertIsInstance(g, BaxterGripper)
+
+    def test_copy_gripper(self):
+        g = JacoGripper()
+        new_g = g.copy()
+        self.assertNotEqual(g, new_g)
+
 
 if __name__ == '__main__':
     unittest.main()
