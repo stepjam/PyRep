@@ -159,6 +159,28 @@ my_robot_2 = {
 }
 ```
 
+#### Running Multiple PyRep Instances
+
+Each PyRep instance needs its own process. This can be achieved using Pythons [multiprocessing](https://docs.python.org/3.6/library/multiprocessing.html) module. Here is a simple example:
+
+```python
+from multiprocessing import Process
+
+PROCESSES = 10
+
+def run():
+  pr = PyRep()
+  pr.launch('my_scene.ttt', headless=True)
+  pr.start()
+  # Do stuff...
+  pr.stop()
+  pr.shutdown()
+
+processes = [Process(target=run, args=()) for i in range(PROCESSES)]
+[p.start() for p in processes]
+[p.join() for p in processes]
+```
+
 ## Supported Robots
 
 Here is a list of robots currently supported by PyRep:
