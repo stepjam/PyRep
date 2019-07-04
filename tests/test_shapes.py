@@ -41,6 +41,17 @@ class TestShapes(TestCore):
                       0.1, 0.0, 0.0], indices=[0, 1, 2])
         self.assertIsInstance(ob, Shape)
 
+    def test_convex_decompose(self):
+        ob = Shape.import_mesh(
+            path.join(ASSET_DIR, 'test_mesh_bowl.obj'))
+        self.assertIsInstance(ob, Shape)
+        cd_1 = ob.get_convex_decomposition()
+        self.assertIsInstance(cd_1, Shape)
+        self.assertNotEqual(ob, cd_1)
+        cd_2 = ob.get_convex_decomposition(morph=True)
+        self.assertIsInstance(cd_2, Shape)
+        self.assertEqual(ob, cd_2)
+
     def test_get_set_color(self):
         self.dynamic_cube.set_color([.5] * 3)
         self.assertEqual(self.dynamic_cube.get_color(), [.5] * 3)

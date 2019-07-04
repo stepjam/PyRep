@@ -864,6 +864,10 @@ def simGetShapeMesh(shapeHandle):
     return retVerticies, retIndices, outNormals
 
 
+def simConvexDecompose(shapeHandle, options, intParams, floatParams):
+    return lib.simConvexDecompose(shapeHandle, options, intParams, floatParams)
+
+
 def simGetJointMode(shapeHandle):
     options = ffi.new('int*')
     mode = lib.simGetJointMode(shapeHandle, options)
