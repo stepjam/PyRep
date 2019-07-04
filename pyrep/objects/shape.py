@@ -197,7 +197,7 @@ class Shape(Object):
         """
         return vrep.simGetShapeMesh(self._handle)
 
-    def get_convex_decomposition(self, morph=True, same=False, use_vhacd=False,
+    def get_convex_decomposition(self, morph=False, same=False, use_vhacd=False,
                                  individual_meshes=False,
                                  hacd_extra_points=True, hacd_face_points=True,
                                  hacd_min_clusters=1, hacd_tri_target=500,
