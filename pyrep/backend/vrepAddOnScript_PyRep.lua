@@ -71,65 +71,6 @@ _getConfigDistance=function(jointHandles,config1,config2)
     return math.sqrt(d)
 end
 
-_findSeveralCollisionFreeConfigsAndCheckApproach=function(ikGroup,jointHandles,collisionPairs,trialCnt,maxConfigs)
-    -- Here we search for several robot configurations...
-    -- 1. ..that matches the desired pose (matrix)
-    -- 2. ..that does not collide in that configuration
-    local cc=_getConfig(jointHandles)
-    local cs={}
-    local l={}
-    local lowLimits = {}
-    local maxLimits = {}
-
-    for i=1,#jointHandles,1 do
-        jh = jointHandles[i]
-        cyclic, interval = sim.getJointInterval(jh)
-        -- If there are huge intervals, then limit them
-        if interval[1] < -6.28 and interval[2] > 6.28 then
-            pos=sim.getJointPosition(jh)
-            interval[1] = -6.28
-            interval[2] = 6.28
-        end
-        lowLimits[i] = interval[1]
-        maxLimits[i] = interval[2]
-    end
-
-    for i=1,trialCnt,1 do
-        local c = sim.getConfigForTipPose(ikGroup,jointHandles,0.65,10,nil,collisionPairs,nil,lowLimits,maxLimits)
-        if c then
-            local dist=_getConfigDistance(jointHandles,cc,c)
-            local p=0
-            local same=false
-            for j=1,#l,1 do
-                if math.abs(l[j]-dist)<0.001 then
-                    -- we might have the exact same config. Avoid that
-                    same=true
-                    for k=1,#jointHandles,1 do
-                        if math.abs(cs[j][k]-c[k])>0.01 then
-                            same=false
-                            break
-                        end
-                    end
-                end
-                if same then
-                    break
-                end
-            end
-            if not same then
-                cs[#cs+1]=c
-                l[#l+1]=dist
-            end
-        end
-        if #l>=maxConfigs then
-            break
-        end
-    end
-    if #cs==0 then
-        cs=nil
-    end
-    return cs
-end
-
 _sliceFromOffset=function(array, offset)
     sliced = {}
     for i=1,#array-offset,1 do
@@ -138,6 +79,12 @@ _sliceFromOffset=function(array, offset)
     return sliced
 end
 
+_table_concat=function(table1, table2)
+    for i=1,#table2,1 do
+        table1[#table1+1] = table2[i]
+    end
+    return table1
+end
 
 _findPath=function(goalConfigs,cnt,jointHandles,algorithm,collisionPairs)
     -- Here we do path planning between the specified start and goal configurations. We run the search cnt times,
@@ -271,6 +218,74 @@ _getPoseOnPath=function(pathHandle, relativeDistance)
     return pos, ori
 end
 
+findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inStrings, inBuffer)
+    -- Here we search for several robot configurations...
+    -- 1. ..that matches the desired pose (matrix)
+    -- 2. ..that does not collide in that configuration
+
+    ikGroup = inInts[1]
+    collisionHandle = inInts[2]
+    ignoreCollisions = inInts[3]
+    trialCnt = inInts[4]
+    maxConfigs = inInts[5]
+    jointHandles = _sliceFromOffset(inInts, 5)
+    collisionPairs={collisionHandle, sim.handle_all}
+    if ignoreCollisions==1 then
+        collisionPairs=nil
+    end
+
+    local cc=_getConfig(jointHandles)
+    local cs={}
+    local l={}
+    local lowLimits = {}
+    local maxLimits = {}
+
+    for i=1,#jointHandles,1 do
+        jh = jointHandles[i]
+        cyclic, interval = sim.getJointInterval(jh)
+        -- If there are huge intervals, then limit them
+        if interval[1] < -6.28 and interval[2] > 6.28 then
+            pos=sim.getJointPosition(jh)
+            interval[1] = -6.28
+            interval[2] = 6.28
+        end
+        lowLimits[i] = interval[1]
+        maxLimits[i] = interval[2]
+    end
+
+    for i=1,trialCnt,1 do
+        local c = sim.getConfigForTipPose(ikGroup,jointHandles,0.65,10,nil,collisionPairs,nil,lowLimits,maxLimits)
+        if c then
+            local dist=_getConfigDistance(jointHandles,cc,c)
+            local p=0
+            local same=false
+            for j=1,#l,1 do
+                if math.abs(l[j]-dist)<0.001 then
+                    -- we might have the exact same config. Avoid that
+                    same=true
+                    for k=1,#jointHandles,1 do
+                        if math.abs(cs[#jointHandles*(j-1)+k]-c[k])>0.01 then
+                            same=false
+                            break
+                        end
+                    end
+                end
+                if same then
+                    break
+                end
+            end
+            if not same then
+                cs = _table_concat(cs,c)
+                l[#l+1]=dist
+            end
+        end
+        if #l>=maxConfigs then
+            break
+        end
+    end
+    return {}, cs, {}, {}
+end
+
 getLinearPath=function(inInts,inFloats,inStrings,inBuffer)
     steps = inInts[1]
     ikGroup = inInts[2]
@@ -310,17 +325,28 @@ getNonlinearPath=function(inInts,inFloats,inStrings,inBuffer)
     -- final IK approach is feasable:
     -- 'searching for a maximum of 60 valid goal configurations. Try 300 times...'
 
-    local c = _findSeveralCollisionFreeConfigsAndCheckApproach(ikGroup, jointHandles, collisionPairs, trialCnt, maxConfigs)
+    local _, cs_flat, _, _ = findSeveralCollisionFreeConfigsAndCheckApproach(_table_concat({ ikGroup, collisionHandle, ignoreCollisions, trialCnt, maxConfigs}, jointHandles), {}, {}, {})
+
+    if cs_flat == {} then
+        return {},{},{},''
+    end
+
+    local num_configs = #cs_flat/#jointHandles
+    local cs = {}
+
+    for i=1,num_configs,1 do
+        local c = {}
+        for j=1,#jointHandles,1 do
+            c[#c+1] = cs_flat[#jointHandles*(i-1)+j]
+        end
+        cs[#cs+1] = c
+    end
 
     -- Search a path from current config to a goal config. For each goal
     -- config, search 6 times a path and keep the shortest.
     -- Do this for the first 3 configs returned by findCollisionFreeConfigs.
 
-    if c == nil then
-        return {},{},{},''
-    end
-
-    path = _findPath(c, searchCntPerGoalConfig, jointHandles, algorithm, collisionPairs)
+    path = _findPath(cs, searchCntPerGoalConfig, jointHandles, algorithm, collisionPairs)
     if path == nil then
         path = {}
     end

@@ -1,6 +1,7 @@
 class PyRepError(Exception):
     pass
 
+
 class WrongObjectTypeError(Exception):
     pass
 
@@ -14,6 +15,10 @@ class ObjectAlreadyRemovedError(Exception):
 
 
 class ObjectIsNotModelError(Exception):
+    pass
+
+
+class ConfigurationError(Exception):
     pass
 
 
