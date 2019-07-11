@@ -1,5 +1,5 @@
 from distutils.core import setup
-import cffi_build.cffi_build as cffi_build#
+import cffi_build.cffi_build as cffi_build
 from shutil import copyfile
 import os
 
