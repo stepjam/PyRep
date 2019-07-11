@@ -53,6 +53,13 @@ class TestArmsAndConfigurationPaths(TestCore):
                 arm = arm_type()
                 self.assertIsInstance(arm, arm_type)
 
+    def test_get_configs_for_tip_pose(self):
+        arm = Panda()
+        waypoint = Dummy('Panda_waypoint')
+        configs = arm.get_configs_for_tip_pose(
+            waypoint.get_position(), waypoint.get_orientation())
+        self.assertIsNotNone(configs)
+
     def test_get_path_from_cartesian_path(self):
         arm = Panda()
         cartesian_path = CartesianPath('Panda_cartesian_path')
