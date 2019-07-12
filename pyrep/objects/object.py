@@ -209,17 +209,16 @@ class Object(object):
         self.set_position(pose[:3], relative_to, reset_dynamics)
         self.set_quaternion(pose[3:], relative_to, reset_dynamics)
 
-    def get_parent(self) -> 'Object':
+    def get_parent(self) -> Union['Object', None]:
         """Gets the parent of this object in the scene hierarchy.
 
-        :raises: NoParentError if the object does not have a parent.
-        :return: The parent of this object.
+        :return: The parent of this object, or None if it doesn't have a parent.
         """
         try:
             handle = vrep.simGetObjectParent(self._handle)
         except RuntimeError:
             # Most probably no parent.
-            raise NoParentError('This object does not have a parent.')
+            return None
         return Object(handle)
 
     def set_parent(self, parent_object: 'Object', keep_in_place=True) -> None:

@@ -3,7 +3,6 @@ from tests.core import TestCore
 from pyrep.objects.shape import Shape
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.object import Object
-from pyrep.errors import NoParentError
 import numpy as np
 
 
@@ -79,8 +78,8 @@ class TestObjects(TestCore):
             init_pos, self.dynamic_cube.get_position()))
 
     def test_get_parent_when_orphan(self):
-        with self.assertRaises(NoParentError):
-            parent = self.dummy.get_parent()
+        parent = self.dummy.get_parent()
+        self.assertIsNone(parent)
 
     def test_get_matrix(self):
         self.assertEqual(len(self.dynamic_cube.get_matrix()), 12)

@@ -1,11 +1,8 @@
 class PyRepError(Exception):
     pass
 
+
 class WrongObjectTypeError(Exception):
-    pass
-
-
-class NoParentError(Exception):
     pass
 
 
