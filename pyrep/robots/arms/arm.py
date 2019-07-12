@@ -3,7 +3,7 @@ from pyrep.objects.dummy import Dummy
 from pyrep.robots.arms.configuration_path import ConfigurationPath
 from pyrep.robots.robot_component import RobotComponent
 from pyrep.objects.cartesian_path import CartesianPath
-from pyrep.errors import ConfigurationPathError
+from pyrep.errors import ConfigurationPathError, IKError
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.const import PYREP_SCRIPT_TYPE
 from contextlib import contextmanager
@@ -36,6 +36,32 @@ class Arm(RobotComponent):
         self._ik_group = vrep.simGetIkGroupHandle('%s_ik%s' % (name, suffix))
         self._collision_collection = vrep.simGetCollectionHandle(
             '%s_arm%s' % (name, suffix))
+
+    def solve_ik(self, position: List[float], euler: List[float] = None,
+                 quaternion: List[float] = None) -> List[float]:
+        """Solves an IK group and returns the calculated joint values.
+
+        Must specify either rotation in euler or quaternions, but not both!
+
+        :param position: The x, y, z position of the target.
+        :param euler: The x, y, z orientation of the target (in radians).
+        :param quaternion: A list containing the quaternion (x,y,z,w).
+        :return: A list containing the calculated joint values.
+        """
+        self._ik_target.set_position(position)
+        if euler is not None:
+            self._ik_target.set_orientation(euler)
+        elif quaternion is not None:
+            self._ik_target.set_quaternion(quaternion)
+
+        ik_result, joint_values = vrep.simCheckIkGroup(
+            self._ik_group, [j.get_handle() for j in self.joints])
+        if ik_result == vrep.sim_ikresult_fail:
+            raise IKError('IK failed. Perhaps the distance was between the tip '
+                          ' and target was too large.')
+        elif ik_result == vrep.sim_ikresult_not_performed:
+            raise IKError('IK not performed.')
+        return joint_values
 
     def get_path_from_cartesian_path(self, path: CartesianPath
                                      ) -> ConfigurationPath:

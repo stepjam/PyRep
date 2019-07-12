@@ -948,3 +948,17 @@ def simCopyPasteObjects(objectHandles, options):
     ret = lib.simCopyPasteObjects(handles, len(objectHandles), options)
     _check_return(ret)
     return list(handles)
+
+
+def simHandleIkGroup(ikGroupHandle):
+    ret = lib.simHandleIkGroup(ikGroupHandle)
+    _check_return(ret)
+    return ret
+
+
+def simCheckIkGroup(ikGroupHandle, jointHandles):
+    jointValues = ffi.new('float[%d]' % len(jointHandles))
+    ret = lib.simCheckIkGroup(
+        ikGroupHandle, len(jointHandles), jointHandles, jointValues, ffi.NULL)
+    _check_return(ret)
+    return ret, list(jointValues)

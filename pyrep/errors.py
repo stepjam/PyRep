@@ -1,11 +1,8 @@
 class PyRepError(Exception):
     pass
 
+
 class WrongObjectTypeError(Exception):
-    pass
-
-
-class NoParentError(Exception):
     pass
 
 
@@ -22,4 +19,8 @@ class ConfigurationPathError(Exception):
 
 
 class GripperError(Exception):
+    pass
+
+
+class IKError(Exception):
     pass

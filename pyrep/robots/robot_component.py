@@ -3,7 +3,7 @@ from pyrep.backend import vrep
 from pyrep.const import JointType
 from pyrep.objects.object import Object
 from pyrep.objects.joint import Joint
-from pyrep.const import ObjectType
+from pyrep.const import ObjectType, JointMode
 
 
 class RobotComponent(Object):
@@ -207,6 +207,13 @@ class RobotComponent(Object):
         :param value: If the motors should be locked at zero velocity.
         """
         [j.set_motor_locked_at_zero_velocity(value) for j in self.joints]
+
+    def set_joint_mode(self, value: JointMode) -> None:
+        """Sets the operation mode of the joint group.
+
+        :param value: The new joint mode value.
+        """
+        [j.set_joint_mode(value) for j in self.joints]
 
     def _assert_len(self, inputs: list) -> None:
         if len(self.joints) != len(inputs):
