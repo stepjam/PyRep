@@ -112,6 +112,15 @@ class TestArmsAndConfigurationPaths(TestCore):
         new_arm = arm.copy()
         self.assertNotEqual(arm, new_arm)
 
+    def test_calculate_ik(self):
+        arm = Panda()
+        waypoint = Dummy('Panda_ik_waypoint')
+        init_joints = arm.get_joint_positions()
+        after_joints = arm.solve_ik(
+            waypoint.get_position(), quaternion=waypoint.get_quaternion())
+        # Check that the joint positions are not the same
+        self.assertFalse(np.allclose(init_joints, after_joints, atol=0.01))
+
 
 if __name__ == '__main__':
     unittest.main()

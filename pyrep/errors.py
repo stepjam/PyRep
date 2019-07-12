@@ -23,3 +23,7 @@ class ConfigurationPathError(Exception):
 
 class GripperError(Exception):
     pass
+
+
+class IKError(Exception):
+    pass
