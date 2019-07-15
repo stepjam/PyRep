@@ -229,7 +229,7 @@ class Object(object):
         :param keep_in_place: Indicates whether the object's absolute position
             and orientation should stay same
         """
-        parent = None if parent_object is None else parent_object.get_handle()
+        parent = -1 if parent_object is None else parent_object.get_handle()
         vrep.simSetObjectParent(self._handle, parent, keep_in_place)
 
     def get_matrix(self, relative_to=None) -> List[float]:
