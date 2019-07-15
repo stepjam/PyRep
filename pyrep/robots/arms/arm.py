@@ -42,7 +42,7 @@ class Arm(RobotComponent):
                                  euler: List[float] = None,
                                  quaternion: List[float] = None,
                                  ignore_collisions=False,
-                                 trials=300, max_configs=60):
+                                 trials=300, max_configs=60) -> List[List[float]]:
 
         """Gets a valid joint configuration for a desired end effector pose.
 
