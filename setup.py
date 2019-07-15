@@ -14,7 +14,8 @@ setup(name='PyRep',
                 'pyrep.robots',
                 'pyrep.robots.arms',
                 'pyrep.robots.end_effectors',
-                'pyrep.textures'
+                'pyrep.textures',
+                'pyrep.robots.mobiles'
                 ],
       ext_modules=[cffi_build.ffibuilder.distutils_extension(
           join('build', 'pyrep', 'backend'))],
