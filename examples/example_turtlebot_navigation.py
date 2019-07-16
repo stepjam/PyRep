@@ -1,7 +1,7 @@
 """
 A turtlebot reaches for 4 randomly places targets.
 This script contains examples of:
-    - Linear mobile paths to reach a target
+    - Non-linear mobile paths to reach a target with collision avoidance
 """
 from os.path import dirname, join, abspath
 from pyrep import PyRep
