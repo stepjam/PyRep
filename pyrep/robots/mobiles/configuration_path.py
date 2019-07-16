@@ -39,16 +39,14 @@ class ConfigurationPath(object):
         :return: If the end of the trajectory has been reached.
 
         """
+        if self._path_done:
+            raise RuntimeError('This path has already been completed. '
+                               'If you want to re-run, then call set_to_start.')
 
         pos_inter = self._mobile.intermediate_target_base.get_position(relative_to=self._mobile.base_ref)
 
         if self._mobile.type_ is "two_wheels":
             if len(self._path_points) > 2: # Non-linear path
-                # self.i_path += 1
-                # points = self._path_points[self.i_path]
-                # self._mobile.set_base_position(points[:2])
-                # self._mobile.set_base_orientation(points[2])
-                # actuation = [0,0]
                 if self.inter_done:
                     self._next_i_path()
                     self._set_inter_target(self.i_path)
@@ -85,7 +83,7 @@ class ConfigurationPath(object):
 
                     m = ret_floats[:-1]
                     angle = ret_floats[-1]
-                    self._mobile.intermediate_target_base.set_position([m[3],m[7],0.1]) # set the target_base to self.dist1
+                    self._mobile.intermediate_target_base.set_position([m[3],m[7],self._mobile.target_z])
                     self._mobile.intermediate_target_base.set_orientation([0,0,angle])
 
                 if sqrt((pos_inter[0])**2 + (pos_inter[1])**2) < 0.1:
@@ -170,5 +168,5 @@ class ConfigurationPath(object):
             dist_to_next += self._path_points[self.i_path][-1]
 
     def _set_inter_target(self,i):
-        self._mobile.intermediate_target_base.set_position([self._path_points[i][0],self._path_points[i][1],0.1]) # Check here that computed path points are correct
+        self._mobile.intermediate_target_base.set_position([self._path_points[i][0],self._path_points[i][1],self._mobile.target_z])
         self._mobile.intermediate_target_base.set_orientation([0,0,self._path_points[i][2]])
