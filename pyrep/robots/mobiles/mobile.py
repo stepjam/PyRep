@@ -20,9 +20,14 @@ class Mobile(RobotComponent):
     """Base class representing a robot mobile base with path planning support.
     """
 
-    def __init__(self, count: int, name: str, type_: str, base_name: str = None,
-                 max_velocity: float = 4, max_velocityRot: float = 6, max_acceleration: float = 0.035, distance_from_target: float = 0):
-        """Count is used for when we have multiple copies of mobile bases"""
+    def __init__(self, count: int, distance_from_target: float, name: str, type_: str, base_name: str = None,
+                 max_velocity: float = 4, max_velocityRot: float = 6, max_acceleration: float = 0.035):
+        """Count is used for when we have multiple copies of mobile bases.
+
+        max_velocity, max_velocityRot, max_acceleration are not used for now for two_wheels robot.
+        distance_from_target is implemented for omnidirectional robot only. It will solve the task
+        by reaching at a distance (distance_from_target) from the target.
+        """
 
         suffix = '' if count == 0 else '#%d' % (count - 1)
         self.type_ = type_
@@ -61,19 +66,19 @@ class Mobile(RobotComponent):
         self.wheels = [Shape(wname)
                        for wname in wheel_names]
 
-        # Robot parameters and handle
-        self.base_object = Shape(name + suffix)
-        self.z_pos = self.base_object.get_position()[2]
-        self.wheel_size = self.wheels[0].get_bounding_box()[1] * 2
-        self.wheel_sep = abs(self.wheels[0].get_position()[1] - self.wheels[1].get_position()[1])/2
-
-
         # Motion planning handles
         self.intermediate_target_base = Dummy('%s_intermediate_target_base%s' % (name, suffix))
         self.target_base = Dummy('%s_target_base%s' % (name, suffix))
         self.base_ref = Dummy('%s_base_ref%s' % (name, suffix))
         self._collision_collection = vrep.simGetCollectionHandle(
             '%s_base%s' % (name, suffix))
+
+        # Robot parameters and handle
+        self.base_object = Shape(name + suffix)
+        self.z_pos = self.base_object.get_position()[2]
+        self.target_z = self.target_base.get_position()[-1]
+        self.wheel_size = self.wheels[0].get_bounding_box()[1] * 2
+        self.wheel_sep = abs(self.wheels[0].get_position()[1] - self.wheels[1].get_position()[1])/2
 
         # Make sure dummies are orphan if loaded with ttm
         self.intermediate_target_base.set_parent(None)
@@ -156,15 +161,15 @@ class Mobile(RobotComponent):
         angle_base = self.base_ref.get_orientation()[-1]
 
         if self.type_ is "two_wheels":
-            self.target_base.set_position([position[0],position[1],self.z_pos])
+            self.target_base.set_position([position[0],position[1],self.target_z])
             self.target_base.set_orientation([0,0,angle])
-            self.intermediate_target_base.set_position([position[0],position[1],self.z_pos])
+            self.intermediate_target_base.set_position([position[0],position[1],self.target_z])
             self.intermediate_target_base.set_orientation([0,0,angle])
 
             # Missing the dist1 for intermediate target
 
         elif self.type_ is "omnidirectional":
-            self.target_base.set_position([position[0],position[1],self.z_pos])
+            self.target_base.set_position([position[0],position[1],self.target_z])
             self.target_base.set_orientation([0,0,angle])
 
             handleBase = self.base_ref.get_handle()
@@ -175,10 +180,9 @@ class Mobile(RobotComponent):
 
             m = ret_floats[:-1]
             angle = ret_floats[-1]
-            self.target_base.set_position([m[3]-m[0]*self.dist1,m[7]-m[4]*self.dist1,self.z_pos])
-            self.target_base.set_orientation([0,0,angle])
-            self.intermediate_target_base.set_position([m[3]-m[0]*self.dist1,m[7]-m[4]*self.dist1,self.z_pos])
+            self.intermediate_target_base.set_position([m[3]-m[0]*self.dist1,m[7]-m[4]*self.dist1,self.target_z])
             self.intermediate_target_base.set_orientation([0,0,angle])
+            self.target_base.set_orientation([0,0,angle])
 
         path = [[position_base[0],position_base[1],angle_base], [position[0],position[1],angle]]
 
@@ -207,7 +211,7 @@ class Mobile(RobotComponent):
 
             # Missing the dist1 for intermediate target
 
-        self.target_base.set_position([position[0],position[1],self.z_pos])
+        self.target_base.set_position([position[0],position[1],self.target_z])
         self.target_base.set_orientation([0,0,angle])
 
         handleBase = self.base_ref.get_handle()
@@ -252,7 +256,7 @@ class Mobile(RobotComponent):
         or_v = self.target_base.get_orientation(relative_to=self.base_ref)
 
         if self.type_ is "two_wheels":
-
+            pos_inter = self.intermediate_target_base.get_position(relative_to=self.base_ref)
             __, ret_floats, _, _ = utils.script_call(
                 'getAngleTwoWheel@PyRep', PYREP_SCRIPT_TYPE,
                 ints=[handleBase, handleInterTargetBase])
@@ -260,8 +264,10 @@ class Mobile(RobotComponent):
             if sqrt((pos_v[0])**2 +(pos_v[1])**2) < 0.01: #and or_v[-1] < 0.4*pi/180: too hard to achieve orientation
                 return [0,0], True
 
-            v_des = self.paramP
+            dist_vec = sqrt(pos_inter[0]**2 + pos_inter[1]**2)
+            v_des = self.paramP * dist_vec
             omega_des = self.paramO * ret_floats[0]
+
             v_R = v_des + self.wheel_sep * omega_des
             v_L = v_des - self.wheel_sep * omega_des
 
@@ -274,7 +280,7 @@ class Mobile(RobotComponent):
             pos_inter = self.intermediate_target_base.get_position(relative_to=self.base_ref)
             or_inter = self.intermediate_target_base.get_orientation(relative_to=self.base_ref)
 
-            if sqrt((pos_v[0])**2 +(pos_v[1])**2) < 0.001 and or_v[-1] < 0.2*pi/180:
+            if (sqrt((pos_v[0])**2 +(pos_v[1])**2) - self.dist1) < 0.01 and or_v[-1] < 0.2*pi/180:
                 return [self.previousForwBackVel,self.previousLeftRightVel,self.previousRotVel], True
 
             ForwBackVel = pos_inter[1] * self.paramP
