@@ -453,8 +453,9 @@ getNonlinearPathMobile=function(inInts,inFloats,inStrings,inBuffer)
 
     t=simOMPL.createTask('t')
     simOMPL.setVerboseLevel(t, 0)
-    ss={simOMPL.createStateSpace('2d',simOMPL.StateSpaceType.dubins,robotHandle,{-bd,-bd},{bd,bd},1)}
-    simOMPL.setStateSpace(t,ss)
+    ss=simOMPL.createStateSpace('2d',simOMPL.StateSpaceType.dubins,robotHandle,{-bd,-bd},{bd,bd},1)
+    state_h = simOMPL.setStateSpace(t,{ss})
+    simOMPL.setDubinsParams(ss,0.1,true)
     simOMPL.setAlgorithm(t,simOMPL.Algorithm.RRTConnect)
 
     if collisionPairs ~= nil then
