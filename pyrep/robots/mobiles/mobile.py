@@ -200,6 +200,11 @@ class Mobile(RobotComponent):
 
         :return: A non-linear path (x,y,angle) in the xy configuration space.
         """
+
+        # Base dummy required to be parent of the robot tree
+        self.base_ref.set_parent(None)
+        self.base_object.set_parent(self.base_ref)
+
             # Missing the dist1 for intermediate target
 
         self.target_base.set_position([position[0],position[1],self.z_pos])
@@ -214,6 +219,9 @@ class Mobile(RobotComponent):
                 'getNonlinearPathMobile@PyRep', PYREP_SCRIPT_TYPE,
                 ints=[handleBase, handleTargetBase, self._collision_collection,
                       int(ignore_collisions), path_pts], floats=[boundaries])
+
+        self.base_object.set_parent(None)
+        self.base_ref.set_parent(self.base_object)
 
         if len(ret_floats) == 0:
             raise ConfigurationPathError('Could not create path.')
