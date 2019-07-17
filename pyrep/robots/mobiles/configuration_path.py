@@ -70,7 +70,7 @@ class ConfigurationPath(object):
         elif self._mobile.type_ is "omnidirectional":
             if len(self._path_points) > 2: # Non-linear path
                 if self.inter_done:
-                    self.i_path = self._next_i_path()
+                    self._next_i_path()
                     self._set_inter_target(self.i_path)
                     self.inter_done = False
 
