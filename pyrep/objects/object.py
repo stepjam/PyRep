@@ -221,7 +221,8 @@ class Object(object):
             return None
         return Object(handle)
 
-    def set_parent(self, parent_object: 'Object', keep_in_place=True) -> None:
+    def set_parent(self, parent_object: Union['Object', None],
+                   keep_in_place=True) -> None:
         """Sets this objects parent object in the scene hierarchy.
 
         :param parent_object: The object that will become parent, or None if

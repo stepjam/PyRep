@@ -16,6 +16,7 @@ import os
 import io
 from math import pi, sqrt
 
+
 class Mobile(RobotComponent):
     """Base class representing a robot mobile base with path planning support.
     """
@@ -319,7 +320,6 @@ class Mobile(RobotComponent):
             return [ForwBackVel, LeftRightVel, RotVel], False
 
     def get_tip(self) -> Dummy:
-        # for mobile base tip corresponds to front of the base
         """Gets the center of the mobile robot.
 
         Each robot is required to have a tip for path planning.
@@ -327,6 +327,15 @@ class Mobile(RobotComponent):
         :return: The tip of the robot.
         """
         return self.base_ref
+
+    def copy(self) -> RobotComponent:
+        self.intermediate_target_base.set_parent(self)
+        self.target_base.set_parent(self)
+        c = super().copy()
+        self.intermediate_target_base.set_parent(None)
+        self.target_base.set_parent(None)
+        return c
+
 
 @contextmanager
 def suppress_std_out_and_err():
