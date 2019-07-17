@@ -280,7 +280,7 @@ class Mobile(RobotComponent):
             pos_inter = self.intermediate_target_base.get_position(relative_to=self.base_ref)
             or_inter = self.intermediate_target_base.get_orientation(relative_to=self.base_ref)
 
-            if (sqrt((pos_v[0])**2 +(pos_v[1])**2) - self.dist1) < 0.01 and or_v[-1] < 0.2*pi/180:
+            if (sqrt((pos_v[0])**2 +(pos_v[1])**2) - self.dist1) < 0.001 and or_v[-1] < 0.1*pi/180:
                 return [self.previousForwBackVel,self.previousLeftRightVel,self.previousRotVel], True
 
             ForwBackVel = pos_inter[1] * self.paramP
