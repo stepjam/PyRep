@@ -2,7 +2,9 @@ from pyrep.robots.mobiles.mobile_base import MobileBase
 from pyrep.robots.configuration_paths.nonholonomic_configuration_path import (
     NonHolonomicConfigurationPath)
 from pyrep.backend import utils
+from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.const import PYREP_SCRIPT_TYPE
+from pyrep.errors import ConfigurationPathError
 from typing import List
 from math import sqrt
 
@@ -17,12 +19,7 @@ class NonHolonomicBase(MobileBase):
                  max_velocity: float = 4,
                  max_velocity_rotation: float = 6,
                  max_acceleration: float = 0.035):
-        """Count is used for when we have multiple copies of mobile bases.
 
-        max_velocity, max_velocityRot, max_acceleration are not used for now for two_wheels robot.
-        distance_from_target is implemented for omnidirectional robot only. It will solve the task
-        by reaching at a distance (distance_from_target) from the target.
-        """
         super().__init__(
             count, num_wheels, distance_from_target, name,
             max_velocity, max_velocity_rotation, max_acceleration)
@@ -35,20 +32,17 @@ class NonHolonomicBase(MobileBase):
         self.max_vertical_rotation = max_velocity_rotation
         self.distance_from_target = distance_from_target
 
-    def set_base_angular_velocites(self, velocity: List[float]):
-        """ This function has no effect for two_wheels robot. More control is required for omnidirectional robot.
-
-        :param velocity: for two wheels robot: each wheel velocity, for omnidirectional robot forwardBackward, leftRight and rotation velocity
-        """
-        self.set_joint_target_velocities(velocity)
-
     def get_linear_path(self, position: List[float],
                         angle=0) -> NonHolonomicConfigurationPath:
-        """ Let the controller solve the path with no collision check.  assess_collision may be
-        added at every simulation step.
+        """Initialize linear path and check for collision along it.
 
-        For a more stable linear path with sampled points get_nonlinear_path may be
-        called, if no obstable along the way, a linear trajectory will be returned.
+        Must specify either rotation in euler or quaternions, but not both!
+
+        :param position: The x, y position of the target.
+        :param angle: The z orientation of the target (in radians).
+        :raises: ConfigurationPathError if no path could be created.
+
+        :return: A linear path in the 2d space.
         """
         position_base = self.get_position()
         angle_base = self.get_orientation()[-1]
@@ -60,10 +54,11 @@ class NonHolonomicBase(MobileBase):
             [position[0], position[1], self.target_z])
         self.intermediate_target_base.set_orientation([0, 0, angle])
 
-        # Missing the dist1 for intermediate target
-
         path = [[position_base[0], position_base[1], angle_base],
                 [position[0], position[1], angle]]
+
+        if self._check_collision_linear_path(path):
+            raise ConfigurationPathError('Could not create path. An object was detected on the linear path.')
 
         return NonHolonomicConfigurationPath(self, path)
 
@@ -71,7 +66,8 @@ class NonHolonomicBase(MobileBase):
                            angle=0,
                            boundaries=2,
                            path_pts=600,
-                           ignore_collisions=False
+                           ignore_collisions=False,
+                           algorithm=Algos.RRTConnect
                            ) -> NonHolonomicConfigurationPath:
         """Gets a non-linear (planned) configuration path given a target pose.
 
@@ -81,6 +77,8 @@ class NonHolonomicBase(MobileBase):
         [[-boundaries,boundaries],[-boundaries,boundaries]].
         :param path_pts: number of sampled points returned from the computed path
         :param ignore_collisions: If collision checking should be disabled.
+        :param algorithm: Algorithm used to compute path
+        :raises: ConfigurationPathError if no path could be created.
 
         :return: A non-linear path (x,y,angle) in the xy configuration space.
         """
@@ -91,8 +89,9 @@ class NonHolonomicBase(MobileBase):
         return NonHolonomicConfigurationPath(self, path)
 
     def get_base_actuation(self):
-        """ Controller for two wheels and omnidirectional robots.
-        Based on a proportional controller. Used for motion planning.
+        """Proportional controller.
+
+        :return: A list with left and right joint velocity, and bool if target is reached.
         """
 
         handleBase = self.get_handle()
@@ -120,4 +119,3 @@ class NonHolonomicBase(MobileBase):
         omega_jointL = v_L / (self.wheel_size / 2)
 
         return [omega_jointL, omega_jointR], False
-

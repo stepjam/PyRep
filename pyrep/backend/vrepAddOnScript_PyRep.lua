@@ -147,6 +147,53 @@ _findPath=function(goalConfigs,cnt,jointHandles,algorithm,collisionPairs)
     local task=simOMPL.createTask('task')
     simOMPL.setVerboseLevel(task, 0)
 
+    alg = _getAlgorithm(algorithm)
+
+    simOMPL.setAlgorithm(task,alg)
+
+    local jSpaces={}
+    for i=1,#jointHandles,1 do
+        jh = jointHandles[i]
+        cyclic, interval = sim.getJointInterval(jh)
+        -- If there are huge intervals, then limit them
+        if interval[1] < -6.28 and interval[2] > 6.28 then
+            pos=sim.getJointPosition(jh)
+            interval[1] = -6.28
+            interval[2] = 6.28
+        end
+        local proj=i
+        if i>3 then proj=0 end
+        jSpaces[i]=simOMPL.createStateSpace('j_space'..i,simOMPL.StateSpaceType.joint_position,jh,{interval[1]},{interval[2]},proj)
+    end
+
+    simOMPL.setStateSpace(task, jSpaces)
+    if collisionPairs ~= nil then
+        simOMPL.setCollisionPairs(task, collisionPairs)
+    end
+    simOMPL.setStartState(task, startConfig)
+    simOMPL.setGoalState(task, goalConfigs[1])
+    for i=2,#goalConfigs,1 do
+        simOMPL.addGoalState(task,goalConfigs[i])
+    end
+    local path=nil
+    local l=999999999999
+    for i=1,cnt,1 do
+        search_time = 4
+        local res,_path=simOMPL.compute(task,search_time,-1,300)
+        if res and _path then
+            local _l=_getPathLength(_path, jointHandles)
+            if _l<l then
+                l=_l
+                path=_path
+            end
+        end
+    end
+    simOMPL.destroyTask(task)
+    return path,l
+end
+
+_getAlgorithm=function(algorithm)
+    -- Returns correct algorithm functions from user string
     alg = nil
     if algorithm == 'BiTRRT' then
         alg = simOMPL.Algorithm.BiTRRT
@@ -199,48 +246,7 @@ _findPath=function(goalConfigs,cnt,jointHandles,algorithm,collisionPairs)
     elseif algorithm == 'TRRT' then
         alg = simOMPL.Algorithm.TRRT
     end
-
-    simOMPL.setAlgorithm(task,alg)
-
-    local jSpaces={}
-    for i=1,#jointHandles,1 do
-        jh = jointHandles[i]
-        cyclic, interval = sim.getJointInterval(jh)
-        -- If there are huge intervals, then limit them
-        if interval[1] < -6.28 and interval[2] > 6.28 then
-            pos=sim.getJointPosition(jh)
-            interval[1] = -6.28
-            interval[2] = 6.28
-        end
-        local proj=i
-        if i>3 then proj=0 end
-        jSpaces[i]=simOMPL.createStateSpace('j_space'..i,simOMPL.StateSpaceType.joint_position,jh,{interval[1]},{interval[2]},proj)
-    end
-
-    simOMPL.setStateSpace(task, jSpaces)
-    if collisionPairs ~= nil then
-        simOMPL.setCollisionPairs(task, collisionPairs)
-    end
-    simOMPL.setStartState(task, startConfig)
-    simOMPL.setGoalState(task, goalConfigs[1])
-    for i=2,#goalConfigs,1 do
-        simOMPL.addGoalState(task,goalConfigs[i])
-    end
-    local path=nil
-    local l=999999999999
-    for i=1,cnt,1 do
-        search_time = 4
-        local res,_path=simOMPL.compute(task,search_time,-1,300)
-        if res and _path then
-            local _l=_getPathLength(_path, jointHandles)
-            if _l<l then
-                l=_l
-                path=_path
-            end
-        end
-    end
-    simOMPL.destroyTask(task)
-    return path,l
+    return alg
 end
 
 _getPathLength=function(path, jointHandles)
@@ -426,12 +432,13 @@ getBoxAdjustedMatrixAndFacingAngle=function(inInts,inFloats,inStrings,inBuffer)
     angle=math.atan2(bestMatch[2],bestMatch[1])
     m=sim.buildMatrix(p2,{0,0,angle})
 
-    table.insert(m,angle - math.pi/2)
+    table.insert(m,angle-math.pi/2)
 
     return {},m,{},''
 end
 
 getNonlinearPathMobile=function(inInts,inFloats,inStrings,inBuffer)
+    algorithm = inStrings[1]
     robotHandle = inInts[1]
     targetHandle = inInts[2]
     collisionHandle=inInts[3]
@@ -450,7 +457,7 @@ getNonlinearPathMobile=function(inInts,inFloats,inStrings,inBuffer)
     ss=simOMPL.createStateSpace('2d',simOMPL.StateSpaceType.dubins,robotHandle,{-bd,-bd},{bd,bd},1)
     state_h = simOMPL.setStateSpace(t,{ss})
     simOMPL.setDubinsParams(ss,0.1,true)
-    simOMPL.setAlgorithm(t,simOMPL.Algorithm.RRTConnect)
+    simOMPL.setAlgorithm(t,_getAlgorithm(algorithm))
 
     if collisionPairs ~= nil then
         simOMPL.setCollisionPairs(t, collisionPairs)

@@ -3,6 +3,7 @@ from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
 from pyrep.objects.joint import Joint
 from pyrep.robots.robot_component import RobotComponent
+from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.robots.configuration_paths.mobile_configuration_path import (
     MobileConfigurationPath)
 from pyrep.errors import ConfigurationPathError
@@ -27,12 +28,18 @@ class MobileBase(RobotComponent):
                  max_velocity: float = 4,
                  max_velocity_rotation: float = 6,
                  max_acceleration: float = 0.035):
-        """Count is used for when we have multiple copies of mobile bases.
+        """Count is used for when we have multiple copies of mobile bases."""
 
-        max_velocity, max_velocityRot, max_acceleration are not used for now for two_wheels robot.
-        distance_from_target is implemented for omnidirectional robot only. It will solve the task
-        by reaching at a distance (distance_from_target) from the target.
         """
+        :param count: used for multiple copies of robots
+        :param num_wheels: number of actuated wheels
+        :param distance_from_target: offset from target (not supported for nonholonomic robots)
+        :param name: string with robot name (same as base in vrep model).
+        :param max_velocity: bounds x,y velocity for motion planning (not implemented for nonholonomic robot).
+        :param max_velocity_rotation: bounds yaw velocity for motion planning (not implemented for nonholonomic robot).
+        :param max_acceleration: bounds acceleration for motion planning (not implemented for nonholonomic robot).
+        """
+
         joint_names = ['%s_m_joint%s' % (name, str(i + 1)) for i in
                        range(num_wheels)]
         super().__init__(count, name, joint_names)
@@ -82,7 +89,7 @@ class MobileBase(RobotComponent):
         self.set_orientation([0, 0, yaw])
 
     def assess_collision(self):
-        """ Silent detection of the robot base with all other entities present in the scene.
+        """Silent detection of the robot base with all other entities present in the scene.
 
         :return: True if collision is detected
         """
@@ -90,11 +97,11 @@ class MobileBase(RobotComponent):
                                       vrep.sim_handle_all) == 1
 
     def set_cartesian_position(self, position: List[float]):
-        """ Set a delta target position (x,y) and rotation position
+        """Set a delta target position (x,y) and rotation position
 
         :param position: length 3 list containing x and y position, and angle position
 
-        NOTE: not supported for two wheel robot yet.
+        NOTE: not supported for nonholonomic mobile bases.
         """
         vel = [0, 0, 0]
         vel[-1] = position[-1]
@@ -104,7 +111,7 @@ class MobileBase(RobotComponent):
         self.set_base_angular_velocites(vel)
 
     def set_base_angular_velocites(self, velocity: List[float]):
-        """ This function has no effect for two_wheels robot. More control is required for omnidirectional robot.
+        """This function has no effect for two_wheels robot. More control is required for omnidirectional robot.
 
         :param velocity: for two wheels robot: each wheel velocity, for omnidirectional robot forwardBackward, leftRight and rotation velocity
         """
@@ -114,7 +121,8 @@ class MobileBase(RobotComponent):
                            angle=0,
                            boundaries=2,
                            path_pts=600,
-                           ignore_collisions=False) -> List[List[float]]:
+                           ignore_collisions=False,
+                           algorithm=Algos.RRTConnect) -> List[List[float]]:
         """Gets a non-linear (planned) configuration path given a target pose.
 
         :param position: The x, y, z position of the target.
@@ -123,6 +131,8 @@ class MobileBase(RobotComponent):
         [[-boundaries,boundaries],[-boundaries,boundaries]].
         :param path_pts: number of sampled points returned from the computed path
         :param ignore_collisions: If collision checking should be disabled.
+        :param algorithm: Algorithm used to compute path
+        :raises: ConfigurationPathError if no path could be created.
 
         :return: A non-linear path (x,y,angle) in the xy configuration space.
         """
@@ -145,7 +155,8 @@ class MobileBase(RobotComponent):
                 'getNonlinearPathMobile@PyRep', PYREP_SCRIPT_TYPE,
                 ints=[handle_base, handle_target_base,
                       self._collision_collection,
-                      int(ignore_collisions), path_pts], floats=[boundaries])
+                      int(ignore_collisions), path_pts], floats=[boundaries],
+                      strings=[algorithm.value])
 
         # self.set_parent(None)
         # self.base_ref.set_parent(self)
@@ -169,9 +180,37 @@ class MobileBase(RobotComponent):
 
         return path
 
+    def _check_collision_linear_path(self,path):
+        """Check for collision on a linear path from start to goal
+
+        :param path: A list containing start and goal as [x,y,yaw]
+        :return: A bool, True if collision was detected
+        """
+        start = path[0]
+        end = path[1]
+
+        m = (end[1] - start[1])/(end[0] - start[0])
+        b = start[1] - m * start[0]
+        x_range = [start[0],end[0]]
+        x_span = start[0] - end[0]
+
+        incr = round(abs(x_span)/50, 3)
+        if x_range[1] < x_range[0]:
+            incr = - incr
+
+        x = x_range[0]
+        for k in range(50):
+            x += incr
+            y = m * x + b
+            self.set_2d_pose([x,y,start[-1] if k < 46 else end[-1]])
+            status_collision = self.assess_collision()
+            if status_collision == True:
+                break
+
+        return status_collision
+
     def get_base_actuation(self):
-        """ Controller for two wheels and omnidirectional robots.
-        Based on a proportional controller. Used for motion planning.
+        """Controller for mobile bases.
         """
         raise NotImplementedError()
 
