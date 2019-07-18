@@ -28,12 +28,17 @@ class MobileBase(RobotComponent):
                  max_velocity: float = 4,
                  max_velocity_rotation: float = 6,
                  max_acceleration: float = 0.035):
-        """Count is used for when we have multiple copies of mobile bases.
+        """Count is used for when we have multiple copies of mobile bases."""
 
-        max_velocity, max_velocityRot, max_acceleration are not used for now for two_wheels robot.
-        distance_from_target is implemented for omnidirectional robot only. It will solve the task
-        by reaching at a distance (distance_from_target) from the target.
         """
+        :param num_wheels: The x, y, z position of the target.
+        :param distance_from_target: The x, y, z orientation of the target (in radians).
+        :param name: string with robot name (same as base in vrep model).
+        :param max_velocity: bounds x,y velocity for motion planning (not implemented for nonholonomic robot).
+        :param max_velocity_rotation: bounds yaw velocity for motion planning (not implemented for nonholonomic robot).
+        :param max_acceleration: bounds acceleration for motion planning (not implemented for nonholonomic robot).
+        """
+
         joint_names = ['%s_m_joint%s' % (name, str(i + 1)) for i in
                        range(num_wheels)]
         super().__init__(count, name, joint_names)
@@ -95,7 +100,7 @@ class MobileBase(RobotComponent):
 
         :param position: length 3 list containing x and y position, and angle position
 
-        NOTE: not supported for two wheel robot yet.
+        NOTE: not supported for nonholonomic mobile bases.
         """
         vel = [0, 0, 0]
         vel[-1] = position[-1]
@@ -173,6 +178,11 @@ class MobileBase(RobotComponent):
         return path
 
     def _check_collision_linear_path(self,path):
+        """ Check for collision on a linear path from start to goal
+
+        :param position: A list containing start and goal as [x,y,yaw]
+        :return: A bool, True if collision was detected
+        """
         start = path[0]
         end = path[1]
 
@@ -197,8 +207,7 @@ class MobileBase(RobotComponent):
         return status_collision
 
     def get_base_actuation(self):
-        """ Controller for two wheels and omnidirectional robots.
-        Based on a proportional controller. Used for motion planning.
+        """ Controller for mobile bases.
         """
         raise NotImplementedError()
 

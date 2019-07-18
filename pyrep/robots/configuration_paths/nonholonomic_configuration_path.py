@@ -43,13 +43,13 @@ class NonHolonomicConfigurationPath(MobileConfigurationPath):
             else:
                 actuation, self._path_done = self._mobile.get_base_actuation()
 
-            self._mobile.set_base_angular_velocites(actuation)
+            self._mobile.set_joint_target_velocities(actuation)
 
             if self.i_path == len(self._path_points) - 1:
                 self._path_done = True
 
         else:
             actuation, self._path_done = self._mobile.get_base_actuation()
-            self._mobile.set_base_angular_velocites(actuation)
+            self._mobile.set_joint_target_velocities(actuation)
 
         return actuation, self._path_done

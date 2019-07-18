@@ -19,12 +19,6 @@ class HolonomicBase(MobileBase):
                  max_velocity: float = 4,
                  max_velocity_rotation: float = 6,
                  max_acceleration: float = 0.035):
-        """Count is used for when we have multiple copies of mobile bases.
-
-        max_velocity, max_velocityRot, max_acceleration are not used for now for two_wheels robot.
-        distance_from_target is implemented for omnidirectional robot only. It will solve the task
-        by reaching at a distance (distance_from_target) from the target.
-        """
 
         super().__init__(
             count, num_wheels, distance_from_target, name,
@@ -49,9 +43,9 @@ class HolonomicBase(MobileBase):
                                 for jsname in joint_slipping_names]
 
     def set_base_angular_velocites(self, velocity: List[float]):
-        """ This function has no effect for two_wheels robot. More control is required for omnidirectional robot.
+        """ Calls required functions to achieve desired omnidirectional wheel effect.
 
-        :param velocity: for two wheels robot: each wheel velocity, for omnidirectional robot forwardBackward, leftRight and rotation velocity
+        :param velocity: A List with forwardBackward, leftRight and rotation velocity (in radian/s)
         """
         self._reset_wheel()
         fBVel = velocity[0]
@@ -63,11 +57,15 @@ class HolonomicBase(MobileBase):
 
     def get_linear_path(self, position: List[float],
                         angle=0) -> HolonomicConfigurationPath:
-        """ Let the controller solve the path with no collision check.  assess_collision may be
-        added at every simulation step.
+        """Initialize linear path and check for collision along it.
 
-        For a more stable linear path with sampled points get_nonlinear_path may be
-        called, if no obstable along the way, a linear trajectory will be returned.
+        Must specify either rotation in euler or quaternions, but not both!
+
+        :param position: The x, y position of the target.
+        :param angle: The z orientation of the target (in radians).
+        :raises: ConfigurationPathError if no path could be created.
+
+        :return: A linear path in the 2d space.
         """
         position_base = self.get_position()
         angle_base = self.get_orientation()[-1]
@@ -122,8 +120,9 @@ class HolonomicBase(MobileBase):
         return HolonomicConfigurationPath(self, path)
 
     def get_base_actuation(self):
-        """ Controller for two wheels and omnidirectional robots.
-        Based on a proportional controller. Used for motion planning.
+        """ Proportional controller.
+
+        :return: A list with left and right joint velocity, and bool if target is reached.
         """
 
         handleBase = self.get_handle()
