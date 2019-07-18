@@ -401,12 +401,6 @@ insertPathControlPoint=function(inInts,inFloats,inStrings,inBuffer)
     return {},{},{},''
 end
 
-
--- getBoxAdjustedMatrixAndFacingAngle=function(inInts,inFloats,inStrings,inBuffer)
---   return {},{},{},''
--- end
-
-
 getBoxAdjustedMatrixAndFacingAngle=function(inInts,inFloats,inStrings,inBuffer)
     local baseHandle = inInts[1]
     local targetHandle = inInts[2]
@@ -432,7 +426,7 @@ getBoxAdjustedMatrixAndFacingAngle=function(inInts,inFloats,inStrings,inBuffer)
     angle=math.atan2(bestMatch[2],bestMatch[1])
     m=sim.buildMatrix(p2,{0,0,angle})
 
-    table.insert(m,angle-math.pi/2)
+    table.insert(m,angle - math.pi/2)
 
     return {},m,{},''
 end

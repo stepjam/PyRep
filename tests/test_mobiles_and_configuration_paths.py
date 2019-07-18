@@ -12,7 +12,6 @@ from pyrep.robots.mobiles.LineTracer import LineTracer
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
 
-
 MOBILES = [
     ('youBot', youBot),
     ('LineTracer', LineTracer),
@@ -21,7 +20,6 @@ MOBILES = [
 
 
 class TestMobilesAndConfigurationPaths(TestCore):
-
     def setUp(self):
         self.pyrep = PyRep()
         self.pyrep.launch(path.join(
@@ -63,7 +61,8 @@ class TestMobilesAndConfigurationPaths(TestCore):
             _, done = path.step()
             self.pyrep.step()
         self.assertTrue(np.allclose(
-            mobile.get_tip().get_position()[:2], waypoint.get_position()[:2], atol=0.001))
+            mobile.get_position()[:2], waypoint.get_position()[:2],
+            atol=0.001))
 
     def test_get_linear_path_and_get_end(self):
         mobile = youBot()
@@ -72,7 +71,8 @@ class TestMobilesAndConfigurationPaths(TestCore):
             waypoint.get_position(), waypoint.get_orientation()[-1])
         path.set_to_end()
         self.assertTrue(np.allclose(
-            mobile.get_tip().get_position()[:2], waypoint.get_position()[:2], atol=0.001))
+            mobile.get_position()[:2], waypoint.get_position()[:2],
+            atol=0.001))
 
     def test_get_linear_path_visualize(self):
         mobile = youBot()

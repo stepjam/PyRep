@@ -732,6 +732,7 @@ if not os.path.exists(path + '.1'):
     os.symlink(path, path + '.1')
 
 # Copy lua functions to the VREP_ROOT
+print('copying lua file: %s -> %s' % ('pyrep/backend', os.environ['VREP_ROOT']))
 lua_script_fname = 'vrepAddOnScript_PyRep.lua'
 copyfile(os.path.join('pyrep/backend', lua_script_fname),
          os.path.join(os.environ['VREP_ROOT'], lua_script_fname))

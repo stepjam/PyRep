@@ -28,17 +28,16 @@ target = Shape.create(type=PrimitiveShape.SPHERE,
 
 position_min, position_max = [-0.5, 1.4, 0.1], [1.0, 0.5, 0.1]
 
-starting_position = agent.get_base_position()
-starting_orientation = agent.get_base_orientation()
+starting_pose = agent.get_2d_pose()
 
 for i in range(LOOPS):
-    agent.set_base_position(starting_position)
+    agent.set_2d_pose(starting_pose)
+
     # Get a random position within a cuboid and set the target position
     pos = list(np.random.uniform(position_min, position_max))
     target.set_position(pos)
 
-    path = agent.get_linear_path(
-        position=pos, angle=math.radians(0))
+    path = agent.get_linear_path(position=pos, angle=0)
 
     path.visualize()
 
@@ -46,6 +45,8 @@ for i in range(LOOPS):
     while not done:
         _, done = path.step()
         pr.step()
+
+    path.clear_visualization()
 
     print('Reached target %d!' % i)
 
