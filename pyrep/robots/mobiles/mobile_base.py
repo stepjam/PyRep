@@ -3,6 +3,7 @@ from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
 from pyrep.objects.joint import Joint
 from pyrep.robots.robot_component import RobotComponent
+from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.robots.configuration_paths.mobile_configuration_path import (
     MobileConfigurationPath)
 from pyrep.errors import ConfigurationPathError
@@ -114,7 +115,8 @@ class MobileBase(RobotComponent):
                            angle=0,
                            boundaries=2,
                            path_pts=600,
-                           ignore_collisions=False) -> List[List[float]]:
+                           ignore_collisions=False,
+                           algorithm=Algos.RRTConnect) -> List[List[float]]:
         """Gets a non-linear (planned) configuration path given a target pose.
 
         :param position: The x, y, z position of the target.
@@ -145,7 +147,8 @@ class MobileBase(RobotComponent):
                 'getNonlinearPathMobile@PyRep', PYREP_SCRIPT_TYPE,
                 ints=[handle_base, handle_target_base,
                       self._collision_collection,
-                      int(ignore_collisions), path_pts], floats=[boundaries])
+                      int(ignore_collisions), path_pts], floats=[boundaries],
+                      strings=[algorithm.value])
 
         # self.set_parent(None)
         # self.base_ref.set_parent(self)
