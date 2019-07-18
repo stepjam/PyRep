@@ -2,6 +2,7 @@ from pyrep.robots.mobiles.mobile_base import MobileBase
 from pyrep.robots.configuration_paths.nonholonomic_configuration_path import (
     NonHolonomicConfigurationPath)
 from pyrep.backend import utils
+from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.const import PYREP_SCRIPT_TYPE
 from pyrep.errors import ConfigurationPathError
 from typing import List
@@ -65,7 +66,8 @@ class NonHolonomicBase(MobileBase):
                            angle=0,
                            boundaries=2,
                            path_pts=600,
-                           ignore_collisions=False
+                           ignore_collisions=False,
+                           algorithm=Algos.RRTConnect
                            ) -> NonHolonomicConfigurationPath:
         """Gets a non-linear (planned) configuration path given a target pose.
 
@@ -75,6 +77,7 @@ class NonHolonomicBase(MobileBase):
         [[-boundaries,boundaries],[-boundaries,boundaries]].
         :param path_pts: number of sampled points returned from the computed path
         :param ignore_collisions: If collision checking should be disabled.
+        :param algorithm: Algorithm used to compute path
         :raises: ConfigurationPathError if no path could be created.
 
         :return: A non-linear path (x,y,angle) in the xy configuration space.

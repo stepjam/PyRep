@@ -131,6 +131,8 @@ class MobileBase(RobotComponent):
         [[-boundaries,boundaries],[-boundaries,boundaries]].
         :param path_pts: number of sampled points returned from the computed path
         :param ignore_collisions: If collision checking should be disabled.
+        :param algorithm: Algorithm used to compute path
+        :raises: ConfigurationPathError if no path could be created.
 
         :return: A non-linear path (x,y,angle) in the xy configuration space.
         """
@@ -181,7 +183,7 @@ class MobileBase(RobotComponent):
     def _check_collision_linear_path(self,path):
         """Check for collision on a linear path from start to goal
 
-        :param position: A list containing start and goal as [x,y,yaw]
+        :param path: A list containing start and goal as [x,y,yaw]
         :return: A bool, True if collision was detected
         """
         start = path[0]

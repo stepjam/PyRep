@@ -3,6 +3,7 @@ from pyrep.robots.configuration_paths.holonomic_configuration_path import (
     HolonomicConfigurationPath)
 from pyrep.backend import utils
 from pyrep.const import PYREP_SCRIPT_TYPE
+from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.errors import ConfigurationPathError
 from typing import List
 from pyrep.objects.joint import Joint
@@ -100,8 +101,9 @@ class HolonomicBase(MobileBase):
                            angle=0,
                            boundaries=2,
                            path_pts=600,
-                           ignore_collisions=False
-                           ) -> HolonomicConfigurationPath:
+                           ignore_collisions=False,
+                           algorithm=Algos.RRTConnect
+                            ) -> HolonomicConfigurationPath:
         """Gets a non-linear (planned) configuration path given a target pose.
 
         :param position: The x, y, z position of the target.
@@ -110,12 +112,14 @@ class HolonomicBase(MobileBase):
         [[-boundaries,boundaries],[-boundaries,boundaries]].
         :param path_pts: number of sampled points returned from the computed path
         :param ignore_collisions: If collision checking should be disabled.
+        :param algorithm: Algorithm used to compute path
+        :raises: ConfigurationPathError if no path could be created.
 
         :return: A non-linear path (x,y,angle) in the xy configuration space.
         """
 
         path = self._get_nonlinear_path_points(
-            position, angle, boundaries, path_pts, ignore_collisions)
+            position, angle, boundaries, path_pts, ignore_collisions, algorithm)
 
         return HolonomicConfigurationPath(self, path)
 
