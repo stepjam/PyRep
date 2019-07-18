@@ -407,12 +407,6 @@ insertPathControlPoint=function(inInts,inFloats,inStrings,inBuffer)
     return {},{},{},''
 end
 
-
--- getBoxAdjustedMatrixAndFacingAngle=function(inInts,inFloats,inStrings,inBuffer)
---   return {},{},{},''
--- end
-
-
 getBoxAdjustedMatrixAndFacingAngle=function(inInts,inFloats,inStrings,inBuffer)
     local baseHandle = inInts[1]
     local targetHandle = inInts[2]
