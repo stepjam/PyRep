@@ -3,6 +3,7 @@ from pyrep.robots.configuration_paths.nonholonomic_configuration_path import (
     NonHolonomicConfigurationPath)
 from pyrep.backend import utils
 from pyrep.const import PYREP_SCRIPT_TYPE
+from pyrep.errors import ConfigurationPathError
 from typing import List
 from math import sqrt
 
@@ -60,10 +61,11 @@ class NonHolonomicBase(MobileBase):
             [position[0], position[1], self.target_z])
         self.intermediate_target_base.set_orientation([0, 0, angle])
 
-        # Missing the dist1 for intermediate target
-
         path = [[position_base[0], position_base[1], angle_base],
                 [position[0], position[1], angle]]
+
+        if self._check_collision_linear_path(path):
+            raise ConfigurationPathError('Could not create path. An object was detected on the linear path.')
 
         return NonHolonomicConfigurationPath(self, path)
 
@@ -120,4 +122,3 @@ class NonHolonomicBase(MobileBase):
         omega_jointL = v_L / (self.wheel_size / 2)
 
         return [omega_jointL, omega_jointR], False
-

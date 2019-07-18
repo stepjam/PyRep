@@ -172,6 +172,30 @@ class MobileBase(RobotComponent):
 
         return path
 
+    def _check_collision_linear_path(self,path):
+        start = path[0]
+        end = path[1]
+
+        m = (end[1] - start[1])/(end[0] - start[0])
+        b = start[1] - m * start[0]
+        x_range = [start[0],end[0]]
+        x_span = start[0] - end[0]
+
+        incr = round(abs(x_span)/50, 3)
+        if x_range[1] < x_range[0]:
+            incr = - incr
+
+        x = x_range[0]
+        for k in range(50):
+            x += incr
+            y = m * x + b
+            self.set_2d_pose([x,y,start[-1] if k < 46 else end[-1]])
+            status_collision = self.assess_collision()
+            if status_collision == True:
+                break
+
+        return status_collision
+
     def get_base_actuation(self):
         """ Controller for two wheels and omnidirectional robots.
         Based on a proportional controller. Used for motion planning.

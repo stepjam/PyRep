@@ -3,6 +3,7 @@ from pyrep.robots.configuration_paths.holonomic_configuration_path import (
     HolonomicConfigurationPath)
 from pyrep.backend import utils
 from pyrep.const import PYREP_SCRIPT_TYPE
+from pyrep.errors import ConfigurationPathError
 from typing import List
 from pyrep.objects.joint import Joint
 from math import pi, sqrt
@@ -91,6 +92,9 @@ class HolonomicBase(MobileBase):
 
         path = [[position_base[0], position_base[1], angle_base],
                 [position[0], position[1], angle]]
+
+        if self._check_collision_linear_path(path):
+            raise ConfigurationPathError('Could not create path. An object was detected on the linear path.')
 
         return HolonomicConfigurationPath(self, path)
 
