@@ -16,7 +16,7 @@ class HolonomicConfigurationPath(MobileConfigurationPath):
     """
 
     def step(self) -> bool:
-        """ Make a step along the trajectory.
+        """Make a step along the trajectory.
 
         Step forward by calling _get_base_actuation to get the velocity needed
         to be applied at the wheels.

@@ -31,8 +31,9 @@ class MobileBase(RobotComponent):
         """Count is used for when we have multiple copies of mobile bases."""
 
         """
-        :param num_wheels: The x, y, z position of the target.
-        :param distance_from_target: The x, y, z orientation of the target (in radians).
+        :param count: used for multiple copies of robots
+        :param num_wheels: number of actuated wheels
+        :param distance_from_target: offset from target (not supported for nonholonomic robots)
         :param name: string with robot name (same as base in vrep model).
         :param max_velocity: bounds x,y velocity for motion planning (not implemented for nonholonomic robot).
         :param max_velocity_rotation: bounds yaw velocity for motion planning (not implemented for nonholonomic robot).
@@ -88,7 +89,7 @@ class MobileBase(RobotComponent):
         self.set_orientation([0, 0, yaw])
 
     def assess_collision(self):
-        """ Silent detection of the robot base with all other entities present in the scene.
+        """Silent detection of the robot base with all other entities present in the scene.
 
         :return: True if collision is detected
         """
@@ -96,7 +97,7 @@ class MobileBase(RobotComponent):
                                       vrep.sim_handle_all) == 1
 
     def set_cartesian_position(self, position: List[float]):
-        """ Set a delta target position (x,y) and rotation position
+        """Set a delta target position (x,y) and rotation position
 
         :param position: length 3 list containing x and y position, and angle position
 
@@ -110,7 +111,7 @@ class MobileBase(RobotComponent):
         self.set_base_angular_velocites(vel)
 
     def set_base_angular_velocites(self, velocity: List[float]):
-        """ This function has no effect for two_wheels robot. More control is required for omnidirectional robot.
+        """This function has no effect for two_wheels robot. More control is required for omnidirectional robot.
 
         :param velocity: for two wheels robot: each wheel velocity, for omnidirectional robot forwardBackward, leftRight and rotation velocity
         """
@@ -178,7 +179,7 @@ class MobileBase(RobotComponent):
         return path
 
     def _check_collision_linear_path(self,path):
-        """ Check for collision on a linear path from start to goal
+        """Check for collision on a linear path from start to goal
 
         :param position: A list containing start and goal as [x,y,yaw]
         :return: A bool, True if collision was detected
@@ -207,7 +208,7 @@ class MobileBase(RobotComponent):
         return status_collision
 
     def get_base_actuation(self):
-        """ Controller for mobile bases.
+        """Controller for mobile bases.
         """
         raise NotImplementedError()
 

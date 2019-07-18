@@ -43,7 +43,7 @@ class HolonomicBase(MobileBase):
                                 for jsname in joint_slipping_names]
 
     def set_base_angular_velocites(self, velocity: List[float]):
-        """ Calls required functions to achieve desired omnidirectional wheel effect.
+        """Calls required functions to achieve desired omnidirectional wheel effect.
 
         :param velocity: A List with forwardBackward, leftRight and rotation velocity (in radian/s)
         """
@@ -120,7 +120,7 @@ class HolonomicBase(MobileBase):
         return HolonomicConfigurationPath(self, path)
 
     def get_base_actuation(self):
-        """ Proportional controller.
+        """Proportional controller.
 
         :return: A list with left and right joint velocity, and bool if target is reached.
         """
@@ -178,7 +178,7 @@ class HolonomicBase(MobileBase):
 
 
     def _reset_wheel(self):
-        """ Required to achieve desired omnidirectional wheel effect.
+        """Required to achieve desired omnidirectional wheel effect.
         """
         [j.reset_dynamic_object() for j in self.wheels]
 

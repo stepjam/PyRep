@@ -86,7 +86,7 @@ class NonHolonomicBase(MobileBase):
         return NonHolonomicConfigurationPath(self, path)
 
     def get_base_actuation(self):
-        """ Proportional controller.
+        """Proportional controller.
 
         :return: A list with left and right joint velocity, and bool if target is reached.
         """
