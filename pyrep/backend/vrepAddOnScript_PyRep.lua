@@ -4,7 +4,7 @@ function sysCall_init()
 end
 
 function sysCall_cleanup()
-end 
+end
 
 function sysCall_addOnScriptSuspend()
 end
@@ -147,6 +147,53 @@ _findPath=function(goalConfigs,cnt,jointHandles,algorithm,collisionPairs)
     local task=simOMPL.createTask('task')
     simOMPL.setVerboseLevel(task, 0)
 
+    alg = _getAlgorithm(algorithm)
+
+    simOMPL.setAlgorithm(task,alg)
+
+    local jSpaces={}
+    for i=1,#jointHandles,1 do
+        jh = jointHandles[i]
+        cyclic, interval = sim.getJointInterval(jh)
+        -- If there are huge intervals, then limit them
+        if interval[1] < -6.28 and interval[2] > 6.28 then
+            pos=sim.getJointPosition(jh)
+            interval[1] = -6.28
+            interval[2] = 6.28
+        end
+        local proj=i
+        if i>3 then proj=0 end
+        jSpaces[i]=simOMPL.createStateSpace('j_space'..i,simOMPL.StateSpaceType.joint_position,jh,{interval[1]},{interval[2]},proj)
+    end
+
+    simOMPL.setStateSpace(task, jSpaces)
+    if collisionPairs ~= nil then
+        simOMPL.setCollisionPairs(task, collisionPairs)
+    end
+    simOMPL.setStartState(task, startConfig)
+    simOMPL.setGoalState(task, goalConfigs[1])
+    for i=2,#goalConfigs,1 do
+        simOMPL.addGoalState(task,goalConfigs[i])
+    end
+    local path=nil
+    local l=999999999999
+    for i=1,cnt,1 do
+        search_time = 4
+        local res,_path=simOMPL.compute(task,search_time,-1,300)
+        if res and _path then
+            local _l=_getPathLength(_path, jointHandles)
+            if _l<l then
+                l=_l
+                path=_path
+            end
+        end
+    end
+    simOMPL.destroyTask(task)
+    return path,l
+end
+
+_getAlgorithm=function(algorithm)
+    -- Returns correct algorithm functions from user string
     alg = nil
     if algorithm == 'BiTRRT' then
         alg = simOMPL.Algorithm.BiTRRT
@@ -199,48 +246,7 @@ _findPath=function(goalConfigs,cnt,jointHandles,algorithm,collisionPairs)
     elseif algorithm == 'TRRT' then
         alg = simOMPL.Algorithm.TRRT
     end
-
-    simOMPL.setAlgorithm(task,alg)
-
-    local jSpaces={}
-    for i=1,#jointHandles,1 do
-        jh = jointHandles[i]
-        cyclic, interval = sim.getJointInterval(jh)
-        -- If there are huge intervals, then limit them
-        if interval[1] < -6.28 and interval[2] > 6.28 then
-            pos=sim.getJointPosition(jh)
-            interval[1] = -6.28
-            interval[2] = 6.28
-        end
-        local proj=i
-        if i>3 then proj=0 end
-        jSpaces[i]=simOMPL.createStateSpace('j_space'..i,simOMPL.StateSpaceType.joint_position,jh,{interval[1]},{interval[2]},proj)
-    end
-
-    simOMPL.setStateSpace(task, jSpaces)
-    if collisionPairs ~= nil then
-        simOMPL.setCollisionPairs(task, collisionPairs)
-    end
-    simOMPL.setStartState(task, startConfig)
-    simOMPL.setGoalState(task, goalConfigs[1])
-    for i=2,#goalConfigs,1 do
-        simOMPL.addGoalState(task,goalConfigs[i])
-    end
-    local path=nil
-    local l=999999999999
-    for i=1,cnt,1 do
-        search_time = 4
-        local res,_path=simOMPL.compute(task,search_time,-1,300)
-        if res and _path then
-            local _l=_getPathLength(_path, jointHandles)
-            if _l<l then
-                l=_l
-                path=_path
-            end
-        end
-    end
-    simOMPL.destroyTask(task)
-    return path,l
+    return alg
 end
 
 _getPathLength=function(path, jointHandles)
@@ -399,4 +405,91 @@ insertPathControlPoint=function(inInts,inFloats,inStrings,inBuffer)
     end
     res = sim.insertPathCtrlPoints(handle, 0, 0, ptCnt, ptData)
     return {},{},{},''
+end
+
+getBoxAdjustedMatrixAndFacingAngle=function(inInts,inFloats,inStrings,inBuffer)
+    local baseHandle = inInts[1]
+    local targetHandle = inInts[2]
+    local p2=sim.getObjectPosition(targetHandle,-1)
+    local p1=sim.getObjectPosition(baseHandle,-1)
+    local p={p2[1]-p1[1],p2[2]-p1[2],p2[3]-p1[3]}
+    local pl=math.sqrt(p[1]*p[1]+p[2]*p[2]+p[3]*p[3])
+    p[1]=p[1]/pl
+    p[2]=p[2]/pl
+    p[3]=p[3]/pl
+    local m=sim.getObjectMatrix(targetHandle,-1)
+    local matchingScore=0
+    for i=1,3,1 do
+        v={m[0+i],m[4+i],m[8+i]}
+        score=v[1]*p[1]+v[2]*p[2]+v[3]*p[3]
+        if (math.abs(score)>matchingScore) then
+            s=1
+            if (score<0) then s=-1 end
+            matchingScore=math.abs(score)
+            bestMatch={v[1]*s,v[2]*s,v[3]*s}
+        end
+    end
+    angle=math.atan2(bestMatch[2],bestMatch[1])
+    m=sim.buildMatrix(p2,{0,0,angle})
+
+    table.insert(m,angle-math.pi/2)
+
+    return {},m,{},''
+end
+
+getNonlinearPathMobile=function(inInts,inFloats,inStrings,inBuffer)
+    algorithm = inStrings[1]
+    robotHandle = inInts[1]
+    targetHandle = inInts[2]
+    collisionHandle=inInts[3]
+    ignoreCollisions=inInts[4]
+    bd=inFloats[1]
+    path_pts=inInts[5]
+
+    collisionPairs={collisionHandle,sim.handle_all}
+
+    if ignoreCollisions==1 then
+        collisionPairs=nil
+    end
+
+    t=simOMPL.createTask('t')
+    simOMPL.setVerboseLevel(t, 0)
+    ss=simOMPL.createStateSpace('2d',simOMPL.StateSpaceType.dubins,robotHandle,{-bd,-bd},{bd,bd},1)
+    state_h = simOMPL.setStateSpace(t,{ss})
+    simOMPL.setDubinsParams(ss,0.1,true)
+    simOMPL.setAlgorithm(t,_getAlgorithm(algorithm))
+
+    if collisionPairs ~= nil then
+        simOMPL.setCollisionPairs(t, collisionPairs)
+    end
+
+    startpos=sim.getObjectPosition(robotHandle,-1)
+    startorient=sim.getObjectOrientation(robotHandle,-1)
+    startpose={startpos[1],startpos[2],startorient[3]}
+
+    simOMPL.setStartState(t,startpose)
+
+    goalpos=sim.getObjectPosition(targetHandle,-1)
+    goalorient=sim.getObjectOrientation(targetHandle,-1)
+    goalpose={goalpos[1],goalpos[2],goalorient[3]}
+
+    simOMPL.setGoalState(t,goalpose)
+
+    r,path=simOMPL.compute(t,4,-1,path_pts)
+
+    simOMPL.destroyTask(t)
+
+    return {},path,{},''
+end
+
+getAngleTwoWheel=function(inInts,inFloats,inStrings,inBuffer)
+    robotHandle = inInts[1]
+    intermediateTargetHandle = inInts[2]
+    intermediateTargetPos = simGetObjectPosition(intermediateTargetHandle,-1)
+    m=simGetObjectMatrix(robotHandle,-1)
+    m=simGetInvertedMatrix(m)
+    p = simMultiplyVector(m, intermediateTargetPos)
+    phi = math.atan2(p[2],p[1])
+
+    return {},{phi},{},''
 end
