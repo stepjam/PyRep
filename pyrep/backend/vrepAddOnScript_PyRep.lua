@@ -481,15 +481,3 @@ getNonlinearPathMobile=function(inInts,inFloats,inStrings,inBuffer)
 
     return {},path,{},''
 end
-
-getAngleTwoWheel=function(inInts,inFloats,inStrings,inBuffer)
-    robotHandle = inInts[1]
-    intermediateTargetHandle = inInts[2]
-    intermediateTargetPos = simGetObjectPosition(intermediateTargetHandle,-1)
-    m=simGetObjectMatrix(robotHandle,-1)
-    m=simGetInvertedMatrix(m)
-    p = simMultiplyVector(m, intermediateTargetPos)
-    phi = math.atan2(p[2],p[1])
-
-    return {},{phi},{},''
-end

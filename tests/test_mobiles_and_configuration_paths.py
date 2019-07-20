@@ -1,7 +1,6 @@
 import unittest
 from tests.core import TestCore
 from pyrep import PyRep
-from pyrep.objects.cartesian_path import CartesianPath
 from pyrep.objects.dummy import Dummy
 import numpy as np
 from os import path
@@ -12,6 +11,7 @@ from pyrep.robots.mobiles.LineTracer import LineTracer
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
 
+# TODO: Extract out youbot to 'test_mobiles_with_arms.py'
 MOBILES = [
     ('youBot', youBot),
     ('LineTracer', LineTracer),

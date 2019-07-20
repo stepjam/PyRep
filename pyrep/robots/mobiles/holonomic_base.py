@@ -20,10 +20,18 @@ class HolonomicBase(MobileBase):
                  max_velocity: float = 4,
                  max_velocity_rotation: float = 6,
                  max_acceleration: float = 0.035):
+        """Init.
 
-        super().__init__(
-            count, num_wheels, distance_from_target, name,
-            max_velocity, max_velocity_rotation, max_acceleration)
+        :param count: used for multiple copies of robots.
+        :param num_wheels: number of actuated wheels.
+        :param distance_from_target: offset from target.
+        :param name: string with robot name (same as base in vrep model).
+        :param max_velocity: bounds x,y velocity for motion planning.
+        :param max_velocity_rotation: bounds yaw velocity for motion planning.
+        :param max_acceleration: bounds acceleration for motion planning.
+        """
+
+        super().__init__(count, num_wheels, name)
 
         suffix = '' if count == 0 else '#%d' % (count - 1)
 
@@ -44,9 +52,10 @@ class HolonomicBase(MobileBase):
                                 for jsname in joint_slipping_names]
 
     def set_base_angular_velocites(self, velocity: List[float]):
-        """Calls required functions to achieve desired omnidirectional wheel effect.
+        """Calls required functions to achieve desired omnidirectional effect.
 
-        :param velocity: A List with forwardBackward, leftRight and rotation velocity (in radian/s)
+        :param velocity: A List with forwardBackward, leftRight and rotation
+            velocity (in radian/s)
         """
         self._reset_wheel()
         fBVel = velocity[0]
@@ -93,7 +102,9 @@ class HolonomicBase(MobileBase):
                 [position[0], position[1], angle]]
 
         if self._check_collision_linear_path(path):
-            raise ConfigurationPathError('Could not create path. An object was detected on the linear path.')
+            raise ConfigurationPathError(
+                'Could not create path. '
+                'An object was detected on the linear path.')
 
         return HolonomicConfigurationPath(self, path)
 
@@ -109,8 +120,9 @@ class HolonomicBase(MobileBase):
         :param position: The x, y, z position of the target.
         :param angle: The z orientation of the target (in radians).
         :param boundaries: A float defining the path search in x and y direction
-        [[-boundaries,boundaries],[-boundaries,boundaries]].
-        :param path_pts: number of sampled points returned from the computed path
+            [[-boundaries,boundaries],[-boundaries,boundaries]].
+        :param path_pts: The number of sampled points returned from the
+            computed path
         :param ignore_collisions: If collision checking should be disabled.
         :param algorithm: Algorithm used to compute path
         :raises: ConfigurationPathError if no path could be created.
@@ -126,7 +138,8 @@ class HolonomicBase(MobileBase):
     def get_base_actuation(self):
         """Proportional controller.
 
-        :return: A list with left and right joint velocity, and bool if target is reached.
+        :return: A list with left and right joint velocity,
+            and a bool representing target is reached.
         """
 
         handleBase = self.get_handle()
@@ -179,7 +192,6 @@ class HolonomicBase(MobileBase):
         self.previous_rot_vel = rot_vel
 
         return [forw_back_vel, left_right_vel, rot_vel], False
-
 
     def _reset_wheel(self):
         """Required to achieve desired omnidirectional wheel effect.

@@ -1,11 +1,8 @@
 from pyrep.backend import vrep, utils
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
-from pyrep.objects.joint import Joint
 from pyrep.robots.robot_component import RobotComponent
 from pyrep.const import ConfigurationPathAlgorithms as Algos
-from pyrep.robots.configuration_paths.mobile_configuration_path import (
-    MobileConfigurationPath)
 from pyrep.errors import ConfigurationPathError
 from pyrep.const import PYREP_SCRIPT_TYPE
 from contextlib import contextmanager
@@ -13,31 +10,20 @@ from typing import List
 import sys
 import os
 import io
-from math import pi, sqrt
+from math import sqrt
+import numpy as np
 
 
 class MobileBase(RobotComponent):
     """Base class representing a robot mobile base with path planning support.
     """
 
-    def __init__(self,
-                 count: int,
-                 num_wheels: int,
-                 distance_from_target: float,
-                 name: str,
-                 max_velocity: float = 4,
-                 max_velocity_rotation: float = 6,
-                 max_acceleration: float = 0.035):
-        """Count is used for when we have multiple copies of mobile bases."""
+    def __init__(self, count: int, num_wheels: int, name: str):
+        """Count is used for when we have multiple copies of mobile bases.
 
-        """
         :param count: used for multiple copies of robots
         :param num_wheels: number of actuated wheels
-        :param distance_from_target: offset from target (not supported for nonholonomic robots)
         :param name: string with robot name (same as base in vrep model).
-        :param max_velocity: bounds x,y velocity for motion planning (not implemented for nonholonomic robot).
-        :param max_velocity_rotation: bounds yaw velocity for motion planning (not implemented for nonholonomic robot).
-        :param max_acceleration: bounds acceleration for motion planning (not implemented for nonholonomic robot).
         """
 
         joint_names = ['%s_m_joint%s' % (name, str(i + 1)) for i in
@@ -62,10 +48,10 @@ class MobileBase(RobotComponent):
         # Robot parameters and handle
         self.z_pos = self.get_position()[2]
         self.target_z = self.target_base.get_position()[-1]
-        self.wheel_size = self.wheels[0].get_bounding_box()[1] * 2
-        self.wheel_sep = abs(
-            self.wheels[0].get_position()[1] - self.wheels[1].get_position()[
-                1]) / 2
+        self.wheel_radius = self.wheels[0].get_bounding_box()[5]  # Z
+        self.wheel_distance = np.linalg.norm(
+            np.array(self.wheels[0].get_position()) -
+            np.array(self.wheels[1].get_position()))
 
         # Make sure dummies are orphan if loaded with ttm
         self.intermediate_target_base.set_parent(None)
@@ -106,7 +92,7 @@ class MobileBase(RobotComponent):
         vel = [0, 0, 0]
         vel[-1] = position[-1]
         for i in range(2):
-            vel[i] = position[i] / (0.05 * self.wheel_size / 2)  # "0.05 is dt"
+            vel[i] = position[i] / (0.05 * self.wheel_radius / 2)  # "0.05 is dt"
 
         self.set_base_angular_velocites(vel)
 
