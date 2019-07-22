@@ -170,6 +170,14 @@ def simReleaseBuffer(pointer):
     lib.simReleaseBuffer(pointer)
 
 
+def simCreateVisionSensor(options, intParams, floatParams, color):
+    if color is None:
+        color = ffi.NULL
+    ret = lib.simCreateVisionSensor(options, intParams, floatParams, color)
+    _check_return(ret)
+    return ret
+
+
 def simReadVisionSensor(sensorHandle):
     auxValues = ffi.new('float **')
     auxValuesCount = ffi.new('int **')
