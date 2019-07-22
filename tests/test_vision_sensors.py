@@ -32,6 +32,11 @@ class TestVisionSensors(TestCore):
         self.assertAlmostEqual(cam.get_perspective_angle(), 35.0, 3)
         self.assertEqual(cam.get_render_mode(), RenderMode.OPENGL3)
 
+    def test_get_set_resolution(self):
+        self.cam.set_resolution([320, 240])
+        self.assertEqual(self.cam.get_resolution(), [320, 240])
+        self.assertEqual(self.cam.capture_rgb().shape, (240, 320, 3))
+
     def test_get_set_perspective_mode(self):
         for perspective_mode in PerspectiveMode:
             self.cam.set_perspective_mode(perspective_mode)

@@ -121,6 +121,26 @@ class VisionSensor(Object):
         """
         return vrep.simGetVisionSensorDepthBuffer(self._handle, self.resolution)
 
+    def get_resolution(self) -> List[int]:
+        """ Return the Sensor's resolution.
+
+        :return: Resolution [x, y]
+        """
+        return vrep.simGetVisionSensorResolution(self._handle)
+
+    def set_resolution(self, resolution: List[int]) -> None:
+        """ Set the Sensor's resolution.
+
+        :param resolution: New resolution [x, y]
+        """
+        vrep.simSetObjectInt32Parameter(
+            self._handle, vrep.sim_visionintparam_resolution_x, resolution[0]
+        )
+        vrep.simSetObjectInt32Parameter(
+            self._handle, vrep.sim_visionintparam_resolution_y, resolution[1]
+        )
+        self.resolution = resolution
+
     def get_perspective_mode(self) -> PerspectiveMode:
         """ Retreive the Sensor's perspective mode.
 
