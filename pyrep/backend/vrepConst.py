@@ -276,11 +276,12 @@ sim_handle_parent                    =-11
 
 
 # special handle flags
-sim_handleflag_assembly                =0x400000
+sim_handleflag_assembly             =0x400000
 sim_handleflag_model                =0x800000
+sim_handleflag_depthbuffermeters    =0x800000
 
 
-# distance calculation methods (serialized) 
+# distance calculation methods (serialized)
 sim_distcalcmethod_dl               =0
 sim_distcalcmethod_dac              =1
 sim_distcalcmethod_max_dl_dac       =2

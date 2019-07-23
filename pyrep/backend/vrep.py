@@ -207,7 +207,9 @@ def simGetVisionSensorImage(sensorHandle, resolution):
     return img
 
 
-def simGetVisionSensorDepthBuffer(sensorHandle, resolution):
+def simGetVisionSensorDepthBuffer(sensorHandle, resolution, in_meters):
+    if in_meters:
+        sensorHandle += sim_handleflag_depthbuffermeters
     img_buffer = lib.simGetVisionSensorDepthBuffer(sensorHandle)
     T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
     s = ffi.sizeof(T)  # datatype size

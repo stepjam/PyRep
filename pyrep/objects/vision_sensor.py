@@ -114,12 +114,14 @@ class VisionSensor(Object):
         """
         return vrep.simGetVisionSensorImage(self._handle, self.resolution)
 
-    def capture_depth(self) -> np.ndarray:
+    def capture_depth(self, in_meters=False) -> np.ndarray:
         """Retrieves the depth-image of a vision sensor.
 
+        :param in_meters: Whether the depth should be returned in meters.
         :return: A numpy array of size (width, height)
         """
-        return vrep.simGetVisionSensorDepthBuffer(self._handle, self.resolution)
+        return vrep.simGetVisionSensorDepthBuffer(
+            self._handle, self.resolution, in_meters)
 
     def get_resolution(self) -> List[int]:
         """ Return the Sensor's resolution.
