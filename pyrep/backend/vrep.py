@@ -199,10 +199,10 @@ def simGetVisionSensorImage(sensorHandle, resolution):
     T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
     s = ffi.sizeof(T)  # datatype size
     np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
-    # Wrap the buffer with numpy. Take a copy otherwise the data is lost when we release the buffer
-    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*3*s ), np_T).copy()
+    # Wrap the buffer with numpy.
+    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*3*s), np_T)
     img = img.reshape(resolution[1], resolution[0], 3)
-    img = np.flip(img, 0)  # Image is upside-down
+    img = np.flip(img, 0).copy()  # Image is upside-down
     simReleaseBuffer(ffi.cast('char *', img_buffer))
     return img
 
@@ -214,10 +214,10 @@ def simGetVisionSensorDepthBuffer(sensorHandle, resolution, in_meters):
     T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
     s = ffi.sizeof(T)  # datatype size
     np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
-    # Wrap the buffer with numpy. Take a copy otherwise the data is lost when we release the buffer
-    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*s ), np_T).copy()
+    # Wrap the buffer with numpy.
+    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*s), np_T)
     img = img.reshape(resolution[1], resolution[0])
-    img = np.flip(img, 0)  # Image is upside-down
+    img = np.flip(img, 0).copy()  # Image is upside-down
     simReleaseBuffer(ffi.cast('char *', img_buffer))
     return img
 
