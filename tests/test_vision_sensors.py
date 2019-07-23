@@ -24,12 +24,17 @@ class TestVisionSensors(TestCore):
         self.assertFalse(img.min() == img.max() == 1.0)
 
     def test_create(self):
-        cam = VisionSensor.create([640, 480], perspective_mode=True,
+        cam = VisionSensor.create([640, 480],
+                                  perspective_mode=True,
                                   view_angle=35.0,
+                                  near_clipping_plane=0.25,
+                                  far_clipping_plane=5.0,
                                   render_mode=RenderMode.OPENGL3)
         self.assertEqual(cam.capture_rgb().shape, (480, 640, 3))
         self.assertEqual(cam.get_perspective_mode(), PerspectiveMode.PERSPECTIVE)
         self.assertAlmostEqual(cam.get_perspective_angle(), 35.0, 3)
+        self.assertEqual(cam.get_near_clipping_plane(), 0.25)
+        self.assertEqual(cam.get_far_clipping_plane(), 5.0)
         self.assertEqual(cam.get_render_mode(), RenderMode.OPENGL3)
 
     def test_get_set_resolution(self):
@@ -58,6 +63,13 @@ class TestVisionSensors(TestCore):
         self.cam.set_orthographic_size(1.0)
         self.assertEqual(self.cam.get_orthographic_size(), 1.0)
 
+    def test_get_set_near_clipping_plane(self):
+        self.cam.set_near_clipping_plane(0.5)
+        self.assertEqual(self.cam.get_near_clipping_plane(), 0.5)
+
+    def test_get_set_far_clipping_plane(self):
+        self.cam.set_far_clipping_plane(0.5)
+        self.assertEqual(self.cam.get_far_clipping_plane(), 0.5)
 
 if __name__ == '__main__':
     unittest.main()

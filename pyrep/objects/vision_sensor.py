@@ -227,3 +227,39 @@ class VisionSensor(Object):
         vrep.simSetObjectFloatParameter(
             self._handle, vrep.sim_visionfloatparam_ortho_size, ortho_size
         )
+
+    def get_near_clipping_plane(self) -> float:
+        """ Get the Sensor's near clipping plane.
+
+        :return: Near clipping plane (metres)
+        """
+        return vrep.simGetObjectFloatParameter(
+            self._handle, vrep.sim_visionfloatparam_near_clipping
+        )
+
+    def set_near_clipping_plane(self, near_clipping: float) -> None:
+        """ Set the Sensor's near clipping plane.
+
+        :param near_clipping: New near clipping plane (in metres)
+        """
+        vrep.simSetObjectFloatParameter(
+            self._handle, vrep.sim_visionfloatparam_near_clipping, near_clipping
+        )
+
+    def get_far_clipping_plane(self) -> float:
+        """ Get the Sensor's far clipping plane.
+
+        :return: Near clipping plane (metres)
+        """
+        return vrep.simGetObjectFloatParameter(
+            self._handle, vrep.sim_visionfloatparam_far_clipping
+        )
+
+    def set_far_clipping_plane(self, far_clipping: float) -> None:
+        """ Set the Sensor's far clipping plane.
+
+        :param far_clipping: New far clipping plane (in metres)
+        """
+        vrep.simSetObjectFloatParameter(
+            self._handle, vrep.sim_visionfloatparam_far_clipping, far_clipping
+        )
