@@ -170,6 +170,14 @@ def simReleaseBuffer(pointer):
     lib.simReleaseBuffer(pointer)
 
 
+def simCreateVisionSensor(options, intParams, floatParams, color):
+    if color is None:
+        color = ffi.NULL
+    ret = lib.simCreateVisionSensor(options, intParams, floatParams, color)
+    _check_return(ret)
+    return ret
+
+
 def simReadVisionSensor(sensorHandle):
     auxValues = ffi.new('float **')
     auxValuesCount = ffi.new('int **')
@@ -199,7 +207,9 @@ def simGetVisionSensorImage(sensorHandle, resolution):
     return img
 
 
-def simGetVisionSensorDepthBuffer(sensorHandle, resolution):
+def simGetVisionSensorDepthBuffer(sensorHandle, resolution, in_meters):
+    if in_meters:
+        sensorHandle += sim_handleflag_depthbuffermeters
     img_buffer = lib.simGetVisionSensorDepthBuffer(sensorHandle)
     T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
     s = ffi.sizeof(T)  # datatype size
