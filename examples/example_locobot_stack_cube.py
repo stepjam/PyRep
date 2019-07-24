@@ -31,6 +31,7 @@ def drive_to_position(position, orientation):
     while not done:
         done = base_path.step()
         pr.step()
+    pr.step()
 
 
 def move_arm(position, quaternion, ignore_collisions=False):
@@ -50,13 +51,13 @@ goal = Shape('goal')
 grasp_point = Dummy('grasp_point')
 
 drive_pos = cuboid.get_position()
-drive_pos[1] -= 0.2
+drive_pos[1] -= 0.3
 
 print('Driving to cube ...')
 drive_to_position(drive_pos, 0)
 
 grasp_point_raised = grasp_point.get_position()
-grasp_point_raised[2] += 0.05
+grasp_point_raised[2] += 0.075
 
 print('Move arm above cube ...')
 move_arm(grasp_point_raised, grasp_point.get_quaternion())

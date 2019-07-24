@@ -27,7 +27,7 @@ class NonHolonomicBase(MobileBase):
         self.Kp = 1.0
         self.Ki = 0.01
         self.Kd = 0.1
-        self.desired_velocity = 0.01
+        self.desired_velocity = 0.05
 
     def get_linear_path(self, position: List[float],
                         angle=0) -> NonHolonomicConfigurationPath:
@@ -96,7 +96,7 @@ class NonHolonomicBase(MobileBase):
         d_x, d_y, _ = self.intermediate_target_base.get_position(
             relative_to=self)
 
-        if sqrt((d_x) ** 2 + (d_y) ** 2) < 0.01:
+        if sqrt((d_x) ** 2 + (d_y) ** 2) < 0.1:
             return [0., 0.], True
 
         alpha = atan2(d_y, d_x)
