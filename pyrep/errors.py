@@ -6,10 +6,6 @@ class WrongObjectTypeError(Exception):
     pass
 
 
-class NoParentError(Exception):
-    pass
-
-
 class ObjectAlreadyRemovedError(Exception):
     pass
 
@@ -27,4 +23,8 @@ class ConfigurationPathError(Exception):
 
 
 class GripperError(Exception):
+    pass
+
+
+class IKError(Exception):
     pass

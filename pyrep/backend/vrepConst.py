@@ -276,11 +276,12 @@ sim_handle_parent                    =-11
 
 
 # special handle flags
-sim_handleflag_assembly                =0x400000
+sim_handleflag_assembly             =0x400000
 sim_handleflag_model                =0x800000
+sim_handleflag_depthbuffermeters    =0x800000
 
 
-# distance calculation methods (serialized) 
+# distance calculation methods (serialized)
 sim_distcalcmethod_dl               =0
 sim_distcalcmethod_dac              =1
 sim_distcalcmethod_max_dl_dac       =2
@@ -558,6 +559,7 @@ sim_visionfloatparam_pov_blur_distance= 1014
 sim_visionfloatparam_pov_aperture= 1015
 sim_visionintparam_pov_blur_sampled= 1016
 sim_visionintparam_render_mode= 1017
+sim_visionintparam_perspective_mode= 1018
 
 sim_jointintparam_motor_enabled= 2000
 sim_jointintparam_ctrl_enabled= 2001
@@ -794,3 +796,13 @@ sim_texturemap_plane = 0
 sim_texturemap_cylinder = 1
 sim_texturemap_sphere = 2
 sim_texturemap_cube = 3
+
+# Rendering modes
+sim_rendermode_opengl               = 0
+sim_rendermode_auxchannels          = 1
+sim_rendermode_colorcoded           = 2
+sim_rendermode_povray               = 3
+sim_rendermode_extrenderer          = 5
+sim_rendermode_extrendererwindowed  = 6
+sim_rendermode_opengl3              = 7
+sim_rendermode_opengl3windowed      = 8

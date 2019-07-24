@@ -75,4 +75,20 @@ class TextureMappingMode(Enum):
     CUBE = vrep.sim_texturemap_cube
 
 
+class PerspectiveMode(Enum):
+    ORTHOGRAPHIC = 0
+    PERSPECTIVE = 1
+
+
+class RenderMode(Enum):
+    OPENGL = vrep.sim_rendermode_opengl
+    OPENGL_AUXILIARY = vrep.sim_rendermode_auxchannels
+    OPENGL_COLOR_CODED = vrep.sim_rendermode_colorcoded
+    POV_RAY = vrep.sim_rendermode_povray
+    EXTERNAL = vrep.sim_rendermode_extrenderer
+    EXTERNAL_WINDOWED = vrep.sim_rendermode_extrendererwindowed
+    OPENGL3 = vrep.sim_rendermode_opengl3
+    OPENGL3_WINDOWED = vrep.sim_rendermode_opengl3windowed
+
+
 PYREP_SCRIPT_TYPE = vrep.sim_scripttype_addonscript

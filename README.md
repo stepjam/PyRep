@@ -205,11 +205,16 @@ Here is a list of robots currently supported by PyRep:
 - Rethink Baxter Gripper
 - Franka Emika Panda Gripper
 
+#### Mobile Robots
+
+- Kuka YouBot
+- Turtle Bot
+- Line Tracer
+
 Feel free to send pull requests for new robots!
 
 ## Planned Future Updates
 
-- Support for mobile bases (including planning)
 - Support for MuJoCo
 - Sim-to-Real support (e.g. domain randomization)
 
@@ -226,6 +231,10 @@ If you use PyRep in your work, then get in contact and we can add you to the lis
 - [Task-Embedded Control Networks for Few-Shot Imitation Learning, CoRL 2018](https://arxiv.org/abs/1810.03237)
 - [Transferring End-to-End Visuomotor Control from Simulation to Real World for a Multi-Stage Task
 , CoRL 2017](https://arxiv.org/abs/1707.02267)
+
+## Acknowledgements
+
+- Georges Nomicos (Imperial College London) for the addition of mobile platforms.
 
 ## Citation
 

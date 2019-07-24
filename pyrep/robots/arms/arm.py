@@ -1,10 +1,10 @@
 from pyrep.backend import vrep, utils
 from pyrep.objects.dummy import Dummy
-from pyrep.robots.arms.configuration_path import ConfigurationPath
+from pyrep.robots.configuration_paths.arm_configuration_path import (
+    ArmConfigurationPath)
 from pyrep.robots.robot_component import RobotComponent
 from pyrep.objects.cartesian_path import CartesianPath
-from pyrep.errors import ConfigurationError
-from pyrep.errors import ConfigurationPathError
+from pyrep.errors import ConfigurationError, ConfigurationPathError, IKError
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.const import PYREP_SCRIPT_TYPE
 from contextlib import contextmanager
@@ -45,9 +45,7 @@ class Arm(RobotComponent):
                                  trials=300, max_configs=60) -> List[List[float]]:
 
         """Gets a valid joint configuration for a desired end effector pose.
-
         Must specify either rotation in euler or quaternions, but not both!
-
         :param position: The x, y, z position of the target.
         :param euler: The x, y, z orientation of the target (in radians).
         :param quaternion: A list containing the quaternion (x,y,z,w).
@@ -56,9 +54,7 @@ class Arm(RobotComponent):
         :param max_configs: The maximum number of configurations we want to
             generate before ranking them.
         :raises: ConfigurationError if no joint configuration could be found.
-
-        :return: A list of valid joint configurations for the desired end effector pose,
-            sorted based on distance to current joint configuration, in ascending order.
+        :return: A list of valid joint configurations for the desired end effector pose.
         """
 
         if not ((euler is None) ^ (quaternion is None)):
@@ -89,8 +85,34 @@ class Arm(RobotComponent):
         num_configs = int(len(ret_floats)/len(handles))
         return [[ret_floats[len(handles)*i+j] for j in range(len(handles))] for i in range(num_configs)]
 
+    def solve_ik(self, position: List[float], euler: List[float] = None,
+                 quaternion: List[float] = None) -> List[float]:
+        """Solves an IK group and returns the calculated joint values.
+
+        Must specify either rotation in euler or quaternions, but not both!
+
+        :param position: The x, y, z position of the target.
+        :param euler: The x, y, z orientation of the target (in radians).
+        :param quaternion: A list containing the quaternion (x,y,z,w).
+        :return: A list containing the calculated joint values.
+        """
+        self._ik_target.set_position(position)
+        if euler is not None:
+            self._ik_target.set_orientation(euler)
+        elif quaternion is not None:
+            self._ik_target.set_quaternion(quaternion)
+
+        ik_result, joint_values = vrep.simCheckIkGroup(
+            self._ik_group, [j.get_handle() for j in self.joints])
+        if ik_result == vrep.sim_ikresult_fail:
+            raise IKError('IK failed. Perhaps the distance was between the tip '
+                          ' and target was too large.')
+        elif ik_result == vrep.sim_ikresult_not_performed:
+            raise IKError('IK not performed.')
+        return joint_values
+
     def get_path_from_cartesian_path(self, path: CartesianPath
-                                     ) -> ConfigurationPath:
+                                     ) -> ArmConfigurationPath:
         """Translate a path from cartesian space, to arm configuration space.
 
         Note: It must be possible to reach the start of the path via a linear
@@ -110,12 +132,13 @@ class Arm(RobotComponent):
         if len(ret_floats) == 0:
             raise ConfigurationPathError(
                 'Could not create a path from cartesian path.')
-        return ConfigurationPath(self, ret_floats)
+        return ArmConfigurationPath(self, ret_floats)
 
     def get_linear_path(self, position: List[float],
                         euler: List[float] = None,
                         quaternion: List[float] = None,
-                        steps=50, ignore_collisions=False) -> ConfigurationPath:
+                        steps=50, ignore_collisions=False
+                        ) -> ArmConfigurationPath:
         """Gets a linear configuration path given a target pose.
 
         Generates a path that drives a robot from its current configuration
@@ -158,14 +181,14 @@ class Arm(RobotComponent):
 
         if len(ret_floats) == 0:
             raise ConfigurationPathError('Could not create path.')
-        return ConfigurationPath(self, ret_floats)
+        return ArmConfigurationPath(self, ret_floats)
 
     def get_nonlinear_path(self, position: List[float],
                            euler: List[float] = None,
                            quaternion: List[float] = None,
                            ignore_collisions=False,
                            trials=300, max_configs=60, trials_per_goal=6,
-                           algorithm=Algos.SBL) -> ConfigurationPath:
+                           algorithm=Algos.SBL) -> ArmConfigurationPath:
         """Gets a non-linear (planned) configuration path given a target pose.
 
         A path is generated by finding several configs for a pose, and ranking
@@ -212,7 +235,7 @@ class Arm(RobotComponent):
 
         if len(ret_floats) == 0:
             raise ConfigurationPathError('Could not create path.')
-        return ConfigurationPath(self, ret_floats)
+        return ArmConfigurationPath(self, ret_floats)
 
     def get_path(self, position: List[float],
                  euler: List[float] = None,
@@ -220,7 +243,7 @@ class Arm(RobotComponent):
                  ignore_collisions=False,
                  trials=300, max_configs=60, trials_per_goal=6,
                  algorithm=Algos.SBL
-                 ) -> ConfigurationPath:
+                 ) -> ArmConfigurationPath:
         """Tries to get a linear path, failing that tries a non-linear path.
 
         Must specify either rotation in euler or quaternions, but not both!

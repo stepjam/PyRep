@@ -52,7 +52,7 @@ class Gripper(RobotComponent):
         for grasped_obj, old_parent in zip(
                 self._grasped_objects, self._old_parents):
             # Check if the object still exists
-            if grasped_obj.still_exists() and old_parent.still_exists():
+            if grasped_obj.still_exists():
                 grasped_obj.set_parent(old_parent, keep_in_place=True)
         self._grasped_objects = []
         self._old_parents = []

@@ -170,6 +170,14 @@ def simReleaseBuffer(pointer):
     lib.simReleaseBuffer(pointer)
 
 
+def simCreateVisionSensor(options, intParams, floatParams, color):
+    if color is None:
+        color = ffi.NULL
+    ret = lib.simCreateVisionSensor(options, intParams, floatParams, color)
+    _check_return(ret)
+    return ret
+
+
 def simReadVisionSensor(sensorHandle):
     auxValues = ffi.new('float **')
     auxValuesCount = ffi.new('int **')
@@ -191,23 +199,25 @@ def simGetVisionSensorImage(sensorHandle, resolution):
     T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
     s = ffi.sizeof(T)  # datatype size
     np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
-    # Wrap the buffer with numpy. Take a copy otherwise the data is lost when we release the buffer
-    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*3*s ), np_T).copy()
+    # Wrap the buffer with numpy.
+    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*3*s), np_T)
     img = img.reshape(resolution[1], resolution[0], 3)
-    img = np.flip(img, 0)  # Image is upside-down
+    img = np.flip(img, 0).copy()  # Image is upside-down
     simReleaseBuffer(ffi.cast('char *', img_buffer))
     return img
 
 
-def simGetVisionSensorDepthBuffer(sensorHandle, resolution):
+def simGetVisionSensorDepthBuffer(sensorHandle, resolution, in_meters):
+    if in_meters:
+        sensorHandle += sim_handleflag_depthbuffermeters
     img_buffer = lib.simGetVisionSensorDepthBuffer(sensorHandle)
     T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
     s = ffi.sizeof(T)  # datatype size
     np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
-    # Wrap the buffer with numpy. Take a copy otherwise the data is lost when we release the buffer
-    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*s ), np_T).copy()
+    # Wrap the buffer with numpy.
+    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*s), np_T)
     img = img.reshape(resolution[1], resolution[0])
-    img = np.flip(img, 0)  # Image is upside-down
+    img = np.flip(img, 0).copy()  # Image is upside-down
     simReleaseBuffer(ffi.cast('char *', img_buffer))
     return img
 
@@ -948,3 +958,17 @@ def simCopyPasteObjects(objectHandles, options):
     ret = lib.simCopyPasteObjects(handles, len(objectHandles), options)
     _check_return(ret)
     return list(handles)
+
+
+def simHandleIkGroup(ikGroupHandle):
+    ret = lib.simHandleIkGroup(ikGroupHandle)
+    _check_return(ret)
+    return ret
+
+
+def simCheckIkGroup(ikGroupHandle, jointHandles):
+    jointValues = ffi.new('float[%d]' % len(jointHandles))
+    ret = lib.simCheckIkGroup(
+        ikGroupHandle, len(jointHandles), jointHandles, jointValues, ffi.NULL)
+    _check_return(ret)
+    return ret, list(jointValues)
