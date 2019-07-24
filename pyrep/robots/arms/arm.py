@@ -4,7 +4,7 @@ from pyrep.robots.configuration_paths.arm_configuration_path import (
     ArmConfigurationPath)
 from pyrep.robots.robot_component import RobotComponent
 from pyrep.objects.cartesian_path import CartesianPath
-from pyrep.errors import ConfigurationPathError, IKError
+from pyrep.errors import ConfigurationError, ConfigurationPathError, IKError
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.const import PYREP_SCRIPT_TYPE
 from contextlib import contextmanager
@@ -37,6 +37,53 @@ class Arm(RobotComponent):
         self._ik_group = vrep.simGetIkGroupHandle('%s_ik%s' % (name, suffix))
         self._collision_collection = vrep.simGetCollectionHandle(
             '%s_arm%s' % (name, suffix))
+
+    def get_configs_for_tip_pose(self, position: List[float],
+                                 euler: List[float] = None,
+                                 quaternion: List[float] = None,
+                                 ignore_collisions=False,
+                                 trials=300, max_configs=60) -> List[List[float]]:
+
+        """Gets a valid joint configuration for a desired end effector pose.
+        Must specify either rotation in euler or quaternions, but not both!
+        :param position: The x, y, z position of the target.
+        :param euler: The x, y, z orientation of the target (in radians).
+        :param quaternion: A list containing the quaternion (x,y,z,w).
+        :param ignore_collisions: If collision checking should be disabled.
+        :param trials: The maximum number of attempts to reach max_configs
+        :param max_configs: The maximum number of configurations we want to
+            generate before ranking them.
+        :raises: ConfigurationError if no joint configuration could be found.
+        :return: A list of valid joint configurations for the desired end effector pose.
+        """
+
+        if not ((euler is None) ^ (quaternion is None)):
+            raise ConfigurationPathError(
+                'Specify either euler or quaternion values, but not both.')
+
+        prev_pose = self._ik_target.get_pose()
+        self._ik_target.set_position(position)
+        if euler is not None:
+            self._ik_target.set_orientation(euler)
+        elif quaternion is not None:
+            self._ik_target.set_quaternion(quaternion)
+
+        handles = [j.get_handle() for j in self.joints]
+
+        # Despite verbosity being set to 0, OMPL spits out a lot of text
+        with suppress_std_out_and_err():
+            _, ret_floats, _, _ = utils.script_call(
+                'findSeveralCollisionFreeConfigsAndCheckApproach@PyRep', PYREP_SCRIPT_TYPE,
+                ints=[self._ik_group, self._collision_collection,
+                      int(ignore_collisions), trials, max_configs] + handles)
+        self._ik_target.set_pose(prev_pose)
+
+        if len(ret_floats) == 0:
+            raise ConfigurationError(
+                'Could not find a valid joint configuration for desired end effector pose.')
+
+        num_configs = int(len(ret_floats)/len(handles))
+        return [[ret_floats[len(handles)*i+j] for j in range(len(handles))] for i in range(num_configs)]
 
     def solve_ik(self, position: List[float], euler: List[float] = None,
                  quaternion: List[float] = None) -> List[float]:

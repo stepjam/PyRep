@@ -14,6 +14,10 @@ class ObjectIsNotModelError(Exception):
     pass
 
 
+class ConfigurationError(Exception):
+    pass
+
+
 class ConfigurationPathError(Exception):
     pass
 
