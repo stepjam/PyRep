@@ -14,8 +14,6 @@ class Joint(Object):
 
     def __init__(self, name_or_handle: Union[str, int]):
         super().__init__(name_or_handle)
-        # Used for torque/force mode
-        self._init_config_tree = self.get_configuration_tree()
 
     def get_type(self) -> ObjectType:
         return ObjectType.JOINT
@@ -245,7 +243,6 @@ class Joint(Object):
 
         # Disable the dynamics
         vrep.simSetModelProperty(self._handle, p)
-        vrep.simSetConfigurationTree(self._init_config_tree)
 
         # Set the joint angles
         vrep.simSetJointPosition(self._handle, value)

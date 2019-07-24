@@ -1,6 +1,7 @@
 from cffi import FFI
 import os
 import glob
+from shutil import copyfile
 
 # Get PYREP root and find the needed files to compile the cffi lib.
 
@@ -729,6 +730,12 @@ path = os.path.join(os.environ['VREP_ROOT'], 'libv_rep.so')
 if not os.path.exists(path + '.1'):
     print('creating symlink: %s -> %s' % (path + '.1', path))
     os.symlink(path, path + '.1')
+
+# Copy lua functions to the VREP_ROOT
+print('copying lua file: %s -> %s' % ('pyrep/backend', os.environ['VREP_ROOT']))
+lua_script_fname = 'vrepAddOnScript_PyRep.lua'
+copyfile(os.path.join('pyrep/backend', lua_script_fname),
+         os.path.join(os.environ['VREP_ROOT'], lua_script_fname))
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)
