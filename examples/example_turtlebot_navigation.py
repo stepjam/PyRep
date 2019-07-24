@@ -5,20 +5,17 @@ This script contains examples of:
 """
 from os.path import dirname, join, abspath
 from pyrep import PyRep
-from pyrep.robots.mobiles.turtlebot import turtlebot
+from pyrep.robots.mobiles.turtlebot import TurtleBot
 from pyrep.objects.shape import Shape
 from pyrep.const import PrimitiveShape
-from pyrep.errors import ConfigurationPathError
 import numpy as np
-import math
-import time
 
 LOOPS = 4
-SCENE_FILE = join(dirname(abspath(__file__)), 'turtlebot.ttt')
+SCENE_FILE = join(dirname(abspath(__file__)), 'scene_turtlebot_navigation.ttt')
 pr = PyRep()
 pr.launch(SCENE_FILE, headless=False)
 pr.start()
-agent = turtlebot()
+agent = TurtleBot()
 
 # We could have made this target in the scene, but lets create one dynamically
 target = Shape.create(type=PrimitiveShape.SPHERE,
@@ -45,7 +42,7 @@ for i in range(LOOPS):
     done = False
 
     while not done:
-        _, done = path.step()
+        done = path.step()
         pr.step()
 
     path.clear_visualization()

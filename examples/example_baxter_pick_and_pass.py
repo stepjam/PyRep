@@ -12,7 +12,7 @@ from pyrep.robots.end_effectors.baxter_gripper import BaxterGripper
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
 
-SCENE_FILE = join(dirname(abspath(__file__)), 'baxter_pick_and_pass.ttt')
+SCENE_FILE = join(dirname(abspath(__file__)), 'scene_baxter_pick_and_pass.ttt')
 pr = PyRep()
 
 pr.launch(SCENE_FILE, headless=False)

@@ -14,7 +14,7 @@ import numpy as np
 import math
 
 LOOPS = 10
-SCENE_FILE = join(dirname(abspath(__file__)), 'panda_reach_target.ttt')
+SCENE_FILE = join(dirname(abspath(__file__)), 'scene_panda_reach_target.ttt')
 pr = PyRep()
 pr.launch(SCENE_FILE, headless=False)
 pr.start()

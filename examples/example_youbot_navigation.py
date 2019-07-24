@@ -5,17 +5,17 @@ This script contains examples of:
 """
 from os.path import dirname, join, abspath
 from pyrep import PyRep
-from pyrep.robots.mobiles.youBot import youBot
+from pyrep.robots.mobiles.youbot import YouBot
 from pyrep.objects.shape import Shape
 from pyrep.const import PrimitiveShape
 import numpy as np
 
 LOOPS = 4
-SCENE_FILE = join(dirname(abspath(__file__)), 'youbot.ttt')
+SCENE_FILE = join(dirname(abspath(__file__)), 'scene_youbot_navigation.ttt')
 pr = PyRep()
 pr.launch(SCENE_FILE, headless=False)
 pr.start()
-agent = youBot()
+agent = YouBot()
 
 # We could have made this target in the scene, but lets create one dynamically
 target = Shape.create(type=PrimitiveShape.SPHERE,
@@ -40,7 +40,7 @@ for i in range(LOOPS):
 
     done = False
     while not done:
-        _, done = path.step()
+        done = path.step()
         pr.step()
 
     path.clear_visualization()

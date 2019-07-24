@@ -12,7 +12,7 @@ from pyrep.robots.end_effectors.locobot_gripper import LoCoBotGripper
 from pyrep.objects.shape import Shape
 from pyrep.objects.dummy import Dummy
 
-SCENE_FILE = join(dirname(abspath(__file__)), 'locobot_stack_cube.ttt')
+SCENE_FILE = join(dirname(abspath(__file__)), 'scene_locobot_stack_cube.ttt')
 pr = PyRep()
 pr.launch(SCENE_FILE, headless=False)
 pr.start()

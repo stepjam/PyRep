@@ -68,4 +68,4 @@ class HolonomicConfigurationPath(MobileConfigurationPath):
             actuation, self._path_done = self._mobile.get_base_actuation()
             self._mobile.set_base_angular_velocites(actuation)
 
-        return actuation, self._path_done
+        return self._path_done

@@ -5,17 +5,17 @@ from pyrep.objects.dummy import Dummy
 import numpy as np
 from os import path
 
-from pyrep.robots.mobiles.youBot import youBot
-from pyrep.robots.mobiles.turtlebot import turtlebot
-from pyrep.robots.mobiles.LineTracer import LineTracer
+from pyrep.robots.mobiles.youbot import YouBot
+from pyrep.robots.mobiles.turtlebot import TurtleBot
+from pyrep.robots.mobiles.line_tracer import LineTracer
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
 
 # TODO: Extract out youbot to 'test_mobiles_with_arms.py'
 MOBILES = [
-    ('youBot', youBot),
+    ('YouBot', YouBot),
     ('LineTracer', LineTracer),
-    ('turtlebot', turtlebot),
+    ('turtlebot', TurtleBot),
 ]
 
 
@@ -37,35 +37,35 @@ class TestMobilesAndConfigurationPaths(TestCore):
                 self.assertIsInstance(mobile, mobile_type)
 
     def test_get_linear_path(self):
-        mobile = youBot()
+        mobile = YouBot()
         waypoint = Dummy('youBot_waypoint')
         path = mobile.get_linear_path(
             waypoint.get_position(), waypoint.get_orientation()[-1])
         self.assertIsNotNone(path)
 
     def test_get_nonlinear_path(self):
-        mobile = youBot()
+        mobile = YouBot()
         waypoint = Dummy('youBot_waypoint')
         path = mobile.get_nonlinear_path(
             waypoint.get_position(), waypoint.get_orientation()[-1])
         self.assertIsNotNone(path)
 
     def test_get_linear_path_and_step(self):
-        mobile = youBot()
+        mobile = YouBot()
         waypoint = Dummy('youBot_waypoint')
         path = mobile.get_linear_path(
             waypoint.get_position(), waypoint.get_orientation()[-1])
         self.assertIsNotNone(path)
         done = False
         while not done:
-            _, done = path.step()
+            done = path.step()
             self.pyrep.step()
         self.assertTrue(np.allclose(
             mobile.get_position()[:2], waypoint.get_position()[:2],
             atol=0.001))
 
     def test_get_linear_path_and_get_end(self):
-        mobile = youBot()
+        mobile = YouBot()
         waypoint = Dummy('youBot_waypoint')
         path = mobile.get_linear_path(
             waypoint.get_position(), waypoint.get_orientation()[-1])
@@ -75,7 +75,7 @@ class TestMobilesAndConfigurationPaths(TestCore):
             atol=0.001))
 
     def test_get_linear_path_visualize(self):
-        mobile = youBot()
+        mobile = YouBot()
         waypoint = Dummy('youBot_waypoint')
         path = mobile.get_linear_path(
             waypoint.get_position(), waypoint.get_orientation()[-1])
@@ -83,8 +83,8 @@ class TestMobilesAndConfigurationPaths(TestCore):
         path.visualize()
 
     def test_get_duplicate_mobile(self):
-        mobile = youBot(1)
-        self.assertIsInstance(mobile, youBot)
+        mobile = YouBot(1)
+        self.assertIsInstance(mobile, YouBot)
 
     def test_copy_mobile(self):
         mobile = LineTracer()
