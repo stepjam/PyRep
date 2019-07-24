@@ -235,8 +235,8 @@ findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inSt
     end
 
     local cc=_getConfig(jointHandles)
-    local cs={}
     local l={}
+    local l_and_cs = {}
     local lowLimits = {}
     local maxLimits = {}
 
@@ -257,14 +257,13 @@ findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inSt
         local c = sim.getConfigForTipPose(ikGroup,jointHandles,0.65,10,nil,collisionPairs,nil,lowLimits,maxLimits)
         if c then
             local dist=_getConfigDistance(jointHandles,cc,c)
-            local p=0
             local same=false
             for j=1,#l,1 do
                 if math.abs(l[j]-dist)<0.001 then
                     -- we might have the exact same config. Avoid that
                     same=true
                     for k=1,#jointHandles,1 do
-                        if math.abs(cs[#jointHandles*(j-1)+k]-c[k])>0.01 then
+                        if math.abs(l_and_cs[j][k+1]-c[k])>0.01 then
                             same=false
                             break
                         end
@@ -275,13 +274,22 @@ findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inSt
                 end
             end
             if not same then
-                cs = _table_concat(cs,c)
+                l_and_cs[#l_and_cs+1] = _table_concat(l,c)
                 l[#l+1]=dist
             end
         end
         if #l>=maxConfigs then
             break
         end
+    end
+    table.sort(l_and_cs, function(x,y) return x[1] < y[1] end)
+    cs = {}
+    for i=1,#l_and_cs,1 do
+        c = {}
+        for j=1,#jointHandles,1 do
+            c[#c+1] = l_and_cs[i][j+1]
+        end
+        cs = _table_concat(cs,c)
     end
     return {}, cs, {}, {}
 end

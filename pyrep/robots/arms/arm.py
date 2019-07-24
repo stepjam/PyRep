@@ -57,7 +57,8 @@ class Arm(RobotComponent):
             generate before ranking them.
         :raises: ConfigurationError if no joint configuration could be found.
 
-        :return: A list of valid joint configurations for the desired end effector pose.
+        :return: A list of valid joint configurations for the desired end effector pose,
+            sorted based on distance to current joint configuration, in ascending order.
         """
 
         if not ((euler is None) ^ (quaternion is None)):

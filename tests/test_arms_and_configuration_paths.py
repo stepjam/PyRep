@@ -59,6 +59,13 @@ class TestArmsAndConfigurationPaths(TestCore):
         configs = arm.get_configs_for_tip_pose(
             waypoint.get_position(), waypoint.get_orientation())
         self.assertIsNotNone(configs)
+        current_config = arm.get_joint_positions()
+        prev_config_dist = 0
+        for config in configs:
+            config_dist = sum([(c - f)**2 for c, f in zip(current_config, config)])
+            # This test requires that the metric scale for each joint remains at 1.0 in _getConfigDistance lua function
+            self.assertLessEqual(prev_config_dist, config_dist)
+            prev_config_dist = config_dist
 
     def test_get_path_from_cartesian_path(self):
         arm = Panda()
