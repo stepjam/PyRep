@@ -224,22 +224,10 @@ _getPoseOnPath=function(pathHandle, relativeDistance)
     return pos, ori
 end
 
-findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inStrings, inBuffer)
+_findSeveralCollisionFreeConfigsAndCheckApproach=function(ikGroup,jointHandles,collisionPairs,trialCnt,maxConfigs)
     -- Here we search for several robot configurations...
     -- 1. ..that matches the desired pose (matrix)
     -- 2. ..that does not collide in that configuration
-
-    ikGroup = inInts[1]
-    collisionHandle = inInts[2]
-    ignoreCollisions = inInts[3]
-    trialCnt = inInts[4]
-    maxConfigs = inInts[5]
-    jointHandles = _sliceFromOffset(inInts, 5)
-    collisionPairs={collisionHandle, sim.handle_all}
-    if ignoreCollisions==1 then
-        collisionPairs=nil
-    end
-
     local cc=_getConfig(jointHandles)
     local l={}
     local l_and_cs = {}
@@ -280,7 +268,7 @@ findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inSt
                 end
             end
             if not same then
-                l_and_cs[#l_and_cs+1] = _table_concat(l,c)
+                l_and_cs[#l_and_cs+1] = _table_concat({dist},c)
                 l[#l+1]=dist
             end
         end
@@ -288,16 +276,44 @@ findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inSt
             break
         end
     end
-    table.sort(l_and_cs, function(x,y) return x[1] < y[1] end)
     cs = {}
-    for i=1,#l_and_cs,1 do
-        c = {}
-        for j=1,#jointHandles,1 do
-            c[#c+1] = l_and_cs[i][j+1]
+    if #l_and_cs > 0 then
+        table.sort(l_and_cs, function(x,y) return x[1] < y[1] end)
+
+        for i=1,#l_and_cs,1 do
+            table.remove(l_and_cs[i], 1)
         end
-        cs = _table_concat(cs,c)
+        cs = l_and_cs
     end
-    return {}, cs, {}, {}
+    return cs
+end
+
+_flatten=function(tab)
+    result = {}
+    for _, v in ipairs(tab) do
+        if type(v) == "table" then
+            res = _flatten(v)
+            result = _table_concat(result, res)
+        else
+            table.insert(result, v)
+        end
+    end
+    return result
+end
+
+findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inStrings, inBuffer)
+    ikGroup = inInts[1]
+    collisionHandle = inInts[2]
+    ignoreCollisions = inInts[3]
+    trialCnt = inInts[4]
+    maxConfigs = inInts[5]
+    jointHandles = _sliceFromOffset(inInts, 5)
+    collisionPairs={collisionHandle, sim.handle_all}
+    if ignoreCollisions==1 then
+        collisionPairs=nil
+    end
+    cs = _findSeveralCollisionFreeConfigsAndCheckApproach(ikGroup,jointHandles,collisionPairs,trialCnt,maxConfigs)
+    return {},_flatten(cs),{},''
 end
 
 getLinearPath=function(inInts,inFloats,inStrings,inBuffer)
@@ -339,21 +355,10 @@ getNonlinearPath=function(inInts,inFloats,inStrings,inBuffer)
     -- final IK approach is feasable:
     -- 'searching for a maximum of 60 valid goal configurations. Try 300 times...'
 
-    local _, cs_flat, _, _ = findSeveralCollisionFreeConfigsAndCheckApproach(_table_concat({ ikGroup, collisionHandle, ignoreCollisions, trialCnt, maxConfigs}, jointHandles), {}, {}, {})
+    cs = _findSeveralCollisionFreeConfigsAndCheckApproach(ikGroup,jointHandles,collisionPairs,trialCnt,maxConfigs)
 
-    if cs_flat == {} then
+    if #cs == 0 then
         return {},{},{},''
-    end
-
-    local num_configs = #cs_flat/#jointHandles
-    local cs = {}
-
-    for i=1,num_configs,1 do
-        local c = {}
-        for j=1,#jointHandles,1 do
-            c[#c+1] = cs_flat[#jointHandles*(i-1)+j]
-        end
-        cs[#cs+1] = c
     end
 
     -- Search a path from current config to a goal config. For each goal

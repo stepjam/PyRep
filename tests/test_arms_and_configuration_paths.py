@@ -5,6 +5,7 @@ from pyrep.objects.cartesian_path import CartesianPath
 from pyrep.objects.dummy import Dummy
 import numpy as np
 from os import path
+from pyrep.errors import ConfigurationPathError
 
 from pyrep.robots.arms.panda import Panda
 from pyrep.robots.arms.mico import Mico
@@ -60,10 +61,21 @@ class TestArmsAndConfigurationPaths(TestCore):
             waypoint.get_position(), waypoint.get_orientation())
         self.assertIsNotNone(configs)
         current_config = arm.get_joint_positions()
+        # Checks correct config (last)
+        arm.set_joint_positions(configs[-1])
+        self.assertTrue(np.allclose(
+            arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001))
+        # Checks correct config (first)
+        arm.set_joint_positions(configs[0])
+        self.assertTrue(np.allclose(
+            arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001))
+        # Checks order
         prev_config_dist = 0
         for config in configs:
-            config_dist = sum([(c - f)**2 for c, f in zip(current_config, config)])
-            # This test requires that the metric scale for each joint remains at 1.0 in _getConfigDistance lua function
+            config_dist = sum(
+                [(c - f)**2 for c, f in zip(current_config, config)])
+            # This test requires that the metric scale for each joint remains at
+            # 1.0 in _getConfigDistance lua function
             self.assertLessEqual(prev_config_dist, config_dist)
             prev_config_dist = config_dist
 
@@ -86,6 +98,16 @@ class TestArmsAndConfigurationPaths(TestCore):
         path = arm.get_nonlinear_path(
             waypoint.get_position(), waypoint.get_orientation())
         self.assertIsNotNone(path)
+
+    def test_get_nonlinear_path_out_of_reach(self):
+        arm = Panda()
+        with self.assertRaises(ConfigurationPathError):
+            arm.get_nonlinear_path([99, 99, 99], [0.] * 3)
+
+    def test_get_linear_path_out_of_reach(self):
+        arm = Panda()
+        with self.assertRaises(ConfigurationPathError):
+            arm.get_linear_path([99, 99, 99], [0.] * 3)
 
     def test_get_linear_path_and_step(self):
         arm = Panda()
