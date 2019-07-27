@@ -5,11 +5,7 @@ from pyrep.robots.robot_component import RobotComponent
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.errors import ConfigurationPathError
 from pyrep.const import PYREP_SCRIPT_TYPE
-from contextlib import contextmanager
 from typing import List
-import sys
-import os
-import io
 from math import sqrt
 import numpy as np
 
@@ -136,7 +132,7 @@ class MobileBase(RobotComponent):
         handle_target_base = self.target_base.get_handle()
 
         # Despite verbosity being set to 0, OMPL spits out a lot of text
-        with suppress_std_out_and_err():
+        with utils.suppress_std_out_and_err():
             _, ret_floats, _, _ = utils.script_call(
                 'getNonlinearPathMobile@PyRep', PYREP_SCRIPT_TYPE,
                 ints=[handle_base, handle_target_base,
@@ -207,48 +203,3 @@ class MobileBase(RobotComponent):
         self.intermediate_target_base.set_parent(None)
         self.target_base.set_parent(None)
         return c
-
-
-@contextmanager
-def suppress_std_out_and_err():
-    """Used for suppressing std out/err.
-
-    This is needed because the OMPL plugin outputs logging info even when
-    logging is turned off.
-    """
-
-    try:
-        # If we are using an IDE, then this will fail
-        original_stdout_fd = sys.stdout.fileno()
-        original_stderr_fd = sys.stderr.fileno()
-    except io.UnsupportedOperation:
-        # Nothing we can do about this, just don't suppress
-        yield
-        return
-
-    with open(os.devnull, "w") as devnull:
-
-        devnull_fd = devnull.fileno()
-
-        def _redirect_stdout(to_fd):
-            sys.stdout.close()
-            os.dup2(to_fd, original_stdout_fd)
-            sys.stdout = io.TextIOWrapper(os.fdopen(original_stdout_fd, 'wb'))
-
-        def _redirect_stderr(to_fd):
-            sys.stderr.close()
-            os.dup2(to_fd, original_stderr_fd)
-            sys.stderr = io.TextIOWrapper(os.fdopen(original_stderr_fd, 'wb'))
-
-        saved_stdout_fd = os.dup(original_stdout_fd)
-        # saved_stderr_fd = os.dup(original_stderr_fd)
-
-        try:
-            _redirect_stdout(devnull_fd)
-            # _redirect_stderr(devnull_fd)
-            yield
-            _redirect_stdout(saved_stdout_fd)
-            # _redirect_stderr(saved_stderr_fd)
-        finally:
-            os.close(saved_stdout_fd)
-            # os.close(saved_stderr_fd)

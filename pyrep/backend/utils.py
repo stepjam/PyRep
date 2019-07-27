@@ -1,3 +1,7 @@
+import os
+import io
+import sys
+from contextlib import contextmanager
 from typing import List, Tuple
 from pyrep.backend import vrep
 from pyrep.objects.object import Object
@@ -55,3 +59,47 @@ def script_call(function_name_at_script_name: str,
     return vrep.simExtCallScriptFunction(
         function_name_at_script_name, script_handle_or_type, list(ints),
         list(floats), list(strings), bytes)
+
+@contextmanager
+def suppress_std_out_and_err():
+    """Used for suppressing std out/err.
+
+    This is needed because the OMPL plugin outputs logging info even when
+    logging is turned off.
+    """
+
+    try:
+        # If we are using an IDE, then this will fail
+        original_stdout_fd = sys.stdout.fileno()
+        original_stderr_fd = sys.stderr.fileno()
+    except io.UnsupportedOperation:
+        # Nothing we can do about this, just don't suppress
+        yield
+        return
+
+    with open(os.devnull, "w") as devnull:
+
+        devnull_fd = devnull.fileno()
+
+        def _redirect_stdout(to_fd):
+            sys.stdout.close()
+            os.dup2(to_fd, original_stdout_fd)
+            sys.stdout = io.TextIOWrapper(os.fdopen(original_stdout_fd, 'wb'))
+
+        def _redirect_stderr(to_fd):
+            sys.stderr.close()
+            os.dup2(to_fd, original_stderr_fd)
+            sys.stderr = io.TextIOWrapper(os.fdopen(original_stderr_fd, 'wb'))
+
+        saved_stdout_fd = os.dup(original_stdout_fd)
+        # saved_stderr_fd = os.dup(original_stderr_fd)
+
+        try:
+            _redirect_stdout(devnull_fd)
+            # _redirect_stderr(devnull_fd)
+            yield
+            _redirect_stdout(saved_stdout_fd)
+            # _redirect_stderr(saved_stderr_fd)
+        finally:
+            os.close(saved_stdout_fd)
+            # os.close(saved_stderr_fd)

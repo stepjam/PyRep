@@ -353,7 +353,6 @@ getNonlinearPath=function(inInts,inFloats,inStrings,inBuffer)
     -- distance to current configuration (smaller distance is better).
     -- In following function we also check for collisions and whether the
     -- final IK approach is feasable:
-    -- 'searching for a maximum of 60 valid goal configurations. Try 300 times...'
 
     cs = _findSeveralCollisionFreeConfigsAndCheckApproach(ikGroup,jointHandles,collisionPairs,trialCnt,maxConfigs)
 
@@ -361,10 +360,7 @@ getNonlinearPath=function(inInts,inFloats,inStrings,inBuffer)
         return {},{},{},''
     end
 
-    -- Search a path from current config to a goal config. For each goal
-    -- config, search 6 times a path and keep the shortest.
-    -- Do this for the first 3 configs returned by findCollisionFreeConfigs.
-
+    -- Search a path from current config to a goal config.
     path = _findPath(cs, searchCntPerGoalConfig, jointHandles, algorithm, collisionPairs)
     if path == nil then
         path = {}
