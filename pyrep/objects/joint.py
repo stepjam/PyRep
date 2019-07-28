@@ -36,8 +36,7 @@ class Joint(Object):
         """
         return vrep.simGetJointPosition(self._handle)
 
-    def set_joint_position(self, position: float,
-                           allow_force_mode=True) -> None:
+    def set_joint_position(self, position: float) -> None:
         """	Sets the intrinsic position of a joint.
 
         May have no effect depending on the joint mode. This function cannot
@@ -45,15 +44,8 @@ class Joint(Object):
 
         :param position: Position of the joint (angular or linear value
             depending on the joint type).
-        :param allow_force_mode: If True, then the position can be set even
-            when the joint mode is in Force mode. It will disable dynamics,
-            move the joint, and then re-enable dynamics.
         """
-        if self.get_joint_mode() == JointMode.FORCE and allow_force_mode:
-            # Special case when we are in torque/force mode
-            self._set_joint_position_torque_force_mode(position)
-        else:
-            vrep.simSetJointPosition(self._handle, position)
+        vrep.simSetJointPosition(self._handle, position)
 
     def get_joint_target_position(self) -> float:
         """Retrieves the target position of a joint.
@@ -234,23 +226,3 @@ class Joint(Object):
         :param value: The new joint mode value.
         """
         vrep.simSetJointMode(self._handle, value.value)
-
-    # === Private methods ===
-
-    def _set_joint_position_torque_force_mode(self, value: float) -> None:
-        p = vrep.simGetModelProperty(self.get_handle())
-        p |= vrep.sim_modelproperty_not_dynamic
-
-        # Disable the dynamics
-        vrep.simSetModelProperty(self._handle, p)
-
-        # Set the joint angles
-        vrep.simSetJointPosition(self._handle, value)
-        vrep.simSetJointTargetPosition(self._handle, value)
-
-        p = vrep.simGetModelProperty(self.get_handle())
-        p = ((p | vrep.sim_modelproperty_not_dynamic) -
-             vrep.sim_modelproperty_not_dynamic)
-
-        # Re-enable the dynamics
-        vrep.simSetModelProperty(self._handle, p)

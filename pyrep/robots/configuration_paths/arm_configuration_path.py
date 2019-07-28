@@ -43,18 +43,26 @@ class ArmConfigurationPath(ConfigurationPath):
         self._path_done = done
         return done
 
-    def set_to_start(self) -> None:
+    def set_to_start(self, allow_force_mode=True) -> None:
         """Sets the arm to the beginning of this path.
+
+        :param allow_force_mode: If True, then the position can be set even
+            when the joint mode is in Force mode. It will disable dynamics,
+            move the joint, and then re-enable dynamics.
         """
         start_config = self._path_points[:len(self._arm.joints)]
-        self._arm.set_joint_positions(start_config)
+        self._arm.set_joint_positions(start_config, allow_force_mode)
         self._path_done = False
 
-    def set_to_end(self) -> None:
+    def set_to_end(self, allow_force_mode=True) -> None:
         """Sets the arm to the end of this path.
+
+        :param allow_force_mode: If True, then the position can be set even
+            when the joint mode is in Force mode. It will disable dynamics,
+            move the joint, and then re-enable dynamics.
         """
         final_config = self._path_points[-len(self._arm.joints):]
-        self._arm.set_joint_positions(final_config)
+        self._arm.set_joint_positions(final_config, allow_force_mode)
 
     def visualize(self) -> None:
         """Draws a visualization of the path in the scene.

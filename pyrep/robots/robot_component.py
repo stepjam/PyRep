@@ -83,8 +83,27 @@ class RobotComponent(Object):
             move the joint, and then re-enable dynamics.
         """
         self._assert_len(positions)
-        [j.set_joint_position(p, allow_force_mode)
-         for j, p in zip(self.joints, positions)]
+
+        if not allow_force_mode:
+            [j.set_joint_position(p) for j, p in zip(self.joints, positions)]
+            return
+
+        is_model = self.is_model()
+        if not is_model:
+            self.set_model(True)
+
+        prior = vrep.simGetModelProperty(self.get_handle())
+        p = prior | vrep.sim_modelproperty_not_dynamic
+        # Disable the dynamics
+        vrep.simSetModelProperty(self._handle, p)
+
+        [j.set_joint_position(p) for j, p in zip(self.joints, positions)]
+        [j.set_joint_target_position(p) for j, p in zip(self.joints, positions)]
+        vrep.simExtStep(True)  # Have to step once for changes to take effect
+
+        # Re-enable the dynamics
+        vrep.simSetModelProperty(self._handle, prior)
+        self.set_model(is_model)
 
     def get_joint_target_positions(self) -> List[float]:
         """Retrieves the target positions of the joints.
