@@ -85,7 +85,8 @@ class RobotComponent(Object):
         self._assert_len(positions)
 
         if not allow_force_mode:
-            [j.set_joint_position(p) for j, p in zip(self.joints, positions)]
+            [j.set_joint_position(p, allow_force_mode)
+             for j, p in zip(self.joints, positions)]
             return
 
         is_model = self.is_model()
@@ -97,7 +98,8 @@ class RobotComponent(Object):
         # Disable the dynamics
         vrep.simSetModelProperty(self._handle, p)
 
-        [j.set_joint_position(p) for j, p in zip(self.joints, positions)]
+        [j.set_joint_position(p, allow_force_mode)
+         for j, p in zip(self.joints, positions)]
         [j.set_joint_target_position(p) for j, p in zip(self.joints, positions)]
         vrep.simExtStep(True)  # Have to step once for changes to take effect
 

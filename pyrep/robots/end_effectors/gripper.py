@@ -17,8 +17,6 @@ class Gripper(RobotComponent):
         suffix = '' if count == 0 else '#%d' % (count - 1)
         prox_name = '%s_attachProxSensor%s' % (name, suffix)
         attach_name = '%s_attachPoint%s' % (name, suffix)
-        # prox_name = prox_name if count == 0 else prox_name + '%d' % (count - 1)
-        # attach_name = attach_name if count == 0 else attach_name + '%d' % (count - 1)
         self._proximity_sensor = ProximitySensor(prox_name)
         self._attach_point = ForceSensor(attach_name)
         self._old_parents = []

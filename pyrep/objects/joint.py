@@ -36,16 +36,36 @@ class Joint(Object):
         """
         return vrep.simGetJointPosition(self._handle)
 
-    def set_joint_position(self, position: float) -> None:
-        """	Sets the intrinsic position of a joint.
+    def set_joint_position(self, position: float,
+                           allow_force_mode=True) -> None:
+        """Sets the intrinsic position of the joint.
 
-        May have no effect depending on the joint mode. This function cannot
-        be used with spherical joints.
-
-        :param position: Position of the joint (angular or linear value
-            depending on the joint type).
+        :param positions: A list of positions of the joints (angular or linear
+            values depending on the joint type).
+        :param allow_force_mode: If True, then the position can be set even
+            when the joint mode is in Force mode. It will disable dynamics,
+            move the joint, and then re-enable dynamics.
         """
+        if not allow_force_mode:
+            vrep.simSetJointPosition(self._handle, position)
+            return
+
+        is_model = self.is_model()
+        if not is_model:
+            self.set_model(True)
+
+        prior = vrep.simGetModelProperty(self.get_handle())
+        p = prior | vrep.sim_modelproperty_not_dynamic
+        # Disable the dynamics
+        vrep.simSetModelProperty(self._handle, p)
+
         vrep.simSetJointPosition(self._handle, position)
+        self.set_joint_target_position(position)
+        vrep.simExtStep(True)  # Have to step once for changes to take effect
+
+        # Re-enable the dynamics
+        vrep.simSetModelProperty(self._handle, prior)
+        self.set_model(is_model)
 
     def get_joint_target_position(self) -> float:
         """Retrieves the target position of a joint.
