@@ -195,9 +195,9 @@ class PyRep(object):
             vrep.simExtStep(False)
 
     def set_simulation_timestep(self, dt: float) -> None:
-        """Sets the simulation time step.
+        """Sets the simulation time step. Default is 0.05.
 
-        :param dt: The time step value.
+        :param dt: The time step value in seconds.
         """
         vrep.simSetFloatParameter(vrep.sim_floatparam_simulation_time_step, dt)
 
