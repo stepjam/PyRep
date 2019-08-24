@@ -8,6 +8,7 @@ from pyrep.errors import ConfigurationError, ConfigurationPathError, IKError
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.const import PYREP_SCRIPT_TYPE
 from typing import List
+import numpy as np
 
 
 class Arm(RobotComponent):
@@ -283,3 +284,15 @@ class Arm(RobotComponent):
         :return: The tip of the arm.
         """
         return self._ik_tip
+
+    def get_jacobian(self):
+        """Calculates the Jacobian.
+
+        :return: the row-major Jacobian matix.
+        """
+        self._ik_target.set_matrix(self._ik_tip.get_matrix())
+        vrep.simCheckIkGroup(self._ik_group,
+                             [j.get_handle() for j in self.joints])
+        jacobian, (rows, cols) = vrep.simGetIkGroupMatrix(self._ik_group, 0)
+        jacobian = np.array(jacobian).reshape((rows, cols), order='F')
+        return jacobian

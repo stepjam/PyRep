@@ -150,6 +150,11 @@ class TestArmsAndConfigurationPaths(TestCore):
         new_arm = arm.copy()
         self.assertNotEqual(arm, new_arm)
 
+    def test_get_jacobian(self):
+        arm = Panda()
+        jacobian = arm.get_jacobian()
+        self.assertEqual(jacobian.shape, (7, 6))
+
 
 if __name__ == '__main__':
     unittest.main()

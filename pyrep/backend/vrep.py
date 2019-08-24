@@ -972,3 +972,18 @@ def simCheckIkGroup(ikGroupHandle, jointHandles):
         ikGroupHandle, len(jointHandles), jointHandles, jointValues, ffi.NULL)
     _check_return(ret)
     return ret, list(jointValues)
+
+
+def simComputeJacobian(ikGroupHandle, options):
+    # Only works when joints that are in IK or hybrid mode
+    ret = lib.simComputeJacobian(ikGroupHandle, options, ffi.NULL)
+    _check_return(ret)
+
+
+def simGetIkGroupMatrix(ikGroupHandle, options):
+    matrixSize = ffi.new('int[2]')
+    ret = lib.simGetIkGroupMatrix(ikGroupHandle, options, matrixSize)
+    flatJacobian = [ret[i] for i in range(matrixSize[0] * matrixSize[1])]
+    # matrixSize[0] represents the row count of the Jacobian.
+    # matrixSize[0] represents the column count of the Jacobian.
+    return flatJacobian, list(matrixSize)
