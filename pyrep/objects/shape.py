@@ -342,9 +342,9 @@ class Shape(Object):
         if decal_mode:
             options |= 2
         if repeat_along_u:
-            options |= 3
-        if repeat_along_v:
             options |= 4
+        if repeat_along_v:
+            options |= 8
         vrep.simSetShapeTexture(
             self.get_handle(), texture.get_texture_id(), mapping_mode.value,
             options, list(uv_scaling), position, orientation)
