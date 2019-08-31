@@ -134,7 +134,7 @@ while not done:
     done = gripper.actuate(0.5, velocity=0.04)
     pr.step()
     
-pr.start()  # Stop the simulation
+pr.stop()  # Stop the simulation
 pr.shutdown()  # Close the application
 ```
 
