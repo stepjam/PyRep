@@ -17,6 +17,7 @@ setup(name='PyRep',
                 'pyrep.robots.mobiles',
                 'pyrep.robots.configuration_paths',
                 'pyrep.textures',
+                'pyrep.distance',
                 ],
       ext_modules=[cffi_build.ffibuilder.distutils_extension(
           join('build', 'pyrep', 'backend'))],

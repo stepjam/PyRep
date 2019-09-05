@@ -604,6 +604,15 @@ class Object(object):
         """
         return self.__class__((vrep.simCopyPasteObjects([self._handle], 0)[0]))
 
+    def check_distance(self, other: 'Object') -> float:
+        """Checks the minimum distance between two objects.
+
+        :param other: The other object to check distance against.
+        :return: The distance between the objects.
+        """
+        return vrep.simCheckDistance(
+            self.get_handle(), other.get_handle(), -1)[6]
+
     # === Private methods ===
 
     def _check_model(self) -> None:

@@ -420,6 +420,13 @@ def simReadDistance(distanceObjectHandle):
     return minimumDistance[0]
 
 
+def simHandleDistance(distanceObjectHandle):
+    minimumDistance = ffi.new('float *')
+    ret = lib.simHandleDistance(distanceObjectHandle, minimumDistance)
+    _check_return(ret)
+    return ret
+
+
 def simRemoveObject(objectHandle):
     ret = lib.simRemoveObject(objectHandle)
     _check_return(ret)
@@ -987,3 +994,22 @@ def simGetIkGroupMatrix(ikGroupHandle, options):
     # matrixSize[0] represents the row count of the Jacobian.
     # matrixSize[0] represents the column count of the Jacobian.
     return flatJacobian, list(matrixSize)
+
+
+def simCheckDistance(entity1Handle, entity2Handle, threshold):
+    distanceData = ffi.new('float [7]')
+    ret = lib.simCheckDistance(
+        entity1Handle, entity2Handle, threshold, distanceData)
+    _check_return(ret)
+    return list(distanceData)
+
+
+def simSetExplicitHandling(generalObjectHandle, explicitFlags):
+    ret = lib.simSetExplicitHandling(generalObjectHandle, explicitFlags)
+    _check_return(ret)
+
+
+def simGetExplicitHandling(generalObjectHandle):
+    flag = lib.simGetExplicitHandling(generalObjectHandle)
+    _check_return(flag)
+    return flag

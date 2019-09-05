@@ -209,6 +209,10 @@ class TestObjects(TestCore):
         self.assertIsInstance(cube1, Shape)
         self.assertNotEqual(self.cube0, cube1)
 
+    def test_check_distance(self):
+        dist = self.dummy.check_distance(self.cube0)
+        self.assertAlmostEqual(dist, 1.4629, places=3)
+
 
 if __name__ == '__main__':
     unittest.main()
