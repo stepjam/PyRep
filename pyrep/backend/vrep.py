@@ -185,12 +185,12 @@ def simReadVisionSensor(sensorHandle):
     auxValues2 = []
     if state == 0:
         s = 0
-        for i in range(auxValuesCount[0]):
-            auxValues2.append(auxValues[s:s+auxValuesCount[i+1]])
-            s += auxValuesCount[i+1]
+        for i in range(auxValuesCount[0][0]):
+            auxValues2.append(list(auxValues[0][s:s+auxValuesCount[0][i+1]]))
+            s += auxValuesCount[0][i+1]
         #free C buffers
-        simReleaseBuffer(auxValues)
-        simReleaseBuffer(auxValuesCount)
+        simReleaseBuffer(ffi.cast('char *', auxValues[0]))
+        simReleaseBuffer(ffi.cast('char *', auxValuesCount[0]))
     return state, auxValues2
 
 
