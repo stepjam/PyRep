@@ -96,7 +96,10 @@ class NonHolonomicBase(MobileBase):
         d_x, d_y, _ = self.intermediate_target_base.get_position(
             relative_to=self)
 
-        if sqrt((d_x) ** 2 + (d_y) ** 2) < 0.1:
+        d_x_final, d_y_final, _ = self.target_base.get_position(
+            relative_to=self)
+
+        if sqrt((d_x_final) ** 2 + (d_y_final) ** 2) < 0.1:
             return [0., 0.], True
 
         alpha = atan2(d_y, d_x)
