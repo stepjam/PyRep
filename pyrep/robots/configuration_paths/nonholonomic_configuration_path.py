@@ -39,9 +39,9 @@ class NonHolonomicConfigurationPath(MobileConfigurationPath):
 
             if sqrt((pos_inter[0]) ** 2 + (pos_inter[1]) ** 2) < 0.1:
                 self.inter_done = True
-                actuation, self._path_done = self._mobile.get_base_actuation()
+                actuation, _ = self._mobile.get_base_actuation()
             else:
-                actuation, self._path_done = self._mobile.get_base_actuation()
+                actuation, _ = self._mobile.get_base_actuation()
 
             self._mobile.set_joint_target_velocities(actuation)
 
