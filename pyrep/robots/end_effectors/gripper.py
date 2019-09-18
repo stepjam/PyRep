@@ -24,6 +24,15 @@ class Gripper(RobotComponent):
         self._prev_positions = [None] * len(joint_names)
         self._prev_vels = [None] * len(joint_names)  # Used to stop oscillating
 
+        self._touch_sensors = []
+        i = 0
+        while True:
+            fname = '%s_touchSensor%d%s' % (name, i, suffix)
+            if not ForceSensor.exists(fname):
+                break
+            self._touch_sensors.append(ForceSensor(fname))
+            i += 1
+
     def grasp(self, obj: Object) -> bool:
         """Grasp object if it is detected.
 
@@ -131,3 +140,8 @@ class Gripper(RobotComponent):
         return list(np.clip((np.array(
             self.get_joint_positions()) - joint_intervals[:, 0]) /
                             joint_range, 0.0, 1.0))
+
+    def get_touch_sensor_forces(self) -> List[List[float]]:
+        if len(self._touch_sensors) == 0:
+            raise NotImplementedError('No touch sensors for this robot!')
+        return [ts.read()[0] for ts in self._touch_sensors]
