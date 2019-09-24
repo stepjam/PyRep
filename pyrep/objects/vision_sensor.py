@@ -104,7 +104,7 @@ class VisionSensor(Object):
             vs.set_orientation(orientation)
         return vs
 
-    def get_type(self) -> ObjectType:
+    def _get_requested_type(self) -> ObjectType:
         return ObjectType.VISION_SENSOR
 
     def capture_rgb(self) -> np.ndarray:

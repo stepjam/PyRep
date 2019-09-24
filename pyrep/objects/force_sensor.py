@@ -8,7 +8,7 @@ class ForceSensor(Object):
     """An object able to measure forces and torques that are applied to it.
     """
 
-    def get_type(self) -> ObjectType:
+    def _get_requested_type(self) -> ObjectType:
         return ObjectType.FORCE_SENSOR
 
     def read(self) -> Tuple[List[float], List[float]]:

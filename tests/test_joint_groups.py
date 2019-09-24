@@ -53,6 +53,9 @@ class TestJointGroups(TestCore):
         self.assertEqual(
             len(self.robot.get_joint_upper_velocity_limits()), self.num_joints)
 
+    def test_get_visuals(self):
+        self.assertEqual(len(self.robot.get_visuals()), 10)
+
 
 if __name__ == '__main__':
     unittest.main()

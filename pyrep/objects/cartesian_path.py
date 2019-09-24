@@ -58,7 +58,7 @@ class CartesianPath(Object):
         handle = vrep.simCreatePath(attributes)
         return CartesianPath(handle)
 
-    def get_type(self) -> ObjectType:
+    def _get_requested_type(self) -> ObjectType:
         return ObjectType.PATH
 
     def get_pose_on_path(self, relative_distance: float

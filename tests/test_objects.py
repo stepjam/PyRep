@@ -1,4 +1,7 @@
 import unittest
+
+from pyrep.const import ObjectType
+
 from tests.core import TestCore
 from pyrep.objects.shape import Shape
 from pyrep.objects.dummy import Dummy
@@ -22,6 +25,9 @@ class TestObjects(TestCore):
 
     def test_get_handle(self):
         self.assertGreater(self.dynamic_cube.get_handle(), 0)
+
+    def test_get_type(self):
+        self.assertEqual(self.dynamic_cube.get_type(), ObjectType.SHAPE)
 
     def test_still_exists(self):
         self.assertTrue(self.dynamic_cube.still_exists())

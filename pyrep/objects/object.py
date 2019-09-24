@@ -17,7 +17,7 @@ class Object(object):
             self._handle = name_or_handle
         else:
             self._handle = vrep.simGetObjectHandle(name_or_handle)
-            assert_type = self.get_type()
+            assert_type = self._get_requested_type()
             actual = ObjectType(vrep.simGetObjectType(self._handle))
             if actual != assert_type:
                 raise WrongObjectTypeError(
@@ -50,12 +50,19 @@ class Object(object):
         """
         return ObjectType(vrep.simGetObjectType(vrep.simGetObjectHandle(name)))
 
+    def _get_requested_type(self) -> ObjectType:
+        """Used for internally checking assumptions user made about object type.
+
+        :return: Type of the object.
+        """
+        raise NotImplementedError('Must be overridden.')
+
     def get_type(self) -> ObjectType:
         """Gets the type of the object.
 
         :return: Type of the object.
         """
-        raise NotImplementedError('Must be overridden.')
+        return ObjectType(vrep.simGetObjectType(self._handle))
 
     def get_handle(self) -> int:
         """Gets the internal handle of this object.

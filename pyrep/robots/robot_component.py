@@ -1,4 +1,7 @@
 from typing import List, Tuple
+
+from pyrep.objects.shape import Shape
+
 from pyrep.backend import vrep
 from pyrep.const import JointType
 from pyrep.objects.object import Object
@@ -40,7 +43,7 @@ class RobotComponent(Object):
             num = 0
         return self.__class__(num)
 
-    def get_type(self) -> ObjectType:
+    def _get_requested_type(self) -> ObjectType:
         """Gets the type of the object.
 
         :return: Type of the object.
@@ -235,6 +238,17 @@ class RobotComponent(Object):
         :param value: The new joint mode value.
         """
         [j.set_joint_mode(value) for j in self.joints]
+
+    def get_visuals(self) -> List[Object]:
+        """Gets a list of the visual elements of this component.
+
+        Can be useful for methods such as domain randomization.
+        Should ideally be overridden for each robot.
+
+        :return: A list of visual shapes.
+        """
+        tree = self.get_objects_in_tree(ObjectType.SHAPE, exclude_base=False)
+        return [obj for obj in tree if 'visual' in obj.get_name()]
 
     def _assert_len(self, inputs: list) -> None:
         if len(self.joints) != len(inputs):
