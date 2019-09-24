@@ -19,5 +19,5 @@ class Dummy(Object):
         handle = vrep.simCreateDummy(size, None)
         return Dummy(handle)
 
-    def get_type(self) -> ObjectType:
+    def _get_requested_type(self) -> ObjectType:
         return ObjectType.DUMMY

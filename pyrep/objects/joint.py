@@ -15,7 +15,7 @@ class Joint(Object):
     def __init__(self, name_or_handle: Union[str, int]):
         super().__init__(name_or_handle)
 
-    def get_type(self) -> ObjectType:
+    def _get_requested_type(self) -> ObjectType:
         return ObjectType.JOINT
 
     def get_joint_type(self) -> JointType:

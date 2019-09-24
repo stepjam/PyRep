@@ -120,7 +120,7 @@ class Shape(Object):
             options, shading_angle, vertices, indices)
         return Shape(handle)
 
-    def get_type(self) -> ObjectType:
+    def _get_requested_type(self) -> ObjectType:
         return ObjectType.SHAPE
 
     def is_respondable(self) -> bool:
@@ -348,3 +348,11 @@ class Shape(Object):
         vrep.simSetShapeTexture(
             self.get_handle(), texture.get_texture_id(), mapping_mode.value,
             options, list(uv_scaling), position, orientation)
+
+    def ungroup(self) -> List['Shape']:
+        """Ungroups a compound shape into several simple shapes.
+
+        :return: A list of shapes.
+        """
+        handles = vrep.simUngroupShape(self.get_handle())
+        return [Shape(handle) for handle in handles]

@@ -1013,3 +1013,12 @@ def simGetExplicitHandling(generalObjectHandle):
     flag = lib.simGetExplicitHandling(generalObjectHandle)
     _check_return(flag)
     return flag
+
+
+def simUngroupShape(shapeHandle):
+    count = ffi.new('int*')
+    shapes = lib.simUngroupShape(shapeHandle, count)
+    _check_null_return(shapes)
+    handles = [shapes[i] for i in range(count[0])]
+    # simReleaseBuffer(shapes)
+    return handles

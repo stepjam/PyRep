@@ -10,7 +10,7 @@ class ProximitySensor(Object):
     sensors.
     """
 
-    def get_type(self) -> ObjectType:
+    def _get_requested_type(self) -> ObjectType:
         return ObjectType.PROXIMITY_SENSOR
 
     def is_detected(self, obj: Object) -> bool:
