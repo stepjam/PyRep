@@ -227,7 +227,8 @@ Pull requests welcome for bug fixes!
 ## Projects Using PyRep
 
 If you use PyRep in your work, then get in contact and we can add you to the list!
-
+  
+- [RLBench: The Robot Learning Benchmark & Learning Environment, arxiv 2019](https://arxiv.org/abs/1909.12271)
 - [Task-Embedded Control Networks for Few-Shot Imitation Learning, CoRL 2018](https://arxiv.org/abs/1810.03237)
 - [Transferring End-to-End Visuomotor Control from Simulation to Real World for a Multi-Stage Task
 , CoRL 2017](https://arxiv.org/abs/1707.02267)
