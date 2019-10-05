@@ -8,6 +8,7 @@ robotics experimentation platform ([V-REP](http://www.coppeliarobotics.com/)).__
 - [Getting Started](#getting-started)
 - [Usage](#usage)
 - [Supported Robots](#supported-robots)
+- [Adding Robots](#adding-robots)
 - [Planned Future Updates](#planned-future-updates)
 - [Contributing](#contributing)
 - [Projects Using PyRep](#projects-using-pyrep)
@@ -212,6 +213,12 @@ Here is a list of robots currently supported by PyRep:
 - Line Tracer
 
 Feel free to send pull requests for new robots!
+
+## Adding Robots
+
+If the robot you want is not currently supported, then why not add it in!
+
+[Here is a tutorial for adding robots.](tutorials/adding_robots.md)
 
 ## Planned Future Updates
 
