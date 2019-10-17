@@ -68,7 +68,13 @@ You should be able to leave the default values. Ensure that 'Explicit handling' 
 
 ![image missing](images/kinematics_group.png)
 
-Finally, double click on the 'target' dummy and choose the '\<MYRobot\>_tip' option from the 'Linked dummy' dropdown, 
+Before you leave this dialog, click on 'Edit IK elements', which will open a new dialog. 
+In this dialog, select the '\<MYRobot\>_tip' from the dropdown and click 'Add new IK 
+element with tip'. In the 'Base' dropdown that now becomes visible, select the base/root 
+of your robot, for the UR10, this will be 'UR10'. Close this dialog.
+
+Finally, double click on the 'target' dummy in the scene hierarchy and choose the 
+'\<MYRobot\>_tip' option from the 'Linked dummy' dropdown, 
 and choose the 'IK, tip-target' option from the 'Link type' dropdown.
 
 ![image missing](images/dummy_linking.png)
