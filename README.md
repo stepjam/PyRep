@@ -61,6 +61,8 @@ If you plan to run on a headless machine, you will also need to run with a virtu
 ```bash
 sudo apt-get install xvfb
 xvfb-run python3 my_pyrep_app.py
+# or if you are using jupyter
+# xvfb-run jupyter notebook
 ```
 
 #### Troubleshooting
