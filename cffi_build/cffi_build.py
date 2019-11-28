@@ -724,9 +724,9 @@ ffibuilder.set_source(
     library_dirs=[os.environ['VREP_ROOT']],
     include_dirs=[cffi_path])
 
-# For some reason, cffi makes it such that it looks for libv_rep.so.1
-# rather than libv_rep.so. So we add a symlink.
-path = os.path.join(os.environ['VREP_ROOT'], 'libv_rep.so')
+# For some reason, cffi makes it such that it looks for libcoppeliaSim.so.1
+# rather than libcoppeliaSim.so. So we add a symlink.
+path = os.path.join(os.environ['VREP_ROOT'], 'libcoppeliaSim.so')
 if not os.path.exists(path + '.1'):
     print('creating symlink: %s -> %s' % (path + '.1', path))
     os.symlink(path, path + '.1')
