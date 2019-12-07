@@ -1,7 +1,8 @@
-import math
+from math import sqrt
+
 from pyrep.backend import vrep
-from pyrep.objects.object import Object
 from pyrep.const import ObjectType
+from pyrep.objects.object import Object
 
 
 class ProximitySensor(Object):
@@ -14,14 +15,16 @@ class ProximitySensor(Object):
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.PROXIMITY_SENSOR
 
-    def measure(self) -> float:
-        """Measure the distance between sensor and first detected object.
+    def read(self) -> float:
+        """Read the distance between sensor and first detected object. If
+        there is no detected object returns -1.0. It can be considered as
+        maximum measurable distance of the sensor.
 
         :return: Float distance to the first detected object
         """
         state, _, points, _ = vrep.simReadProximitySensor(self._handle)
         if state:
-            return math.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
+            return sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
         return -1.0
 
     def is_detected(self, obj: Object) -> bool:

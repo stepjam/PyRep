@@ -1,10 +1,14 @@
-from pyrep.robots.mobiles.mobile_base import MobileBase
-from pyrep.robots.configuration_paths.nonholonomic_configuration_path import (
-    NonHolonomicConfigurationPath)
+from math import atan2
+from math import cos
+from math import sin
+from math import sqrt
+from typing import List
+
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.errors import ConfigurationPathError
-from typing import List
-from math import sqrt, atan2, sin, cos
+from pyrep.robots.configuration_paths.nonholonomic_configuration_path import (
+    NonHolonomicConfigurationPath)
+from pyrep.robots.mobiles.mobile_base import MobileBase
 
 
 class NonHolonomicBase(MobileBase):
@@ -28,6 +32,21 @@ class NonHolonomicBase(MobileBase):
         self.Ki = 0.01
         self.Kd = 0.1
         self.desired_velocity = 0.05
+
+    def get_base_velocities(self) -> List[float]:
+        """Gets linear and angular velocities of the mobile robot base
+        calculated from kinematics equations. Left joint should have index 1,
+        right joint should have index.
+
+        :return: A list with linear and angular velocity of the robot base.
+        """
+        wv = self.get_joint_velocities()
+
+        lv = sum(wv) * self.wheel_radius / 2.0
+        v_diff = wv[1] - wv[0]
+        av = self.wheel_radius * v_diff / self.wheel_distance
+
+        return [lv, av]
 
     def get_linear_path(self, position: List[float],
                         angle=0) -> NonHolonomicConfigurationPath:
