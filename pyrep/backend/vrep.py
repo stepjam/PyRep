@@ -1,6 +1,8 @@
-from .vrepConst import *
-from ._v_rep_cffi import ffi, lib
 import numpy as np
+
+from ._v_rep_cffi import ffi
+from ._v_rep_cffi import lib
+from .vrepConst import *
 
 
 def _check_return(ret):
@@ -160,7 +162,7 @@ def simBreakForceSensor(forceSensorHandle):
 
 
 def simReadForceSensor(forceSensorHandle):
-    forceVector  = ffi.new('float[3]')
+    forceVector = ffi.new('float[3]')
     torqueVector = ffi.new('float[3]')
     state = lib.simReadForceSensor(forceSensorHandle, forceVector, torqueVector)
     return state, list(forceVector), list(torqueVector)
@@ -186,9 +188,9 @@ def simReadVisionSensor(sensorHandle):
     if state == 0:
         s = 0
         for i in range(auxValuesCount[0]):
-            auxValues2.append(auxValues[s:s+auxValuesCount[i+1]])
-            s += auxValuesCount[i+1]
-        #free C buffers
+            auxValues2.append(auxValues[s:s + auxValuesCount[i + 1]])
+            s += auxValuesCount[i + 1]
+        # free C buffers
         simReleaseBuffer(auxValues)
         simReleaseBuffer(auxValuesCount)
     return state, auxValues2
@@ -200,7 +202,8 @@ def simGetVisionSensorImage(sensorHandle, resolution):
     s = ffi.sizeof(T)  # datatype size
     np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
     # Wrap the buffer with numpy.
-    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*3*s), np_T)
+    img = np.frombuffer(
+        ffi.buffer(img_buffer, resolution[0] * resolution[1] * 3 * s), np_T)
     img = img.reshape(resolution[1], resolution[0], 3)
     img = np.flip(img, 0).copy()  # Image is upside-down
     simReleaseBuffer(ffi.cast('char *', img_buffer))
@@ -215,7 +218,8 @@ def simGetVisionSensorDepthBuffer(sensorHandle, resolution, in_meters):
     s = ffi.sizeof(T)  # datatype size
     np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
     # Wrap the buffer with numpy.
-    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*s), np_T)
+    img = np.frombuffer(
+        ffi.buffer(img_buffer, resolution[0] * resolution[1] * s), np_T)
     img = img.reshape(resolution[1], resolution[0])
     img = np.flip(img, 0).copy()  # Image is upside-down
     simReleaseBuffer(ffi.cast('char *', img_buffer))
@@ -870,7 +874,7 @@ def simGetShapeMesh(shapeHandle):
     retVerticies = [outVerticies[0][i]
                     for i in range(outVerticiesCount[0])]
     retIndices = [outIndices[0][i]
-                    for i in range(outIndicesCount[0])]
+                  for i in range(outIndicesCount[0])]
     outNormals = [outIndices[0][i]
                   for i in range(outIndicesCount[0] * 3)]
 
@@ -1022,3 +1026,32 @@ def simUngroupShape(shapeHandle):
     handles = [shapes[i] for i in range(count[0])]
     # simReleaseBuffer(shapes)
     return handles
+
+
+def simInvertMatrix(matrix):
+    c_matrix = ffi.new('float []', matrix)
+    ret = lib.simInvertMatrix(c_matrix)
+    _check_return(ret)
+    return list(c_matrix)
+
+
+def simMultiplyMatrices(inMatrix1, inMatrix2):
+    outMatrix = ffi.new('float []', len(inMatrix1))
+    ret = lib.simMultiplyMatrices(inMatrix1, inMatrix2, outMatrix)
+    _check_return(ret)
+    _check_null_return(outMatrix)
+    return list(outMatrix)
+
+
+def simGetEulerAnglesFromMatrix(rotationMatrix):
+    eulerAngles = ffi.new('float [3]')
+    ret = lib.simGetEulerAnglesFromMatrix(rotationMatrix, eulerAngles)
+    _check_return(ret)
+    _check_null_return(eulerAngles)
+    return list(eulerAngles)
+
+
+def simGetSimulationTime():
+    time = lib.simGetSimulationTime()
+    _check_return(time)
+    return time
