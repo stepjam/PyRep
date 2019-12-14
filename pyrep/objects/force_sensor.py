@@ -1,5 +1,5 @@
 from typing import Tuple, List
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from pyrep.objects.object import Object
 from pyrep.const import ObjectType
 
@@ -18,5 +18,5 @@ class ForceSensor(Object):
             sensor's x, y and z-axes, and the torques along the
             sensor's x, y and z-axes.
         """
-        _, forces, torques = vrep.simReadForceSensor(self._handle)
+        _, forces, torques = sim.simReadForceSensor(self._handle)
         return forces, torques

@@ -11,15 +11,15 @@ before_install:
  - sudo apt-get install qt5-default qttools5-dev-tools
 install:
   - cur=`pwd`
-  # Pull V-REP
-  - wget http://coppeliarobotics.com/files/V-REP_PRO_EDU_V3_6_2_Ubuntu16_04.tar.xz
-  - tar -xf V-REP_PRO_EDU_V3_6_2_Ubuntu16_04.tar.xz
-  - export VREP_ROOT="$cur/V-REP_PRO_EDU_V3_6_2_Ubuntu16_04"
-  - echo $VREP_ROOT
-  # $VREP_ROOT/platforms needed otherwise will get:
+  # Pull CoppeliaSim
+  - wget http://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
+  - tar -xf CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
+  - export COPPELIASIM_ROOT="$cur/CoppeliaSim_Edu_V4_0_0_Ubuntu16_04"
+  - echo $COPPELIASIM_ROOT
+  # COPPELIASIM_ROOT/platforms needed otherwise will get:
   # qt.qpa.plugin: Could not load the Qt platform plugin "xcb"
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VREP_ROOT:$VREP_ROOT/platforms
-  - export QT_QPA_PLATFORM_PLUGIN_PATH=$VREP_ROOT
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COPPELIASIM_ROOT:$COPPELIASIM_ROOT/platforms
+  - export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
   - pip3 install -r requirements.txt
   - python3 setup.py install
 # command to run tests

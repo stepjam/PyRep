@@ -1,5 +1,5 @@
 from typing import Tuple, List
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from pyrep.objects.object import Object
 from pyrep.const import ObjectType
 
@@ -41,21 +41,21 @@ class CartesianPath(Object):
         """
         attributes = 0
         if show_line:
-            attributes |= vrep.sim_pathproperty_show_line
+            attributes |= sim.sim_pathproperty_show_line
         if show_orientation:
-            attributes |= vrep.sim_pathproperty_show_orientation
+            attributes |= sim.sim_pathproperty_show_orientation
         if closed_path:
-            attributes |= vrep.sim_pathproperty_closed_path
+            attributes |= sim.sim_pathproperty_closed_path
         if automatic_orientation:
-            attributes |= vrep.sim_pathproperty_automatic_orientation
+            attributes |= sim.sim_pathproperty_automatic_orientation
         if flat_path:
-            attributes |= vrep.sim_pathproperty_flat_path
+            attributes |= sim.sim_pathproperty_flat_path
         if show_position:
-            attributes |= vrep.sim_pathproperty_show_position
+            attributes |= sim.sim_pathproperty_show_position
         if keep_x_up:
-            attributes |= vrep.sim_pathproperty_keep_x_up
+            attributes |= sim.sim_pathproperty_keep_x_up
 
-        handle = vrep.simCreatePath(attributes)
+        handle = sim.simCreatePath(attributes)
         return CartesianPath(handle)
 
     def _get_requested_type(self) -> ObjectType:
@@ -70,8 +70,8 @@ class CartesianPath(Object):
         :return: A tuple containing the x, y, z position, and the x, y, z
             orientation of the point on the path (in radians).
         """
-        pos = vrep.simGetPositionOnPath(self._handle, relative_distance)
-        ori = vrep.simGetOrientationOnPath(self._handle, relative_distance)
+        pos = sim.simGetPositionOnPath(self._handle, relative_distance)
+        ori = sim.simGetOrientationOnPath(self._handle, relative_distance)
         return pos, ori
 
     def insert_control_points(self, poses: List[List[float]]) -> None:
@@ -87,6 +87,6 @@ class CartesianPath(Object):
                           ints=[self._handle, len(poses)], floats=data)
 
     def _script_call(self, func: str, ints=(), floats=(), strings=(), bytes=''):
-        return vrep.simExtCallScriptFunction(
-            func, vrep.sim_scripttype_addonscript,
+        return sim.simExtCallScriptFunction(
+            func, sim.sim_scripttype_addonscript,
             list(ints), list(floats), list(strings), bytes)

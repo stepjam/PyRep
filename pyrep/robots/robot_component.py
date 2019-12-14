@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 from pyrep.objects.shape import Shape
 
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from pyrep.const import JointType
 from pyrep.objects.object import Object
 from pyrep.objects.joint import Joint
@@ -33,8 +33,8 @@ class RobotComponent(Object):
         :return: The new pasted arm.
         """
         # Copy whole model
-        handle = vrep.simCopyPasteObjects([self._handle], 1)[0]
-        name = vrep.simGetObjectName(handle)
+        handle = sim.simCopyPasteObjects([self._handle], 1)[0]
+        name = sim.simGetObjectName(handle)
         # Find the number of this arm
         num = name[name.rfind('#') + 1:]
         if len(num) > 0:
@@ -48,7 +48,7 @@ class RobotComponent(Object):
 
         :return: Type of the object.
         """
-        return ObjectType(vrep.simGetObjectType(self.get_handle()))
+        return ObjectType(sim.simGetObjectType(self.get_handle()))
 
     def get_joint_count(self) -> int:
         """Gets the number of joints in this component.
@@ -96,18 +96,18 @@ class RobotComponent(Object):
         if not is_model:
             self.set_model(True)
 
-        prior = vrep.simGetModelProperty(self.get_handle())
-        p = prior | vrep.sim_modelproperty_not_dynamic
+        prior = sim.simGetModelProperty(self.get_handle())
+        p = prior | sim.sim_modelproperty_not_dynamic
         # Disable the dynamics
-        vrep.simSetModelProperty(self._handle, p)
+        sim.simSetModelProperty(self._handle, p)
 
         [j.set_joint_position(p, allow_force_mode)
          for j, p in zip(self.joints, positions)]
         [j.set_joint_target_position(p) for j, p in zip(self.joints, positions)]
-        vrep.simExtStep(True)  # Have to step once for changes to take effect
+        sim.simExtStep(True)  # Have to step once for changes to take effect
 
         # Re-enable the dynamics
-        vrep.simSetModelProperty(self._handle, prior)
+        sim.simSetModelProperty(self._handle, prior)
         self.set_model(is_model)
 
     def get_joint_target_positions(self) -> List[float]:

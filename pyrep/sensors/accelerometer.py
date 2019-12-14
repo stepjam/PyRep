@@ -1,6 +1,6 @@
 from typing import List
 
-import pyrep.backend.vrep as vrep
+from pyrep.backend import sim
 from pyrep.const import ObjectType
 from pyrep.objects.force_sensor import ForceSensor
 from pyrep.objects.object import Object
@@ -17,7 +17,7 @@ class Accelerometer(Object):
         self._sensor = ForceSensor('%s_force_sensor' % (self.get_name()))
 
     def _get_requested_type(self) -> ObjectType:
-        return ObjectType(vrep.simGetObjectType(self.get_handle()))
+        return ObjectType(sim.simGetObjectType(self.get_handle()))
 
     def read(self) -> List[float]:
         """Reads the acceleration applied to accelerometer.

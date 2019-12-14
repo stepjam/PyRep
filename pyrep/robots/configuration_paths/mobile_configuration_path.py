@@ -1,4 +1,4 @@
-from pyrep.backend import vrep, utils
+from pyrep.backend import sim, utils
 from pyrep.robots.configuration_paths.configuration_path import (
     ConfigurationPath)
 from pyrep.const import PYREP_SCRIPT_TYPE
@@ -70,11 +70,11 @@ class MobileConfigurationPath(ConfigurationPath):
             raise RuntimeError("Can't visualise a path with no points.")
 
         tip = self._mobile
-        self._drawing_handle = vrep.simAddDrawingObject(
-            objectType=vrep.sim_drawing_lines, size=3, duplicateTolerance=0,
+        self._drawing_handle = sim.simAddDrawingObject(
+            objectType=sim.sim_drawing_lines, size=3, duplicateTolerance=0,
             parentObjectHandle=-1, maxItemCount=99999,
             ambient_diffuse=[1, 0, 1])
-        vrep.simAddDrawingObjectItem(self._drawing_handle, None)
+        sim.simAddDrawingObjectItem(self._drawing_handle, None)
         init_pose = self._mobile.get_2d_pose()
         self._mobile.set_2d_pose(self._path_points[0][:3])
         prev_point = tip.get_position()
@@ -83,7 +83,7 @@ class MobileConfigurationPath(ConfigurationPath):
             points = self._path_points[i]
             self._mobile.set_2d_pose(points[:3])
             p = tip.get_position()
-            vrep.simAddDrawingObjectItem(self._drawing_handle, prev_point + p)
+            sim.simAddDrawingObjectItem(self._drawing_handle, prev_point + p)
             prev_point = p
 
         # Set the arm back to the initial config
@@ -93,7 +93,7 @@ class MobileConfigurationPath(ConfigurationPath):
         """Clears/removes a visualization of the path in the scene.
         """
         if self._drawing_handle is not None:
-            vrep.simAddDrawingObjectItem(self._drawing_handle, None)
+            sim.simAddDrawingObjectItem(self._drawing_handle, None)
 
     def _next_i_path(self):
         incr = 0.01

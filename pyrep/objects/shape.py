@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from pyrep.objects.object import Object
 from pyrep.const import ObjectType, PrimitiveShape, TextureMappingMode
 from pyrep.textures.texture import Texture
@@ -48,7 +48,7 @@ class Shape(Object):
         if static:
             options |= 16
 
-        handle = vrep.simCreatePureShape(type.value, options, size, mass, None)
+        handle = sim.simCreatePureShape(type.value, options, size, mass, None)
         ob = Shape(handle)
         ob.set_renderable(renderable)
         if position is not None:
@@ -83,7 +83,7 @@ class Shape(Object):
 
         # fileformat is 0 as it is automatically detected.
         # identicalVerticeTolerance has no effect. Setting to zero.
-        verticies, indices, names = vrep.simImportMesh(
+        verticies, indices, names = sim.simImportMesh(
             0, filename, options, 0, scaling_factor)
         mesh_objects = []
         for v, i, n in zip(verticies, indices, names):
@@ -92,7 +92,7 @@ class Shape(Object):
         grouped = mesh_objects[0]
         if len(mesh_objects) > 1:
             handles = [o.get_handle() for o in mesh_objects]
-            handle = vrep.simGroupShapes(handles)
+            handle = sim.simGroupShapes(handles)
             grouped = Shape(handle)
         return grouped
 
@@ -116,7 +116,7 @@ class Shape(Object):
             options |= 2
         if shading_angle is None:
             shading_angle = 20.0 * 3.1415 / 180.0
-        handle = vrep.simCreateMeshShape(
+        handle = sim.simCreateMeshShape(
             options, shading_angle, vertices, indices)
         return Shape(handle)
 
@@ -128,16 +128,16 @@ class Shape(Object):
 
         :return: If the shape is respondable.
         """
-        return vrep.simGetObjectInt32Parameter(
-            self._handle, vrep.sim_shapeintparam_respondable)
+        return sim.simGetObjectInt32Parameter(
+            self._handle, sim.sim_shapeintparam_respondable)
 
     def set_respondable(self, value: bool) -> None:
         """Set whether the shape is respondable or not.
 
         :param value: The new value of the respondable state of the shape.
         """
-        vrep.simSetObjectInt32Parameter(
-            self._handle, vrep.sim_shapeintparam_respondable, value)
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.sim_shapeintparam_respondable, value)
         self.reset_dynamic_object()
 
     def is_dynamic(self) -> bool:
@@ -145,16 +145,16 @@ class Shape(Object):
 
         :return: If the shape is dynamic.
         """
-        return not vrep.simGetObjectInt32Parameter(
-            self._handle, vrep.sim_shapeintparam_static)
+        return not sim.simGetObjectInt32Parameter(
+            self._handle, sim.sim_shapeintparam_static)
 
     def set_dynamic(self, value: bool) -> None:
         """Set whether the shape is dynamic or not.
 
         :param value: The new value of the dynamic state of the shape.
         """
-        vrep.simSetObjectInt32Parameter(
-            self._handle, vrep.sim_shapeintparam_static, not value)
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.sim_shapeintparam_static, not value)
         self.reset_dynamic_object()
 
     def get_color(self) -> List[float]:
@@ -162,8 +162,8 @@ class Shape(Object):
 
         :return: The r, g, b values of the shape.
         """
-        return vrep.simGetShapeColor(
-            self._handle, None, vrep.sim_colorcomponent_ambient_diffuse)
+        return sim.simGetShapeColor(
+            self._handle, None, sim.sim_colorcomponent_ambient_diffuse)
 
     def set_color(self, color: List[float]) -> None:
         """Sets the color of the shape.
@@ -171,31 +171,31 @@ class Shape(Object):
         :param color: The r, g, b values of the shape.
         :return:
         """
-        vrep.simSetShapeColor(
-            self._handle, None, vrep.sim_colorcomponent_ambient_diffuse, color)
+        sim.simSetShapeColor(
+            self._handle, None, sim.sim_colorcomponent_ambient_diffuse, color)
 
     def get_mass(self) -> float:
         """Gets the mass of the shape.
 
         :return: A float representing the mass.
         """
-        return vrep.simGetObjectFloatParameter(self._handle,
-                                               vrep.sim_shapefloatparam_mass)
+        return sim.simGetObjectFloatParameter(self._handle,
+                                              sim.sim_shapefloatparam_mass)
 
     def set_mass(self, mass: float) -> None:
         """Sets the mass of the shape.
 
         :param mass: The new mass value.
         """
-        vrep.simSetObjectFloatParameter(
-            self._handle, vrep.sim_shapefloatparam_mass, mass)
+        sim.simSetObjectFloatParameter(
+            self._handle, sim.sim_shapefloatparam_mass, mass)
 
     def get_mesh_data(self) -> Tuple[List[float], List[float], List[float]]:
         """Retrieves a shape's mesh information.
 
         :return: A tuple containing a list of vertices, indices, and normals.
         """
-        return vrep.simGetShapeMesh(self._handle)
+        return sim.simGetShapeMesh(self._handle)
 
     def get_convex_decomposition(self, morph=False, same=False, use_vhacd=False,
                                  individual_meshes=False,
@@ -297,19 +297,19 @@ class Shape(Object):
             vhacd_min_vol               # [9]
         ]
 
-        return Shape(vrep.simConvexDecompose(self.get_handle(), options,
-                                             int_params, float_params))
+        return Shape(sim.simConvexDecompose(self.get_handle(), options,
+                                            int_params, float_params))
 
     def get_texture(self):
         """Retrieves the texture from the shape.
         :return: The texture associated with this object.
         """
-        return Texture(vrep.simGetShapeTextureId(self.get_handle()))
+        return Texture(sim.simGetShapeTextureId(self.get_handle()))
 
     def remove_texture(self):
         """Removes the texture from the shape.
         """
-        vrep.simSetShapeTexture(self.get_handle(), -1, 0, 0, [1,1], None, None)
+        sim.simSetShapeTexture(self.get_handle(), -1, 0, 0, [1, 1], None, None)
 
     def set_texture(self, texture: Texture, mapping_mode: TextureMappingMode,
                     interpolate=True, decal_mode=False, repeat_along_u=False,
@@ -345,7 +345,7 @@ class Shape(Object):
             options |= 4
         if repeat_along_v:
             options |= 8
-        vrep.simSetShapeTexture(
+        sim.simSetShapeTexture(
             self.get_handle(), texture.get_texture_id(), mapping_mode.value,
             options, list(uv_scaling), position, orientation)
 
@@ -354,5 +354,5 @@ class Shape(Object):
 
         :return: A list of shapes.
         """
-        handles = vrep.simUngroupShape(self.get_handle())
+        handles = sim.simUngroupShape(self.get_handle())
         return [Shape(handle) for handle in handles]

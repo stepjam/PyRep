@@ -1,10 +1,10 @@
 # Adding Robots
 
 If the robot you want is not currently supported, then why not add it in!
-Below is a quick tutorial on how to do this. The tutorial assumes some proficiency with V-REP.
-You may want to take a look at the V-REP [tutorials](http://www.coppeliarobotics.com/helpFiles/en/tutorials.htm).
+Below is a quick tutorial on how to do this. The tutorial assumes some proficiency with CoppeliaSim.
+You may want to take a look at the CoppeliaSim [tutorials](http://www.coppeliarobotics.com/helpFiles/en/tutorials.htm).
 
-#### 1. V-REP documentation
+#### 1. CoppeliaSim documentation
 
 First read through the '[building a clean model tutorial](http://www.coppeliarobotics.com/helpFiles/en/buildingAModelTutorial.htm)', 
 which will show you how to first import CAD data (OBJ, STL, DXF), Collada, or 
@@ -12,7 +12,7 @@ URDF files, and then how to configure the dynamic shapes.
 
 #### 2. Object naming
 
-After step 1, you should now have your model in the V-REP scene. 
+After step 1, you should now have your model in the CoppeliaSim scene. 
 Ensure that all of your joints are in Torque/force mode and that both 
 the motor and control loop is enabled. Also ensure that the robot root is a 'model'. 
 Do this by double clicking the robot root in the scene hierarchy to open 
@@ -81,7 +81,7 @@ and choose the 'IK, tip-target' option from the 'Link type' dropdown.
 
 ##### Python Time
 
-Now we are done with the V-REP side of things. If you have been 
+Now we are done with the CoppeliaSim side of things. If you have been 
 keeping to the naming conventions, then there is very little code needed!
 
 Navigate to `pyrep/arms/` and create a new python file called 'my_robot.py', e.g. 'ur10.py'.

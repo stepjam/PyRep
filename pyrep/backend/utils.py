@@ -3,7 +3,7 @@ import io
 import sys
 from contextlib import contextmanager
 from typing import List, Tuple
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
 from pyrep.objects.dummy import Dummy
@@ -20,20 +20,20 @@ def to_type(handle: int) -> Object:
     :param handle: The internal handle of an object.
     :return: The sub-type of this object.
     """
-    t = vrep.simGetObjectType(handle)
-    if t == vrep.sim_object_shape_type:
+    t = sim.simGetObjectType(handle)
+    if t == sim.sim_object_shape_type:
         return Shape(handle)
-    elif t == vrep.sim_object_dummy_type:
+    elif t == sim.sim_object_dummy_type:
         return Dummy(handle)
-    elif t == vrep.sim_object_path_type:
+    elif t == sim.sim_object_path_type:
         return CartesianPath(handle)
-    elif t == vrep.sim_object_joint_type:
+    elif t == sim.sim_object_joint_type:
         return Joint(handle)
-    elif t == vrep.sim_object_visionsensor_type:
+    elif t == sim.sim_object_visionsensor_type:
         return VisionSensor(handle)
-    elif t == vrep.sim_object_forcesensor_type:
+    elif t == sim.sim_object_forcesensor_type:
         return ForceSensor(handle)
-    elif t == vrep.sim_object_proximitysensor_type:
+    elif t == sim.sim_object_proximitysensor_type:
         return ProximitySensor(handle)
 
 
@@ -56,7 +56,7 @@ def script_call(function_name_at_script_name: str,
     :param bytes: The input bytes to the script (as a string).
     :return: Any number of return values from the called Lua function.
     """
-    return vrep.simExtCallScriptFunction(
+    return sim.simExtCallScriptFunction(
         function_name_at_script_name, script_handle_or_type, list(ints),
         list(floats), list(strings), bytes)
 

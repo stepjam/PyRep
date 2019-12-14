@@ -1,4 +1,4 @@
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from enum import Enum
 
 
@@ -10,34 +10,34 @@ class PrimitiveShape(Enum):
 
 
 class ObjectType(Enum):
-    ALL = vrep.sim_handle_all
-    SHAPE = vrep.sim_object_shape_type
-    JOINT = vrep.sim_object_joint_type
-    DUMMY = vrep.sim_object_dummy_type
-    PROXIMITY_SENSOR = vrep.sim_object_proximitysensor_type
-    GRAPH = vrep.sim_object_graph_type
-    CAMERA = vrep.sim_object_camera_type
-    PATH = vrep.sim_object_path_type
-    VISION_SENSOR = vrep.sim_object_visionsensor_type
-    VOLUME = vrep.sim_object_volume_type
-    MILl = vrep.sim_object_mill_type
-    FORCE_SENSOR = vrep.sim_object_forcesensor_type
-    LIGHT = vrep.sim_object_light_type
-    MIRROR = vrep.sim_object_mirror_type
+    ALL = sim.sim_handle_all
+    SHAPE = sim.sim_object_shape_type
+    JOINT = sim.sim_object_joint_type
+    DUMMY = sim.sim_object_dummy_type
+    PROXIMITY_SENSOR = sim.sim_object_proximitysensor_type
+    GRAPH = sim.sim_object_graph_type
+    CAMERA = sim.sim_object_camera_type
+    PATH = sim.sim_object_path_type
+    VISION_SENSOR = sim.sim_object_visionsensor_type
+    VOLUME = sim.sim_object_volume_type
+    MILl = sim.sim_object_mill_type
+    FORCE_SENSOR = sim.sim_object_forcesensor_type
+    LIGHT = sim.sim_object_light_type
+    MIRROR = sim.sim_object_mirror_type
 
 
 class JointType(Enum):
-    REVOLUTE = vrep.sim_joint_revolute_subtype
-    PRISMATIC = vrep.sim_joint_prismatic_subtype
-    SPHERICAL = vrep.sim_joint_spherical_subtype
+    REVOLUTE = sim.sim_joint_revolute_subtype
+    PRISMATIC = sim.sim_joint_prismatic_subtype
+    SPHERICAL = sim.sim_joint_spherical_subtype
 
 
 class JointMode(Enum):
-    PASSIVE = vrep.sim_jointmode_passive
-    IK = vrep.sim_jointmode_ik
-    IK_DEPENDENT = vrep.sim_jointmode_ikdependent
-    DEPENDENT = vrep.sim_jointmode_dependent
-    FORCE = vrep.sim_jointmode_force
+    PASSIVE = sim.sim_jointmode_passive
+    IK = sim.sim_jointmode_ik
+    IK_DEPENDENT = sim.sim_jointmode_ikdependent
+    DEPENDENT = sim.sim_jointmode_dependent
+    FORCE = sim.sim_jointmode_force
 
 
 class ConfigurationPathAlgorithms(Enum):
@@ -69,10 +69,10 @@ class ConfigurationPathAlgorithms(Enum):
 
 
 class TextureMappingMode(Enum):
-    PLANE = vrep.sim_texturemap_plane
-    CYLINDER = vrep.sim_texturemap_cylinder
-    SPHERE = vrep.sim_texturemap_sphere
-    CUBE = vrep.sim_texturemap_cube
+    PLANE = sim.sim_texturemap_plane
+    CYLINDER = sim.sim_texturemap_cylinder
+    SPHERE = sim.sim_texturemap_sphere
+    CUBE = sim.sim_texturemap_cube
 
 
 class PerspectiveMode(Enum):
@@ -81,14 +81,14 @@ class PerspectiveMode(Enum):
 
 
 class RenderMode(Enum):
-    OPENGL = vrep.sim_rendermode_opengl
-    OPENGL_AUXILIARY = vrep.sim_rendermode_auxchannels
-    OPENGL_COLOR_CODED = vrep.sim_rendermode_colorcoded
-    POV_RAY = vrep.sim_rendermode_povray
-    EXTERNAL = vrep.sim_rendermode_extrenderer
-    EXTERNAL_WINDOWED = vrep.sim_rendermode_extrendererwindowed
-    OPENGL3 = vrep.sim_rendermode_opengl3
-    OPENGL3_WINDOWED = vrep.sim_rendermode_opengl3windowed
+    OPENGL = sim.sim_rendermode_opengl
+    OPENGL_AUXILIARY = sim.sim_rendermode_auxchannels
+    OPENGL_COLOR_CODED = sim.sim_rendermode_colorcoded
+    POV_RAY = sim.sim_rendermode_povray
+    EXTERNAL = sim.sim_rendermode_extrenderer
+    EXTERNAL_WINDOWED = sim.sim_rendermode_extrendererwindowed
+    OPENGL3 = sim.sim_rendermode_opengl3
+    OPENGL3_WINDOWED = sim.sim_rendermode_opengl3windowed
 
 
-PYREP_SCRIPT_TYPE = vrep.sim_scripttype_addonscript
+PYREP_SCRIPT_TYPE = sim.sim_scripttype_addonscript
