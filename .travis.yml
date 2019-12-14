@@ -14,8 +14,8 @@ install:
   # Pull CoppeliaSim
   - wget http://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
   - tar -xf CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
-  - export COPPELIASIM_ROOT="$cur/CoppeliaSim_EDU_V4_0_0_Ubuntu16_04"
-  - echo COPPELIASIM_ROOT
+  - export COPPELIASIM_ROOT="$cur/CoppeliaSim_Edu_V4_0_0_Ubuntu16_04"
+  - echo $COPPELIASIM_ROOT
   # COPPELIASIM_ROOT/platforms needed otherwise will get:
   # qt.qpa.plugin: Could not load the Qt platform plugin "xcb"
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COPPELIASIM_ROOT:$COPPELIASIM_ROOT/platforms
