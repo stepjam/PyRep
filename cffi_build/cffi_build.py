@@ -5,18 +5,18 @@ from shutil import copyfile
 
 # Get PYREP root and find the needed files to compile the cffi lib.
 
-if 'VREP_ROOT' not in os.environ:
-    raise RuntimeError('VREP_ROOT not defined.')
+if 'COPPELIASIM_ROOT' not in os.environ:
+    raise RuntimeError('COPPELIASIM_ROOT not defined.')
 
-if not os.path.exists(os.environ['VREP_ROOT']):
-    raise RuntimeError('VREP_ROOT defined, but is not a valid path.')
+if not os.path.exists(os.environ['COPPELIASIM_ROOT']):
+    raise RuntimeError('COPPELIASIM_ROOT defined, but is not a valid path.')
 
 ffibuilder = FFI()
 
 ffibuilder.cdef("""
 
 // ==============
-// v_repTypes.h
+// simTypes.h
 // ==============
 
 // Various types used in the interface functions:
@@ -84,7 +84,7 @@ typedef int (*jointCtrlCallback)(int,int,int,const int*,const float*,float*);
 
 
 // ==============
-// v_rep.h
+// sim.h
 // ==============
 
 simInt simRunSimulator(const simChar* applicationName,simInt options,simVoid(*initCallBack)(),simVoid(*loopCallBack)(),simVoid(*deinitCallBack)());
@@ -233,8 +233,6 @@ simInt simUnloadModule(simInt pluginhandle);
 simVoid* simSendModuleMessage(simInt message,simInt* auxiliaryData,simVoid* customData,simInt* replyData);
 simVoid* simBroadcastMessage(simInt* auxiliaryData,simVoid* customData,simInt* replyData);
 simChar* simGetModuleName(simInt index,simUChar* moduleVersion);
-simChar* simGetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,simInt* parameterLength);
-simInt simSetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,const simChar* parameterValue,simInt parameterLength);
 simInt simFloatingViewAdd(simFloat posX,simFloat posY,simFloat sizeX,simFloat sizeY,simInt options);
 simInt simFloatingViewRemove(simInt floatingViewHandle);
 simInt simAdjustView(simInt viewHandleOrIndex,simInt associatedViewableObjectHandle,simInt options,const simChar* viewLabel);
@@ -501,8 +499,6 @@ simInt simCheckOctreePointOccupancy(simInt octreeHandle,simInt options,const sim
 simChar* simOpenTextEditor(const simChar* initText,const simChar* xml,simInt* various);
 simChar* simPackTable(simInt stackHandle,simInt* bufferSize);
 simInt simUnpackTable(simInt stackHandle,const simChar* buffer,simInt bufferSize);
-simInt simSetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt options,const simInt* pSizes,const simUChar* bytes,const simInt* ints,const simFloat* floats,const simUChar* custom);
-simInt simGetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt* options,simInt* pSizes,simUChar** bytes,simInt** ints,simFloat** floats,simUChar** custom);
 simInt simSetReferencedHandles(simInt objectHandle,simInt count,const simInt* referencedHandles,const simInt* reserved1,const simInt* reserved2);
 simInt simGetReferencedHandles(simInt objectHandle,simInt** referencedHandles,simInt** reserved1,simInt** reserved2);
 simInt simGetShapeViz(simInt shapeHandle,simInt index,struct SShapeVizInfo* info);
@@ -518,6 +514,8 @@ simInt simApplyTexture(simInt shapeHandle,const simFloat* textureCoordinates,sim
 simInt simSetJointDependency(simInt jointHandle,simInt masterJointHandle,simFloat offset,simFloat coeff);
 simInt simSetStringNamedParam(const simChar* paramName,const simChar* stringParam,simInt paramLength);
 simChar* simGetStringNamedParam(const simChar* paramName,simInt* paramLength);
+simChar* simGetUserParameter(simInt objectHandle,const simChar* parameterName,simInt* parameterLength);
+simInt simSetUserParameter(simInt objectHandle,const simChar* parameterName,const simChar* parameterValue,simInt parameterLength);
 
 
 
@@ -700,14 +698,16 @@ simInt simGetUIPosition(simInt uiHandle,simInt* position);
 simInt simLoadUI(const simChar* filename,simInt maxCount,simInt* uiHandles);
 simInt simSaveUI(simInt count,const simInt* uiHandles,const simChar* filename);
 simInt simHandleGeneralCallbackScript(simInt callbackId,simInt callbackTag,simVoid* additionalData);
-//simInt simRegisterCustomLuaFunction(const simChar* funcName,const simChar* callTips,const simInt* inputArgumentTypes,simVoid(*callBack)(struct SLuaCallBack* p));
 simInt simRegisterCustomLuaVariable(const simChar* varName,const simChar* varValue);
 simInt simRegisterContactCallback(simInt(*callBack)(simInt,simInt,simInt,simInt*,simFloat*));
 simInt simRegisterJointCtrlCallback(simInt(*callBack)(simInt,simInt,simInt,const simInt*,const simFloat*,simFloat*));
 simInt simGetMechanismHandle(const simChar* mechanismName);
 simInt simHandleMechanism(simInt mechanismHandle);
 simInt simHandleCustomizationScripts(simInt callType);
-//simInt simCallScriptFunction(simInt scriptHandleOrType,const simChar* functionNameAtScriptName,SLuaCallBack* data,const simChar* reservedSetToNull);
+simInt simSetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt options,const simInt* pSizes,const simUChar* bytes,const simInt* ints,const simFloat* floats,const simUChar* custom);
+simInt simGetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt* options,simInt* pSizes,simUChar** bytes,simInt** ints,simFloat** floats,simUChar** custom);
+simChar* simGetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,simInt* parameterLength);
+simInt simSetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,const simChar* parameterValue,simInt parameterLength);
 // Deprecated end
 
 """)
@@ -716,26 +716,27 @@ cwd = os.getcwd()
 cffi_path = os.path.join(cwd, 'cffi_build')
 
 ffibuilder.set_source(
-    "pyrep.backend._v_rep_cffi",
+    "pyrep.backend._sim_cffi",
     """
-         #include "v_rep.h"   // the C header of the library
+         #include "sim.h"   // the C header of the library
     """,
-    libraries=['v_rep'],
-    library_dirs=[os.environ['VREP_ROOT']],
+    libraries=['coppeliaSim'],
+    library_dirs=[os.environ['COPPELIASIM_ROOT']],
     include_dirs=[cffi_path])
 
 # For some reason, cffi makes it such that it looks for libv_rep.so.1
 # rather than libv_rep.so. So we add a symlink.
-path = os.path.join(os.environ['VREP_ROOT'], 'libv_rep.so')
+path = os.path.join(os.environ['COPPELIASIM_ROOT'], 'libcoppeliaSim.so')
 if not os.path.exists(path + '.1'):
     print('creating symlink: %s -> %s' % (path + '.1', path))
     os.symlink(path, path + '.1')
 
 # Copy lua functions to the VREP_ROOT
-print('copying lua file: %s -> %s' % ('pyrep/backend', os.environ['VREP_ROOT']))
-lua_script_fname = 'vrepAddOnScript_PyRep.lua'
+print('copying lua file: %s -> %s' % ('pyrep/backend',
+                                      os.environ['COPPELIASIM_ROOT']))
+lua_script_fname = 'simAddOnScript_PyRep.lua'
 copyfile(os.path.join('pyrep/backend', lua_script_fname),
-         os.path.join(os.environ['VREP_ROOT'], lua_script_fname))
+         os.path.join(os.environ['COPPELIASIM_ROOT'], lua_script_fname))
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)

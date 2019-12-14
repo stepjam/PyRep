@@ -98,5 +98,5 @@ ENV/
 # mypy
 .mypy_cache/
 
-pyrep/backend/_v_rep_cffi*
+pyrep/backend/_sim_cffi*
 

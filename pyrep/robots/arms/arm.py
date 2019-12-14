@@ -1,4 +1,4 @@
-from pyrep.backend import vrep, utils
+from pyrep.backend import sim, utils
 from pyrep.objects.dummy import Dummy
 from pyrep.robots.configuration_paths.arm_configuration_path import (
     ArmConfigurationPath)
@@ -31,8 +31,8 @@ class Arm(RobotComponent):
         suffix = '' if count == 0 else '#%d' % (count - 1)
         self._ik_target = Dummy('%s_target%s' % (name, suffix))
         self._ik_tip = Dummy('%s_tip%s' % (name, suffix))
-        self._ik_group = vrep.simGetIkGroupHandle('%s_ik%s' % (name, suffix))
-        self._collision_collection = vrep.simGetCollectionHandle(
+        self._ik_group = sim.simGetIkGroupHandle('%s_ik%s' % (name, suffix))
+        self._collision_collection = sim.simGetCollectionHandle(
             '%s_arm%s' % (name, suffix))
 
     def get_configs_for_tip_pose(self, position: List[float],
@@ -99,12 +99,12 @@ class Arm(RobotComponent):
         elif quaternion is not None:
             self._ik_target.set_quaternion(quaternion)
 
-        ik_result, joint_values = vrep.simCheckIkGroup(
+        ik_result, joint_values = sim.simCheckIkGroup(
             self._ik_group, [j.get_handle() for j in self.joints])
-        if ik_result == vrep.sim_ikresult_fail:
+        if ik_result == sim.sim_ikresult_fail:
             raise IKError('IK failed. Perhaps the distance was between the tip '
                           ' and target was too large.')
-        elif ik_result == vrep.sim_ikresult_not_performed:
+        elif ik_result == sim.sim_ikresult_not_performed:
             raise IKError('IK not performed.')
         return joint_values
 
@@ -291,8 +291,8 @@ class Arm(RobotComponent):
         :return: the row-major Jacobian matix.
         """
         self._ik_target.set_matrix(self._ik_tip.get_matrix())
-        vrep.simCheckIkGroup(self._ik_group,
-                             [j.get_handle() for j in self.joints])
-        jacobian, (rows, cols) = vrep.simGetIkGroupMatrix(self._ik_group, 0)
+        sim.simCheckIkGroup(self._ik_group,
+                            [j.get_handle() for j in self.joints])
+        jacobian, (rows, cols) = sim.simGetIkGroupMatrix(self._ik_group, 0)
         jacobian = np.array(jacobian).reshape((rows, cols), order='F')
         return jacobian

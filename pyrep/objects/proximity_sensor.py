@@ -1,4 +1,4 @@
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from pyrep.objects.object import Object
 from pyrep.const import ObjectType
 
@@ -19,6 +19,6 @@ class ProximitySensor(Object):
         :param obj: The object to detect.
         :return: Bool indicating if the object was detected.
         """
-        state, point = vrep.simCheckProximitySensor(
+        state, point = sim.simCheckProximitySensor(
             self._handle, obj.get_handle())
         return state == 1

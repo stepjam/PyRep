@@ -1,4 +1,4 @@
-from pyrep.backend import vrep, utils
+from pyrep.backend import sim, utils
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
 from pyrep.textures.texture import Texture
@@ -12,7 +12,7 @@ from typing import Tuple, List
 
 
 class PyRep(object):
-    """Used for interfacing with the V-REP simulation.
+    """Used for interfacing with the CoppeliaSim simulation.
 
     Can be used for starting, stopping, and stepping the simulation. As well
     as getting, and creating scene objects and robots.
@@ -33,29 +33,29 @@ class PyRep(object):
 
         self._handles_to_objects = {}
 
-        if 'VREP_ROOT' not in os.environ:
+        if 'COPPELIASIM_ROOT' not in os.environ:
             raise PyRepError(
-                'VREP_ROOT not defined. See installation instructions.')
-        self._vrep_root = os.environ['VREP_ROOT']
+                'COPPELIASIM_ROOT not defined. See installation instructions.')
+        self._vrep_root = os.environ['COPPELIASIM_ROOT']
         if not os.path.exists(self._vrep_root):
             raise PyRepError(
-                'VREP_ROOT was not a correct path. '
+                'COPPELIASIM_ROOT was not a correct path. '
                 'See installation instructions')
 
     def _run_ui_thread(self, scene_file: str, headless: bool) -> None:
         # Need this otherwise extensions will not be loaded
         os.chdir(self._vrep_root)
-        options = vrep.sim_gui_headless if headless else vrep.sim_gui_all
-        vrep.simExtLaunchUIThread(options=options, scene=scene_file,
-                                  pyrep_root=self._vrep_root)
+        options = sim.sim_gui_headless if headless else sim.sim_gui_all
+        sim.simExtLaunchUIThread(options=options, scene=scene_file,
+                                 pyrep_root=self._vrep_root)
 
     def _run_responsive_ui_thread(self) -> None:
         while True:
             if not self.running:
                 with self._step_lock:
-                    if self._shutting_down or vrep.simExtGetExitRequest():
+                    if self._shutting_down or sim.simExtGetExitRequest():
                         break
-                    vrep.simExtStep(False)
+                    sim.simExtStep(False)
             time.sleep(0.01)
         # If the exit request was from the UI, then call shutdown, otherwise
         # shutdown caused this thread to terminate.
@@ -64,19 +64,19 @@ class PyRep(object):
 
     def launch(self, scene_file="", headless=False, responsive_ui=False,
                blocking=False) -> None:
-        """Launches V-REP.
+        """Launches CoppeliaSim.
 
         Launches the UI thread, waits until the UI thread has finished, this
         results in the current thread becoming the simulation thread.
 
         :param scene_file: The scene file to load. Empty string for empty scene.
-        :param headless: Run V-REP in simulation mode.
+        :param headless: Run CoppeliaSim in simulation mode.
         :param responsive_ui: If True, then a separate thread will be created to
-            asynchronously step the UI of V-REP. Note, that will reduce
+            asynchronously step the UI of CoppeliaSim. Note, that will reduce
             the responsiveness of the simulation thread.
-        :param blocking: Causes V-REP to launch as if running the default c++
-            client application. This is causes the function to block. For most
-            users, this will be set to False.
+        :param blocking: Causes CoppeliaSim to launch as if running the default
+            c++ client application. This is causes the function to block.
+            For most users, this will be set to False.
         """
         if len(scene_file) > 0 and not os.path.isfile(
                 os.path.abspath(scene_file)):
@@ -87,15 +87,15 @@ class PyRep(object):
         self._ui_thread.daemon = True
         self._ui_thread.start()
 
-        while not vrep.simExtCanInitSimThread():
+        while not sim.simExtCanInitSimThread():
             time.sleep(0.1)
 
-        vrep.simExtSimThreadInit()
-        time.sleep(0.2)  # Stops V-REP crashing if it is restarted too quickly.
+        sim.simExtSimThreadInit()
+        time.sleep(0.2)  # Stops CoppeliaSim crashing if restarted too quickly.
 
         if blocking:
-            while not vrep.simExtGetExitRequest():
-                vrep.simExtStep()
+            while not sim.simExtGetExitRequest():
+                sim.simExtStep()
             self.shutdown()
         elif responsive_ui:
             self._responsive_ui_thread = threading.Thread(
@@ -136,20 +136,21 @@ class PyRep(object):
             strings, bytes)
 
     def shutdown(self) -> None:
-        """Shuts down the V-REP simulation.
+        """Shuts down the CoppeliaSim simulation.
         """
         if self._ui_thread is None:
-            raise PyRepError('V-REP has not been launched. Call launch first.')
+            raise PyRepError(
+                'CoppeliaSim has not been launched. Call launch first.')
         if self._ui_thread is not None:
             self._shutting_down = True
             self.stop()
             self.step_ui()
-            vrep.simExtPostExitRequest()
-            vrep.simExtSimThreadDestroy()
+            sim.simExtPostExitRequest()
+            sim.simExtSimThreadDestroy()
             self._ui_thread.join()
             if self._responsive_ui_thread is not None:
                 self._responsive_ui_thread.join()
-            # V-REP crashes if new instance opened too quickly after shutdown.
+            # CoppeliaSim crashes if new instance opened too quickly after shutdown.
             # TODO: A small sleep stops this for now.
             time.sleep(0.1)
         self._ui_thread = None
@@ -159,18 +160,20 @@ class PyRep(object):
         """Starts the physics simulation if it is not already running.
         """
         if self._ui_thread is None:
-            raise PyRepError('V-REP has not been launched. Call launch first.')
+            raise PyRepError(
+                'CoppeliaSim has not been launched. Call launch first.')
         if not self.running:
-            vrep.simStartSimulation()
+            sim.simStartSimulation()
             self.running = True
 
     def stop(self) -> None:
         """Stops the physics simulation if it is running.
         """
         if self._ui_thread is None:
-            raise PyRepError('V-REP has not been launched. Call launch first.')
+            raise PyRepError(
+                'CoppeliaSim has not been launched. Call launch first.')
         if self.running:
-            vrep.simStopSimulation()
+            sim.simStopSimulation()
             self.running = False
             # Need this so the UI updates
             [self.step() for _ in range(5)]
@@ -182,7 +185,7 @@ class PyRep(object):
         the UI.
         """
         with self._step_lock:
-            vrep.simExtStep()
+            sim.simExtStep()
 
     def step_ui(self) -> None:
         """Update the UI.
@@ -192,14 +195,14 @@ class PyRep(object):
         This is only applicable when PyRep was launched without a responsive UI.
         """
         with self._step_lock:
-            vrep.simExtStep(False)
+            sim.simExtStep(False)
 
     def set_simulation_timestep(self, dt: float) -> None:
         """Sets the simulation time step. Default is 0.05.
 
         :param dt: The time step value in seconds.
         """
-        vrep.simSetFloatParameter(vrep.sim_floatparam_simulation_time_step, dt)
+        sim.simSetFloatParameter(sim.sim_floatparam_simulation_time_step, dt)
 
     def set_configuration_tree(self, config_tree: bytes) -> None:
         """Restores configuration information previously retrieved.
@@ -213,7 +216,7 @@ class PyRep(object):
 
         :param config_tree: The configuration tree to restore.
         """
-        vrep.simSetConfigurationTree(config_tree)
+        sim.simSetConfigurationTree(config_tree)
 
     def group_objects(self, objects: List[Shape]) -> Shape:
         """Groups several shapes into a compound shape (or simple shape).
@@ -222,7 +225,7 @@ class PyRep(object):
         :return: A single grouped shape.
         """
         handles = [o.get_handle() for o in objects]
-        handle = vrep.simGroupShapes(handles)
+        handle = sim.simGroupShapes(handles)
         return Shape(handle)
 
     def merge_objects(self, objects: List[Shape]) -> Shape:
@@ -232,7 +235,7 @@ class PyRep(object):
         :return: A single merged shape.
         """
         handles = [o.get_handle() for o in objects]
-        handle = vrep.simGroupShapes(handles, merge=True)
+        handle = sim.simGroupShapes(handles, merge=True)
         return Shape(handle)
 
     def import_model(self, filename: str) -> Object:
@@ -244,7 +247,7 @@ class PyRep(object):
             associated script was attached to the model.
         :return: The imported model.
         """
-        handle = vrep.simLoadModel(filename)
+        handle = sim.simLoadModel(filename)
         return utils.to_type(handle)
 
     def create_texture(self, filename: str, interpolate=True, decal_mode=False,
@@ -269,6 +272,6 @@ class PyRep(object):
             options |= 3
         if repeat_along_v:
             options |= 4
-        handle = vrep.simCreateTexture(filename, options)
+        handle = sim.simCreateTexture(filename, options)
         s = Shape(handle)
         return s, s.get_texture()

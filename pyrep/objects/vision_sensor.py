@@ -1,6 +1,6 @@
 import math
 from typing import List, Union
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from pyrep.objects.object import Object
 import numpy as np
 from pyrep.const import ObjectType, PerspectiveMode, RenderMode
@@ -12,7 +12,7 @@ class VisionSensor(Object):
 
     def __init__(self, name_or_handle: Union[str, int]):
         super().__init__(name_or_handle)
-        self.resolution = vrep.simGetVisionSensorResolution(self._handle)
+        self.resolution = sim.simGetVisionSensorResolution(self._handle)
 
     @staticmethod
     def create(resolution: List[int], explicit_handling=False,
@@ -95,7 +95,7 @@ class VisionSensor(Object):
         ]
 
         vs = VisionSensor(
-            vrep.simCreateVisionSensor(options, int_params, float_params, None)
+            sim.simCreateVisionSensor(options, int_params, float_params, None)
         )
         vs.set_render_mode(render_mode)
         if position is not None:
@@ -112,7 +112,7 @@ class VisionSensor(Object):
 
         :return: A numpy array of size (width, height, 3)
         """
-        return vrep.simGetVisionSensorImage(self._handle, self.resolution)
+        return sim.simGetVisionSensorImage(self._handle, self.resolution)
 
     def capture_depth(self, in_meters=False) -> np.ndarray:
         """Retrieves the depth-image of a vision sensor.
@@ -120,7 +120,7 @@ class VisionSensor(Object):
         :param in_meters: Whether the depth should be returned in meters.
         :return: A numpy array of size (width, height)
         """
-        return vrep.simGetVisionSensorDepthBuffer(
+        return sim.simGetVisionSensorDepthBuffer(
             self._handle, self.resolution, in_meters)
 
     def get_resolution(self) -> List[int]:
@@ -128,18 +128,18 @@ class VisionSensor(Object):
 
         :return: Resolution [x, y]
         """
-        return vrep.simGetVisionSensorResolution(self._handle)
+        return sim.simGetVisionSensorResolution(self._handle)
 
     def set_resolution(self, resolution: List[int]) -> None:
         """ Set the Sensor's resolution.
 
         :param resolution: New resolution [x, y]
         """
-        vrep.simSetObjectInt32Parameter(
-            self._handle, vrep.sim_visionintparam_resolution_x, resolution[0]
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_resolution_x, resolution[0]
         )
-        vrep.simSetObjectInt32Parameter(
-            self._handle, vrep.sim_visionintparam_resolution_y, resolution[1]
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_resolution_y, resolution[1]
         )
         self.resolution = resolution
 
@@ -148,8 +148,8 @@ class VisionSensor(Object):
 
         :return: The current PerspectiveMode.
         """
-        perspective_mode = vrep.simGetObjectInt32Parameter(
-            self._handle, vrep.sim_visionintparam_perspective_mode
+        perspective_mode = sim.simGetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_perspective_mode
         )
         return PerspectiveMode(perspective_mode)
 
@@ -160,8 +160,8 @@ class VisionSensor(Object):
             PerspectiveMode.ORTHOGRAPHIC
             PerspectiveMode.PERSPECTIVE
         """
-        vrep.simSetObjectInt32Parameter(
-            self._handle, vrep.sim_visionintparam_perspective_mode,
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_perspective_mode,
             perspective_mode.value
         )
 
@@ -170,8 +170,8 @@ class VisionSensor(Object):
 
         :return: RenderMode for the current rendering mode.
         """
-        render_mode = vrep.simGetObjectInt32Parameter(
-            self._handle, vrep.sim_visionintparam_render_mode
+        render_mode = sim.simGetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_render_mode
         )
         return RenderMode(render_mode)
 
@@ -188,8 +188,8 @@ class VisionSensor(Object):
             RenderMode.OPENGL3
             RenderMode.OPENGL3_WINDOWED
         """
-        vrep.simSetObjectInt32Parameter(
-            self._handle, vrep.sim_visionintparam_render_mode,
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_render_mode,
             render_mode.value
         )
 
@@ -198,8 +198,8 @@ class VisionSensor(Object):
 
         :return: The sensor's perspective angle (in degrees).
         """
-        return math.degrees(vrep.simGetObjectFloatParameter(
-            self._handle, vrep.sim_visionfloatparam_perspective_angle
+        return math.degrees(sim.simGetObjectFloatParameter(
+            self._handle, sim.sim_visionfloatparam_perspective_angle
         ))
 
     def set_perspective_angle(self, angle: float) -> None:
@@ -207,8 +207,8 @@ class VisionSensor(Object):
 
         :param angle: New perspective angle (in degrees)
         """
-        vrep.simSetObjectFloatParameter(
-            self._handle, vrep.sim_visionfloatparam_perspective_angle,
+        sim.simSetObjectFloatParameter(
+            self._handle, sim.sim_visionfloatparam_perspective_angle,
             math.radians(angle)
         )
 
@@ -217,8 +217,8 @@ class VisionSensor(Object):
 
         :return: The sensor's orthographic size (in metres).
         """
-        return vrep.simGetObjectFloatParameter(
-            self._handle, vrep.sim_visionfloatparam_ortho_size
+        return sim.simGetObjectFloatParameter(
+            self._handle, sim.sim_visionfloatparam_ortho_size
         )
 
     def set_orthographic_size(self, ortho_size: float) -> None:
@@ -226,8 +226,8 @@ class VisionSensor(Object):
 
         :param angle: New orthographic size (in metres)
         """
-        vrep.simSetObjectFloatParameter(
-            self._handle, vrep.sim_visionfloatparam_ortho_size, ortho_size
+        sim.simSetObjectFloatParameter(
+            self._handle, sim.sim_visionfloatparam_ortho_size, ortho_size
         )
 
     def get_near_clipping_plane(self) -> float:
@@ -235,8 +235,8 @@ class VisionSensor(Object):
 
         :return: Near clipping plane (metres)
         """
-        return vrep.simGetObjectFloatParameter(
-            self._handle, vrep.sim_visionfloatparam_near_clipping
+        return sim.simGetObjectFloatParameter(
+            self._handle, sim.sim_visionfloatparam_near_clipping
         )
 
     def set_near_clipping_plane(self, near_clipping: float) -> None:
@@ -244,8 +244,8 @@ class VisionSensor(Object):
 
         :param near_clipping: New near clipping plane (in metres)
         """
-        vrep.simSetObjectFloatParameter(
-            self._handle, vrep.sim_visionfloatparam_near_clipping, near_clipping
+        sim.simSetObjectFloatParameter(
+            self._handle, sim.sim_visionfloatparam_near_clipping, near_clipping
         )
 
     def get_far_clipping_plane(self) -> float:
@@ -253,8 +253,8 @@ class VisionSensor(Object):
 
         :return: Near clipping plane (metres)
         """
-        return vrep.simGetObjectFloatParameter(
-            self._handle, vrep.sim_visionfloatparam_far_clipping
+        return sim.simGetObjectFloatParameter(
+            self._handle, sim.sim_visionfloatparam_far_clipping
         )
 
     def set_far_clipping_plane(self, far_clipping: float) -> None:
@@ -262,6 +262,6 @@ class VisionSensor(Object):
 
         :param far_clipping: New far clipping plane (in metres)
         """
-        vrep.simSetObjectFloatParameter(
-            self._handle, vrep.sim_visionfloatparam_far_clipping, far_clipping
+        sim.simSetObjectFloatParameter(
+            self._handle, sim.sim_visionfloatparam_far_clipping, far_clipping
         )

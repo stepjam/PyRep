@@ -1,4 +1,4 @@
-from pyrep.backend import vrep, utils
+from pyrep.backend import sim, utils
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.shape import Shape
 from pyrep.robots.robot_component import RobotComponent
@@ -38,7 +38,7 @@ class MobileBase(RobotComponent):
             '%s_intermediate_target_base%s' % (name, suffix))
         self.target_base = Dummy('%s_target_base%s' % (name, suffix))
 
-        self._collision_collection = vrep.simGetCollectionHandle(
+        self._collision_collection = sim.simGetCollectionHandle(
             '%s_base%s' % (name, suffix))
 
         # Robot parameters and handle
@@ -75,8 +75,8 @@ class MobileBase(RobotComponent):
 
         :return: True if collision is detected
         """
-        return vrep.simCheckCollision(self._collision_collection,
-                                      vrep.sim_handle_all) == 1
+        return sim.simCheckCollision(self._collision_collection,
+                                     sim.sim_handle_all) == 1
 
     def set_cartesian_position(self, position: List[float]):
         """Set a delta target position (x,y) and rotation position

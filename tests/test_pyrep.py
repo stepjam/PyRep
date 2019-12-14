@@ -47,7 +47,7 @@ class TestPyrep(TestCore):
         self.assertNotEqual(start_pos, end_pos)
 
     def test_load_model(self):
-        m = self.pyrep.import_model(path.join(ASSET_DIR, 'test_scene.ttt'))
+        m = self.pyrep.import_model(path.join(ASSET_DIR, 'loadable_model.ttm'))
         self.assertIsInstance(m, Shape)
 
     def test_group_objects(self):

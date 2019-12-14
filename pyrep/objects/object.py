@@ -1,4 +1,4 @@
-from pyrep.backend import vrep
+from pyrep.backend import sim
 from pyrep.errors import *
 from pyrep.const import ObjectType
 from pyrep.errors import WrongObjectTypeError
@@ -16,9 +16,9 @@ class Object(object):
         if isinstance(name_or_handle, int):
             self._handle = name_or_handle
         else:
-            self._handle = vrep.simGetObjectHandle(name_or_handle)
+            self._handle = sim.simGetObjectHandle(name_or_handle)
             assert_type = self._get_requested_type()
-            actual = ObjectType(vrep.simGetObjectType(self._handle))
+            actual = ObjectType(sim.simGetObjectType(self._handle))
             if actual != assert_type:
                 raise WrongObjectTypeError(
                     'You requested object of type %s, but the actual type was '
@@ -37,7 +37,7 @@ class Object(object):
         :return: True of the object exists.
         """
         try:
-            vrep.simGetObjectHandle(name)
+            sim.simGetObjectHandle(name)
         except:
             return False
         return True
@@ -48,7 +48,7 @@ class Object(object):
 
         :return: Type of the object.
         """
-        return ObjectType(vrep.simGetObjectType(vrep.simGetObjectHandle(name)))
+        return ObjectType(sim.simGetObjectType(sim.simGetObjectHandle(name)))
 
     def _get_requested_type(self) -> ObjectType:
         """Used for internally checking assumptions user made about object type.
@@ -62,7 +62,7 @@ class Object(object):
 
         :return: Type of the object.
         """
-        return ObjectType(vrep.simGetObjectType(self._handle))
+        return ObjectType(sim.simGetObjectType(self._handle))
 
     def get_handle(self) -> int:
         """Gets the internal handle of this object.
@@ -76,19 +76,19 @@ class Object(object):
 
         :return: Whether the object exists or not.
         """
-        return vrep.simGetObjectName(self._handle) != ''
+        return sim.simGetObjectName(self._handle) != ''
 
     def get_name(self) -> str:
         """Gets the objects name in the scene.
 
         :return: The objects name.
         """
-        return vrep.simGetObjectName(self._handle)
+        return sim.simGetObjectName(self._handle)
 
     def set_name(self, name: str) -> None:
         """Sets the objects name in the scene.
         """
-        vrep.simSetObjectName(self._handle, name)
+        sim.simSetObjectName(self._handle, name)
 
     def get_position(self, relative_to=None) -> List[float]:
         """Gets the position of this object.
@@ -99,7 +99,7 @@ class Object(object):
         :return: A list containing the x, y, z position of the object.
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        return vrep.simGetObjectPosition(self._handle, relto)
+        return sim.simGetObjectPosition(self._handle, relto)
 
     def set_position(self, position: List[float], relative_to=None,
                      reset_dynamics=True) -> None:
@@ -118,7 +118,7 @@ class Object(object):
             for ob in self.get_objects_in_tree(exclude_base=False):
                 ob.reset_dynamic_object()
 
-        vrep.simSetObjectPosition(self._handle, relto, position)
+        sim.simSetObjectPosition(self._handle, relto, position)
 
     def get_orientation(self, relative_to=None) -> List[float]:
         """Gets the orientation of this object.
@@ -131,7 +131,7 @@ class Object(object):
             object (in radians).
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        return vrep.simGetObjectOrientation(self._handle, relto)
+        return sim.simGetObjectOrientation(self._handle, relto)
 
     def set_orientation(self, orientation: List[float], relative_to=None,
                         reset_dynamics=True) -> None:
@@ -150,7 +150,7 @@ class Object(object):
         if reset_dynamics:
             for ob in self.get_objects_in_tree(exclude_base=False):
                 ob.reset_dynamic_object()
-        vrep.simSetObjectOrientation(self._handle, relto, orientation)
+        sim.simSetObjectOrientation(self._handle, relto, orientation)
 
     def get_quaternion(self, relative_to=None) -> List[float]:
         """Retrieves the quaternion (x,y,z,w) of an object.
@@ -162,7 +162,7 @@ class Object(object):
         :return: A list containing the quaternion (x,y,z,w).
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        return vrep.simGetObjectQuaternion(self._handle, relto)
+        return sim.simGetObjectQuaternion(self._handle, relto)
 
     def set_quaternion(self, quaternion: List[float], relative_to=None,
                        reset_dynamics=True) -> None:
@@ -186,7 +186,7 @@ class Object(object):
         if reset_dynamics:
             for ob in self.get_objects_in_tree(exclude_base=False):
                 ob.reset_dynamic_object()
-        vrep.simSetObjectQuaternion(self._handle, relto, quaternion)
+        sim.simSetObjectQuaternion(self._handle, relto, quaternion)
 
     def get_pose(self, relative_to=None) -> List[float]:
         """Retrieves the position and quaternion of an object
@@ -222,7 +222,7 @@ class Object(object):
         :return: The parent of this object, or None if it doesn't have a parent.
         """
         try:
-            handle = vrep.simGetObjectParent(self._handle)
+            handle = sim.simGetObjectParent(self._handle)
         except RuntimeError:
             # Most probably no parent.
             return None
@@ -238,7 +238,7 @@ class Object(object):
             and orientation should stay same
         """
         parent = -1 if parent_object is None else parent_object.get_handle()
-        vrep.simSetObjectParent(self._handle, parent, keep_in_place)
+        sim.simSetObjectParent(self._handle, parent, keep_in_place)
 
     def get_matrix(self, relative_to=None) -> List[float]:
         """Retrieves the transformation matrix of this object.
@@ -255,7 +255,7 @@ class Object(object):
                 The translation component is (m[3], m[7], m[11])
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        return vrep.simGetObjectMatrix(self._handle, relto)
+        return sim.simGetObjectMatrix(self._handle, relto)
 
     def set_matrix(self, matrix: List[float], relative_to=None) -> None:
         """Sets the transformation matrix of this object.
@@ -272,82 +272,82 @@ class Object(object):
                 The translation component is (m[3], m[7], m[11])
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        vrep.simSetObjectMatrix(self._handle, relto, matrix)
+        sim.simSetObjectMatrix(self._handle, relto, matrix)
 
     def is_collidable(self) -> bool:
         """Whether the object is collidable or not.
 
         :return: If the object is collidable.
         """
-        return self._get_property(vrep.sim_objectspecialproperty_collidable)
+        return self._get_property(sim.sim_objectspecialproperty_collidable)
 
     def set_collidable(self, value: bool) -> None:
         """Set whether the object is collidable or not.
 
         :param value: The new value of the collidable state.
         """
-        self._set_property(vrep.sim_objectspecialproperty_collidable, value)
+        self._set_property(sim.sim_objectspecialproperty_collidable, value)
 
     def is_measurable(self) -> bool:
         """Whether the object is measurable or not.
 
         :return: If the object is measurable.
         """
-        return self._get_property(vrep.sim_objectspecialproperty_measurable)
+        return self._get_property(sim.sim_objectspecialproperty_measurable)
 
     def set_measurable(self, value: bool):
         """Set whether the object is measurable or not.
 
         :param value: The new value of the measurable state.
         """
-        self._set_property(vrep.sim_objectspecialproperty_measurable, value)
+        self._set_property(sim.sim_objectspecialproperty_measurable, value)
 
     def is_detectable(self) -> bool:
         """Whether the object is detectable or not.
 
         :return: If the object is detectable.
         """
-        return self._get_property(vrep.sim_objectspecialproperty_detectable_all)
+        return self._get_property(sim.sim_objectspecialproperty_detectable_all)
 
     def set_detectable(self, value: bool):
         """Set whether the object is detectable or not.
 
         :param value: The new value of the detectable state.
         """
-        self._set_property(vrep.sim_objectspecialproperty_detectable_all, value)
+        self._set_property(sim.sim_objectspecialproperty_detectable_all, value)
 
     def is_renderable(self) -> bool:
         """Whether the object is renderable or not.
 
         :return: If the object is renderable.
         """
-        return self._get_property(vrep.sim_objectspecialproperty_renderable)
+        return self._get_property(sim.sim_objectspecialproperty_renderable)
 
     def set_renderable(self, value: bool):
         """Set whether the object is renderable or not.
 
         :param value: The new value of the renderable state.
         """
-        self._set_property(vrep.sim_objectspecialproperty_renderable, value)
+        self._set_property(sim.sim_objectspecialproperty_renderable, value)
 
     def is_model(self) -> bool:
         """Whether the object is a model or not.
 
         :return: If the object is a model.
         """
-        prop = vrep.simGetModelProperty(self._handle)
-        return not (prop & vrep.sim_modelproperty_not_model)
+        prop = sim.simGetModelProperty(self._handle)
+        return not (prop & sim.sim_modelproperty_not_model)
 
     def set_model(self, value: bool):
         """Set whether the object is a model or not.
 
         :param value: True to set as a model.
         """
-        current = vrep.simGetModelProperty(self._handle)
-        current |= vrep.sim_modelproperty_not_model
+        current = sim.simGetModelProperty(self._handle)
+        current |= sim.sim_modelproperty_not_model
         if value:
-            current -= vrep.sim_modelproperty_not_model
-        vrep.simSetModelProperty(self._handle, current)
+            current -= sim.sim_modelproperty_not_model
+        sim.simSetModelProperty(self._handle, current)
 
     def remove(self) -> None:
         """Removes this object/model from the scene.
@@ -356,9 +356,9 @@ class Object(object):
         """
         try:
             if self.is_model():
-                vrep.simRemoveModel(self._handle)
+                sim.simRemoveModel(self._handle)
             else:
-                vrep.simRemoveObject(self._handle)
+                sim.simRemoveObject(self._handle)
         except RuntimeError as e:
             raise ObjectAlreadyRemovedError(
                 'The object/model was already deleted.') from e
@@ -376,7 +376,7 @@ class Object(object):
         current position/orientation), so the user is in charge of rectifying
         for that.
         """
-        vrep.simResetDynamicObject(self._handle)
+        sim.simResetDynamicObject(self._handle)
 
     def get_bounding_box(self) -> List[float]:
         """Gets the bounding box (relative to the object reference frame).
@@ -384,13 +384,13 @@ class Object(object):
         :return: A list containing the min x, max x, min y, max y, min z, max z
             positions.
         """
-        params = [vrep.sim_objfloatparam_objbbox_min_x,
-                  vrep.sim_objfloatparam_objbbox_max_x,
-                  vrep.sim_objfloatparam_objbbox_min_y,
-                  vrep.sim_objfloatparam_objbbox_max_y,
-                  vrep.sim_objfloatparam_objbbox_min_z,
-                  vrep.sim_objfloatparam_objbbox_max_z]
-        return [vrep.simGetObjectFloatParameter(
+        params = [sim.sim_objfloatparam_objbbox_min_x,
+                  sim.sim_objfloatparam_objbbox_max_x,
+                  sim.sim_objfloatparam_objbbox_min_y,
+                  sim.sim_objfloatparam_objbbox_max_y,
+                  sim.sim_objfloatparam_objbbox_min_z,
+                  sim.sim_objfloatparam_objbbox_max_z]
+        return [sim.simGetObjectFloatParameter(
             self._handle, p) for p in params]
 
     def get_extension_string(self) -> str:
@@ -398,7 +398,7 @@ class Object(object):
 
         :return: The extension string.
         """
-        return vrep.simGetExtensionString(self._handle, -1, '')
+        return sim.simGetExtensionString(self._handle, -1, '')
 
     def get_configuration_tree(self) -> bytes:
         """Retrieves configuration information for a hierarchy tree.
@@ -411,22 +411,22 @@ class Object(object):
 
         :return: The configuration tree.
         """
-        return vrep.simGetConfigurationTree(self._handle)
+        return sim.simGetConfigurationTree(self._handle)
 
     def rotate(self, rotation: List[float]) -> None:
         """Rotates a transformation matrix.
 
         :param rotation: The x, y, z rotation to perform (in radians).
         """
-        m = vrep.simGetObjectMatrix(self._handle, -1)
+        m = sim.simGetObjectMatrix(self._handle, -1)
         x_axis = [m[0], m[4], m[8]]
         y_axis = [m[1], m[5], m[9]]
         z_axis = [m[2], m[6], m[10]]
-        axis_pos = vrep.simGetObjectPosition(self._handle, -1)
-        m = vrep.simRotateAroundAxis(m, z_axis, axis_pos, rotation[2])
-        m = vrep.simRotateAroundAxis(m, y_axis, axis_pos, rotation[1])
-        m = vrep.simRotateAroundAxis(m, x_axis, axis_pos, rotation[0])
-        vrep.simSetObjectMatrix(self._handle, -1, m)
+        axis_pos = sim.simGetObjectPosition(self._handle, -1)
+        m = sim.simRotateAroundAxis(m, z_axis, axis_pos, rotation[2])
+        m = sim.simRotateAroundAxis(m, y_axis, axis_pos, rotation[1])
+        m = sim.simRotateAroundAxis(m, x_axis, axis_pos, rotation[0])
+        sim.simSetObjectMatrix(self._handle, -1, m)
 
     def check_collision(self, obj: 'Object' = None) -> bool:
         """Checks whether two entities are colliding.
@@ -436,8 +436,8 @@ class Object(object):
             must be marked as collidable!
         :return: If the object is colliding.
         """
-        handle = vrep.sim_handle_all if obj is None else obj.get_handle()
-        return vrep.simCheckCollision(self._handle, handle) == 1
+        handle = sim.sim_handle_all if obj is None else obj.get_handle()
+        return sim.simCheckCollision(self._handle, handle) == 1
 
     # === Model specific methods ===
 
@@ -448,7 +448,7 @@ class Object(object):
         :return: If the model is collidable.
         """
         return self._get_model_property(
-            vrep.sim_modelproperty_not_collidable)
+            sim.sim_modelproperty_not_collidable)
 
     def set_model_collidable(self, value: bool):
         """Set whether the model is collidable or not.
@@ -457,7 +457,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            vrep.sim_modelproperty_not_collidable, value)
+            sim.sim_modelproperty_not_collidable, value)
 
     def is_model_measurable(self) -> bool:
         """Whether the model is measurable or not.
@@ -466,7 +466,7 @@ class Object(object):
         :return: If the model is measurable.
         """
         return self._get_model_property(
-            vrep.sim_modelproperty_not_measurable)
+            sim.sim_modelproperty_not_measurable)
 
     def set_model_measurable(self, value: bool):
         """Set whether the model is measurable or not.
@@ -475,7 +475,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            vrep.sim_modelproperty_not_measurable, value)
+            sim.sim_modelproperty_not_measurable, value)
 
     def is_model_detectable(self) -> bool:
         """Whether the model is detectable or not.
@@ -484,7 +484,7 @@ class Object(object):
         :return: If the model is detectable.
         """
         return self._get_model_property(
-            vrep.sim_modelproperty_not_detectable)
+            sim.sim_modelproperty_not_detectable)
 
     def set_model_detectable(self, value: bool):
         """Set whether the model is detectable or not.
@@ -493,7 +493,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            vrep.sim_modelproperty_not_detectable, value)
+            sim.sim_modelproperty_not_detectable, value)
 
     def is_model_renderable(self) -> bool:
         """Whether the model is renderable or not.
@@ -502,7 +502,7 @@ class Object(object):
         :return: If the model is renderable.
         """
         return self._get_model_property(
-            vrep.sim_modelproperty_not_renderable)
+            sim.sim_modelproperty_not_renderable)
 
     def set_model_renderable(self, value: bool):
         """Set whether the model is renderable or not.
@@ -511,7 +511,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            vrep.sim_modelproperty_not_renderable, value)
+            sim.sim_modelproperty_not_renderable, value)
 
     def is_model_dynamic(self) -> bool:
         """Whether the model is dynamic or not.
@@ -520,7 +520,7 @@ class Object(object):
         :return: If the model is dynamic.
         """
         return self._get_model_property(
-            vrep.sim_modelproperty_not_dynamic)
+            sim.sim_modelproperty_not_dynamic)
 
     def set_model_dynamic(self, value: bool):
         """Set whether the model is dynamic or not.
@@ -529,7 +529,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            vrep.sim_modelproperty_not_dynamic, value)
+            sim.sim_modelproperty_not_dynamic, value)
 
     def is_model_respondable(self) -> bool:
         """Whether the model is respondable or not.
@@ -538,7 +538,7 @@ class Object(object):
         :return: If the model is respondable.
         """
         return self._get_model_property(
-            vrep.sim_modelproperty_not_respondable)
+            sim.sim_modelproperty_not_respondable)
 
     def set_model_respondable(self, value: bool):
         """Set whether the model is respondable or not.
@@ -547,7 +547,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            vrep.sim_modelproperty_not_respondable, value)
+            sim.sim_modelproperty_not_respondable, value)
 
     def save_model(self, path: str) -> None:
         """Saves a model.
@@ -559,7 +559,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._check_model()
-        vrep.simSaveModel(self._handle, path)
+        sim.simSaveModel(self._handle, path)
 
     def get_model_bounding_box(self) -> List[float]:
         """Gets the models bounding box (relative to models reference frame).
@@ -569,13 +569,13 @@ class Object(object):
             positions.
         """
         self._check_model()
-        params = [vrep.sim_objfloatparam_modelbbox_min_x,
-                  vrep.sim_objfloatparam_modelbbox_max_x,
-                  vrep.sim_objfloatparam_modelbbox_min_y,
-                  vrep.sim_objfloatparam_modelbbox_max_y,
-                  vrep.sim_objfloatparam_modelbbox_min_z,
-                  vrep.sim_objfloatparam_modelbbox_max_z]
-        return [vrep.simGetObjectFloatParameter(
+        params = [sim.sim_objfloatparam_modelbbox_min_x,
+                  sim.sim_objfloatparam_modelbbox_max_x,
+                  sim.sim_objfloatparam_modelbbox_min_y,
+                  sim.sim_objfloatparam_modelbbox_max_y,
+                  sim.sim_objfloatparam_modelbbox_min_z,
+                  sim.sim_objfloatparam_modelbbox_max_z]
+        return [sim.simGetObjectFloatParameter(
             self._handle, p) for p in params]
 
     def get_objects_in_tree(self, object_type=ObjectType.ALL, exclude_base=True,
@@ -594,7 +594,7 @@ class Object(object):
             options |= 1
         if first_generation_only:
             options |= 2
-        handles = vrep.simGetObjectsInTree(
+        handles = sim.simGetObjectsInTree(
             self._handle, object_type.value, options)
         objects = []
         for h in handles:
@@ -609,7 +609,7 @@ class Object(object):
 
         :return: The new pasted object.
         """
-        return self.__class__((vrep.simCopyPasteObjects([self._handle], 0)[0]))
+        return self.__class__((sim.simCopyPasteObjects([self._handle], 0)[0]))
 
     def check_distance(self, other: 'Object') -> float:
         """Checks the minimum distance between two objects.
@@ -617,7 +617,7 @@ class Object(object):
         :param other: The other object to check distance against.
         :return: The distance between the objects.
         """
-        return vrep.simCheckDistance(
+        return sim.simCheckDistance(
             self.get_handle(), other.get_handle(), -1)[6]
 
     # === Private methods ===
@@ -628,23 +628,23 @@ class Object(object):
                 "Object '%s' is not a model. Use 'set_model(True)' to convert.")
 
     def _get_model_property(self, prop_type: int) -> bool:
-        current = vrep.simGetModelProperty(self._handle)
+        current = sim.simGetModelProperty(self._handle)
         return (current & prop_type) == 0
 
     def _set_model_property(self, prop_type: int, value: bool) -> None:
-        current = vrep.simGetModelProperty(self._handle)
+        current = sim.simGetModelProperty(self._handle)
         current |= prop_type  # Makes is not X
         if value:
             current -= prop_type
-        vrep.simSetModelProperty(self._handle, current)
+        sim.simSetModelProperty(self._handle, current)
 
     def _get_property(self, prop_type: int) -> bool:
-        current = vrep.simGetObjectSpecialProperty(self._handle)
+        current = sim.simGetObjectSpecialProperty(self._handle)
         return current & prop_type
 
     def _set_property(self, prop_type: int, value: bool) -> None:
-        current = vrep.simGetObjectSpecialProperty(self._handle)
+        current = sim.simGetObjectSpecialProperty(self._handle)
         current |= prop_type
         if not value:
             current -= prop_type
-        vrep.simSetObjectSpecialProperty(self._handle, current)
+        sim.simSetObjectSpecialProperty(self._handle, current)
