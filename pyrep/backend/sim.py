@@ -1022,3 +1022,32 @@ def simUngroupShape(shapeHandle):
     handles = [shapes[i] for i in range(count[0])]
     # simReleaseBuffer(shapes)
     return handles
+
+
+def simInvertMatrix(matrix):
+    c_matrix = ffi.new('float []', matrix)
+    ret = lib.simInvertMatrix(c_matrix)
+    _check_return(ret)
+    return list(c_matrix)
+
+
+def simMultiplyMatrices(inMatrix1, inMatrix2):
+    outMatrix = ffi.new('float []', len(inMatrix1))
+    ret = lib.simMultiplyMatrices(inMatrix1, inMatrix2, outMatrix)
+    _check_return(ret)
+    _check_null_return(outMatrix)
+    return list(outMatrix)
+
+
+def simGetEulerAnglesFromMatrix(rotationMatrix):
+    eulerAngles = ffi.new('float [3]')
+    ret = lib.simGetEulerAnglesFromMatrix(rotationMatrix, eulerAngles)
+    _check_return(ret)
+    _check_null_return(eulerAngles)
+    return list(eulerAngles)
+
+
+def simGetSimulationTime():
+    time = lib.simGetSimulationTime()
+    _check_return(time)
+    return time
