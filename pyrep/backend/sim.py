@@ -1051,3 +1051,103 @@ def simGetSimulationTime():
     time = lib.simGetSimulationTime()
     _check_return(time)
     return time
+
+
+def simSetIntegerSignal(signalName, signalValue):
+    ret = lib.simSetIntegerSignal(signalName.encode('ascii'), signalValue)
+    _check_return(ret)
+
+
+def simGetIntegerSignal(signalName):
+    val = ffi.new('int*')
+    ret = lib.simGetIntegerSignal(signalName.encode('ascii'), val)
+    _check_return(ret)
+    return ret, val[0]
+
+
+def simClearIntegerSignal(signalName):
+    ret = lib.simClearIntegerSignal(signalName.encode('ascii'))
+    _check_return(ret)
+    return ret
+
+
+def simSetFloatSignal(signalName, signalValue):
+    ret = lib.simSetFloatSignal(signalName.encode('ascii'), signalValue)
+    _check_return(ret)
+
+
+def simGetFloatSignal(signalName):
+    val = ffi.new('float*')
+    ret = lib.simGetFloatSignal(signalName.encode('ascii'), val)
+    _check_return(ret)
+    return ret, val[0]
+
+
+def simClearFloatSignal(signalName):
+    ret = lib.simClearFloatSignal(signalName.encode('ascii'))
+    _check_return(ret)
+    return ret
+
+
+def simSetDoubleSignal(signalName, signalValue):
+    ret = lib.simSetDoubleSignal(signalName.encode('ascii'), signalValue)
+    _check_return(ret)
+
+
+def simGetDoubleSignal(signalName):
+    val = ffi.new('double*')
+    ret = lib.simGetDoubleSignal(signalName.encode('ascii'), val)
+    _check_return(ret)
+    return ret, val[0]
+
+
+def simClearDoubleSignal(signalName):
+    ret = lib.simClearDoubleSignal(signalName.encode('ascii'))
+    _check_return(ret)
+    return ret
+
+
+def simSetStringSignal(signalName, signalValue):
+    ret = lib.simSetStringSignal(
+        signalName.encode('ascii'), signalValue.encode('ascii'),
+        len(signalValue))
+    _check_return(ret)
+
+
+def simGetStringSignal(signalName):
+    valLen = ffi.new('int*')
+    str_ret = lib.simGetStringSignal(signalName.encode('ascii'), valLen)
+    if str_ret == ffi.NULL:
+        # No value.
+        return 0, None
+    val = ffi.string(str_ret[0:valLen[0]]).decode('utf-8')
+    simReleaseBuffer(ffi.cast('char *', str_ret))
+    return 1, val
+
+
+def simClearStringSignal(signalName):
+    ret = lib.simClearStringSignal(signalName.encode('ascii'))
+    _check_return(ret)
+    return ret
+
+
+def simSetUserParameter(objectHandle, parameterName, parameterValue):
+    # TODO: currently not used by PyRep.
+    # User params functionality missing in CoppeliaSim.
+    parameterLength = len(parameterValue)
+    ret = lib.simSetUserParameter(
+        objectHandle, parameterName.encode('ascii'),
+        parameterValue.encode('ascii'), parameterLength)
+    _check_return(ret)
+
+
+def simGetUserParameter(objectHandle, parameterName):
+    # TODO: currently not used by PyRep.
+    # User params functionality missing in CoppeliaSim.
+    parameterLength = ffi.new('int*')
+    parameterValue = lib.simGetUserParameter(
+        objectHandle, parameterName.encode('ascii'), parameterLength)
+    _check_null_return(parameterValue)
+    val = ffi.string((parameterValue[0][:parameterLength[0]])).decode('utf-8')
+    simReleaseBuffer(ffi.cast('char *', parameterValue))
+    return val
