@@ -1151,3 +1151,55 @@ def simGetUserParameter(objectHandle, parameterName):
     val = ffi.string((parameterValue[0][:parameterLength[0]])).decode('utf-8')
     simReleaseBuffer(ffi.cast('char *', parameterValue))
     return val
+
+def simCreateOctree(voxelSize, options, pointSize):
+    ret = lib.simCreateOctree(voxelSize, options, pointSize, ffi.NULL)
+    _check_return(ret)
+    return ret
+
+def simInsertVoxelsIntoOctree(octreeHandle, options, points, color, tag):
+    if color is None:
+        color = ffi.NULL
+    if tag is None:
+        tag = ffi.NULL
+    ret = lib.simInsertVoxelsIntoOctree(octreeHandle, options, points,
+                                        len(points)//3, color, tag, ffi.NULL)
+    _check_return(ret)
+    return ret
+
+def simRemoveVoxelsFromOctree(octreeHandle, options, points):
+    ret = lib.simRemoveVoxelsFromOctree(octreeHandle, options, points,
+                                        len(points)//3, ffi.NULL)
+
+def simGetOctreeVoxels(octreeHandle):
+    pointCountPointer = ffi.new('int *')
+    ret = lib.simGetOctreeVoxels(octreeHandle, pointCountPointer, ffi.NULL)
+    if ret == ffi.NULL:
+        return []
+    pointCount = pointCountPointer[0]
+    return list(ret[0:pointCount*3])
+
+def simInsertObjectIntoOctree(octreeHandle, objectHandle, options,
+                              color, tag):
+    if color is None:
+        color = ffi.NULL
+    ret = lib.simInsertObjectIntoOctree(octreeHandle, objectHandle, options,
+                                        color, tag, ffi.NULL)
+    _check_return(ret)
+    return ret
+
+def simSubtractObjectFromOctree(octreeHandle, objectHandle, options):
+    ret = lib.simSubtractObjectFromOctree(octreeHandle, objectHandle, options,
+                                        ffi.NULL)
+    _check_return(ret)
+    return ret
+
+def simCheckOctreePointOccupancy(octreeHandle, options, points):
+    ret = lib.simCheckOctreePointOccupancy(octreeHandle, options, points,
+                                           len(points)//3, ffi.NULL, ffi.NULL,
+                                           ffi.NULL)
+    _check_return(ret)
+    if ret == 1:
+        return True
+    else:
+        return False
