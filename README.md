@@ -77,7 +77,7 @@ Below are some problems you may encounter during installation. If none of these 
 Problems with conda
 - problem with qt such as `symbol __cxa_throw_bad_array_new_length, version Qt_5 not defined in file libQt5Gui.so.5 with link time reference`.
   - I recommend using python >= 3.7 in your env.(I tested with some 3.6 versions and got error above. 3.7 solves the problem). 
-  - second make sure you have removed qt packages in conda env you are using for pyrep.(see [issue #76](#76))
+  - second make sure you have removed qt packages in conda env you are using for pyrep.(see [issue #76](https://github.com/stepjam/PyRep/issues/76))
 
   *Since the package is install at `~/.local/lib/python3.7/site-packages` even if you created a conda env. I guess the problem with qt installed in conda env comes from here*
 
