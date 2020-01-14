@@ -1170,6 +1170,8 @@ def simInsertVoxelsIntoOctree(octreeHandle, options, points, color, tag):
 def simRemoveVoxelsFromOctree(octreeHandle, options, points):
     ret = lib.simRemoveVoxelsFromOctree(octreeHandle, options, points,
                                         len(points)//3, ffi.NULL)
+    _check_return(ret)
+    return ret
 
 def simGetOctreeVoxels(octreeHandle):
     pointCountPointer = ffi.new('int *')
