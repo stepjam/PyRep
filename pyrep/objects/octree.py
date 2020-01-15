@@ -1,12 +1,14 @@
 from pyrep.objects.object import Object
 from pyrep.const import ObjectType
 from pyrep.backend import sim
+from typing import List, Optional
 
 class Octree(Object):
     """An octree object."""
 
     @staticmethod
-    def create(voxelSize, pointSize=None, options=0) -> 'Octree':
+    def create(voxel_size: float, point_size: Optional[float] = None,
+               options: int = 0) -> 'Octree':
         """Creates an octree object and inserts in the scene.
         
         :param voxelSize: The resolution of octree voxels.
@@ -14,15 +16,16 @@ class Octree(Object):
         :param pointSize: Point representation size of voxels.
         :return: The newly created Octree.
         """
-        if pointSize is None:
-            pointSize = voxelSize
-        handle = sim.simCreateOctree(voxelSize, options, pointSize)
+        if point_size is None:
+            point_size = voxel_size
+        handle = sim.simCreateOctree(voxel_size, options, point_size)
         return Octree(handle)
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.OCTREE
 
-    def insert_voxels(self, points, color=None, options=0) -> None:
+    def insert_voxels(self, points: List[float], color: Optional[float] = None,
+                      options: int = 0) -> None:
         """Inserts voxels into the octree.
         
         :param points: A list of x,y,z numbers.
@@ -30,33 +33,33 @@ class Octree(Object):
         :param options: Voxel insertion options.
         """
         if not isinstance(points, list):
-            raise RuntimeError(
+            raise ValueError(
                 'Octree.insert_voxels: points parameter is not a list.')
         if len(points) % 3 is not 0:
-            raise RuntimeError(
+            raise ValueError(
                 'Octree.insert_voxels: points parameter length '
                 'not a multiple of 3.')
         if color is not None:
             if not isinstance(color, list):
-                raise RuntimeError(
+                raise ValueError(
                     'Octree.insert_voxels: color parameter not a list.')
             elif len(color) is not 3:
-                raise RuntimeError(
+                raise ValueError(
                     'Octree.insert_voxels: color parameter not an RGB list.')
         sim.simInsertVoxelsIntoOctree(self._handle, options, points, color,None) 
         return
 
-    def remove_voxels(self, points, options=0) -> None:
+    def remove_voxels(self, points : List[float], options: int = 0) -> None:
         """Remove voxels from the octree.
         
         :param points: A list of x,y,z numbers.
         :param options: Voxel removal options.
         """
         if not isinstance(points, list):
-            raise RuntimeError(
+            raise ValueError(
                 'Octree.insert_voxels: points parameter is not a list.')
         if len(points) % 3 is not 0:
-            raise RuntimeError(
+            raise ValueError(
                 'Octree.insert_voxels: points parameter length '
                 'not a multiple of 3.')
         sim.simRemoveVoxelsFromOctree(self._handle, options, points)
@@ -69,7 +72,8 @@ class Octree(Object):
         """
         return sim.simGetOctreeVoxels(self._handle)
 
-    def insert_object(self, obj, color=None, options=0) -> None:
+    def insert_object(self, obj: Object, color: Optional[float] = None,
+                      options: int = 0) -> None:
         """Inserts object into the octree.
         
         :param obj: Object to insert.
@@ -78,16 +82,16 @@ class Octree(Object):
         """
         if color is not None:
             if not isinstance(color, list):
-                raise RuntimeError(
+                raise ValueError(
                     'Octree.insert_object: color parameter not a list.')
             elif len(color) is not 3:
-                raise RuntimeError(
+                raise ValueError(
                     'Octree.insert_object: color parameter not an RGB list.')
         sim.simInsertObjectIntoOctree(self._handle, obj.get_handle(), options,
             color, 0)
         return
 
-    def subtract_object(self, obj, options=0) -> None:
+    def subtract_object(self, obj: Object, options: int = 0) -> None:
         """Subtract object from the octree.
         
         :param obj: Object to subtract.
@@ -96,12 +100,13 @@ class Octree(Object):
         sim.simSubtractObjectFromOctree(self._handle, obj.get_handle(), options)
         return
 
-    def check_point_occupancy(self, points, options=0) -> bool:
+    def check_point_occupancy(self, points: List[float],
+                              options: int = 0) -> bool:
         if not isinstance(points, list):
-            raise RuntimeError(
+            raise ValueError(
                 'Octree.check_point_occupancy: points parameter is not a list.')
         if len(points) % 3 is not 0:
-            raise RuntimeError(
+            raise ValueError(
                 'Octree._check_point_occupancy: points parameter length '
                 'not a multiple of 3.')
         return sim.simCheckOctreePointOccupancy(self._handle, options, points)
