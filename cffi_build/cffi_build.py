@@ -129,7 +129,7 @@ simInt simGetJointPosition(simInt objectHandle,simFloat* position);
 simInt simSetJointPosition(simInt objectHandle,simFloat position);
 simInt simSetJointTargetPosition(simInt objectHandle,simFloat targetPosition);
 simInt simGetJointTargetPosition(simInt objectHandle,simFloat* targetPosition);
-simInt simSetJointForce(simInt objectHandle,simFloat forceOrTorque);
+simInt simSetJointMaxForce(simInt objectHandle,simFloat forceOrTorque);
 simInt simGetPathPosition(simInt objectHandle,simFloat* position);
 simInt simSetPathPosition(simInt objectHandle,simFloat position);
 simInt simGetPathLength(simInt objectHandle,simFloat* length);
@@ -355,6 +355,7 @@ simInt simSetSimulationPassesPerRenderingPass(simInt p);
 simInt simGetRotationAxis(const simFloat* matrixStart,const simFloat* matrixGoal,simFloat* axis,simFloat* angle);
 simInt simRotateAroundAxis(const simFloat* matrixIn,const simFloat* axis,const simFloat* axisPos,simFloat angle,simFloat* matrixOut);
 simInt simGetJointForce(simInt jointHandle,simFloat* forceOrTorque);
+simInt simGetJointMaxForce(simInt jointHandle,simFloat* forceOrTorque);
 simInt simSetArrayParameter(simInt parameter,const simVoid* arrayOfValues);
 simInt simGetArrayParameter(simInt parameter,simVoid* arrayOfValues);
 simInt simSetIkGroupProperties(simInt ikGroupHandle,simInt resolutionMethod,simInt maxIterations,simFloat damping,void* reserved);
@@ -708,6 +709,7 @@ simInt simSetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,sim
 simInt simGetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt* options,simInt* pSizes,simUChar** bytes,simInt** ints,simFloat** floats,simUChar** custom);
 simChar* simGetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,simInt* parameterLength);
 simInt simSetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,const simChar* parameterValue,simInt parameterLength);
+simInt simSetJointForce(simInt objectHandle,simFloat forceOrTorque);
 // Deprecated end
 
 """)
