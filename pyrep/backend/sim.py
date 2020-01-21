@@ -1168,8 +1168,14 @@ def simInsertVoxelsIntoOctree(octreeHandle, options, points, color, tag):
     return ret
 
 def simRemoveVoxelsFromOctree(octreeHandle, options, points):
+    if points is None:
+        points = ffi.NULL
+    if points is ffi.NULL:
+        pointCount = 0
+    else:
+        pointCount = len(points)//3
     ret = lib.simRemoveVoxelsFromOctree(octreeHandle, options, points,
-                                        len(points)//3, ffi.NULL)
+                                        pointCount, ffi.NULL)
     _check_return(ret)
     return ret
 

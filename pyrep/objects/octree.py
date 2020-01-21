@@ -49,21 +49,22 @@ class Octree(Object):
         sim.simInsertVoxelsIntoOctree(self._handle, options, points, color,None) 
         return
 
-    def remove_voxels(self, points : List[float], options: int = 0) -> None:
+    def remove_voxels(self, points : Optional[List[float]],
+                      options: int = 0) -> None:
         """Remove voxels from the octree.
         
-        :param points: A list of x,y,z numbers.
+        :param points: A list of x,y,z numbers, or None to clear the octree.
         :param options: Voxel removal options.
         """
-        if not isinstance(points, list):
-            raise ValueError(
-                'Octree.insert_voxels: points parameter is not a list.')
-        if len(points) % 3 is not 0:
-            raise ValueError(
-                'Octree.insert_voxels: points parameter length '
-                'not a multiple of 3.')
+        if points is not None:
+            if not isinstance(points, list):
+                raise ValueError(
+                    'Octree.insert_voxels: points parameter is not a list.')
+            if len(points) % 3 is not 0:
+                raise ValueError(
+                    'Octree.insert_voxels: points parameter length '
+                    'not a multiple of 3.')
         sim.simRemoveVoxelsFromOctree(self._handle, options, points)
-        return
 
     def get_voxels(self) -> list:
         """Returns voxels from the octree.
@@ -110,3 +111,8 @@ class Octree(Object):
                 'Octree._check_point_occupancy: points parameter length '
                 'not a multiple of 3.')
         return sim.simCheckOctreePointOccupancy(self._handle, options, points)
+
+    def clear_voxels(self) -> None:
+        """Clears all voxels from the octree.
+        """
+        sim.simRemoveVoxelsFromOctree(self._handle, 0, None)

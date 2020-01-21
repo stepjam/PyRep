@@ -33,3 +33,11 @@ class TestOctrees(TestCore):
         self.octree.subtract_object(self.shape)
         voxels = self.octree.get_voxels()
         self.assertTrue(len(voxels)//3 is 0)
+
+    def test_octree_insert_and_clear(self):
+        self.octree.insert_object(self.shape)
+        voxels = self.octree.get_voxels()
+        self.assertTrue(1 <= len(voxels)//3)
+        self.octree.clear_voxels()
+        voxels = self.octree.get_voxels()
+        self.assertTrue(len(voxels)//3 is 0)
