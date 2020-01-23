@@ -1,4 +1,4 @@
-from pyrep.objects.object import Object
+from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 from pyrep.backend import sim
 
@@ -21,3 +21,6 @@ class Dummy(Object):
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.DUMMY
+
+
+object_type_to_class[ObjectType.DUMMY] = Dummy

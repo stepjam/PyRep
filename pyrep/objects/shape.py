@@ -1,6 +1,6 @@
 from typing import List, Tuple
 from pyrep.backend import sim
-from pyrep.objects.object import Object
+from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType, PrimitiveShape, TextureMappingMode
 from pyrep.textures.texture import Texture
 import os
@@ -356,3 +356,6 @@ class Shape(Object):
         """
         handles = sim.simUngroupShape(self.get_handle())
         return [Shape(handle) for handle in handles]
+
+
+object_type_to_class[ObjectType.SHAPE] = Shape

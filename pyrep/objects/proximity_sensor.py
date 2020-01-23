@@ -1,7 +1,7 @@
 from math import sqrt
 
 from pyrep.backend import sim
-from pyrep.objects.object import Object
+from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 
 
@@ -36,3 +36,6 @@ class ProximitySensor(Object):
         state, point = sim.simCheckProximitySensor(
             self._handle, obj.get_handle())
         return state == 1
+
+
+object_type_to_class[ObjectType.PROXIMITY_SENSOR] = ProximitySensor

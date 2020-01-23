@@ -142,8 +142,12 @@ class TestObjects(TestCore):
 
     def test_get_objects_in_tree(self):
         dummys = [Dummy('nested_dummy%d' % i) for i in range(3)]
-        self.assertListEqual(dummys[0].get_objects_in_tree(
-            exclude_base=False, first_generation_only=False), dummys)
+
+        objects = dummys[0].get_objects_in_tree(
+            exclude_base=False, first_generation_only=False)
+        self.assertListEqual(objects, dummys)
+        for obj in objects:
+            self.assertIs(type(obj), Dummy)
 
         self.assertListEqual(
             dummys[0].get_objects_in_tree(
