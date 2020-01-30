@@ -931,6 +931,14 @@ def simGetScriptAssociatedWithObject(objectHandle):
     return ret
 
 
+def simApplyTexture(shapeHandle, textureCoordinates, textCoordSize,
+                    texture, textureResolution, options):
+    ret = lib.simApplyTexture(shapeHandle, textureCoordinates, textCoordSize,
+                              texture, textureResolution, options)
+    _check_return(ret)
+    return ret
+
+
 def simCreateTexture(fileName, options):
     # The textureID param that is returned from simCreateTexture seems
     # to be incorrect (in regards to calling simGetShapeTextureId on the
