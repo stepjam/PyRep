@@ -216,6 +216,14 @@ class Object(object):
         self.set_position(pose[:3], relative_to, reset_dynamics)
         self.set_quaternion(pose[3:], relative_to, reset_dynamics)
 
+    def get_velocity(self) -> Tuple[List[float], List[float]]:
+        """Get the velocity of this object.
+
+        :return: A pair of linear and angular velocity.
+        """
+        linear_vel, angular_vel = sim.simGetObjectVelocity(self._handle)
+        return linear_vel, angular_vel
+
     def get_parent(self) -> Union['Object', None]:
         """Gets the parent of this object in the scene hierarchy.
 
