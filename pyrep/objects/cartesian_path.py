@@ -1,6 +1,6 @@
 from typing import Tuple, List
 from pyrep.backend import sim
-from pyrep.objects.object import Object
+from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 
 
@@ -90,3 +90,6 @@ class CartesianPath(Object):
         return sim.simExtCallScriptFunction(
             func, sim.sim_scripttype_addonscript,
             list(ints), list(floats), list(strings), bytes)
+
+
+object_type_to_class[ObjectType.PATH] = CartesianPath

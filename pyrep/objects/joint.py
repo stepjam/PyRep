@@ -1,7 +1,7 @@
 from typing import Tuple, List, Union
 from pyrep.backend import sim
 from pyrep.const import JointType, JointMode
-from pyrep.objects.object import Object
+from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 
 
@@ -246,3 +246,6 @@ class Joint(Object):
         :param value: The new joint mode value.
         """
         sim.simSetJointMode(self._handle, value.value)
+
+
+object_type_to_class[ObjectType.JOINT] = Joint

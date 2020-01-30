@@ -1,6 +1,6 @@
 from typing import Tuple, List
 from pyrep.backend import sim
-from pyrep.objects.object import Object
+from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 
 
@@ -20,3 +20,6 @@ class ForceSensor(Object):
         """
         _, forces, torques = sim.simReadForceSensor(self._handle)
         return forces, torques
+
+
+object_type_to_class[ObjectType.FORCE_SENSOR] = ForceSensor

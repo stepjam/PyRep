@@ -6,6 +6,9 @@ from typing import List, Tuple, Union
 import numpy as np
 
 
+object_type_to_class = {}
+
+
 class Object(object):
     """Base class for V-REP scene objects that are used for building a scene.
 
@@ -598,7 +601,9 @@ class Object(object):
             self._handle, object_type.value, options)
         objects = []
         for h in handles:
-            objects.append(Object(h))
+            object_type = ObjectType(sim.simGetObjectType(h))
+            cls = object_type_to_class.get(object_type, Object)
+            objects.append(cls(h))
         return objects
 
     def copy(self) -> 'Object':
