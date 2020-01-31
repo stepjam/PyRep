@@ -1,4 +1,5 @@
 from typing import List, Tuple
+import numpy as np
 from pyrep.backend import sim
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType, PrimitiveShape, TextureMappingMode
@@ -356,6 +357,51 @@ class Shape(Object):
         """
         handles = sim.simUngroupShape(self.get_handle())
         return [Shape(handle) for handle in handles]
+
+    def apply_texture(self, texture_coords: np.ndarray, texture: np.ndarray,
+                      interpolate: bool = True, decal_mode: bool = False,
+                      is_rgba: bool = False, fliph: bool = False,
+                      flipv: bool = False) -> None:
+        """Apply texture to the shape.
+
+        :param texture_coords: A list of (u, v) values that indicate the
+            vertex position on the shape. For each of the shape's triangle,
+            there should be exactly 3 UV texture coordinate pairs
+        :param texture: The RGB or RGBA texture.
+        :param interpolate: A flag to interpolate adjacent texture pixels.
+        :param decal_mode: Texture is applied as a decal (its appearance
+            won't be influenced by light conditions).
+        :param is_rgba: A flag to use RGBA texture.
+        :param fliph: A flag to flip texture horizontally.
+        :param flipv: A flag to flip texture vertically. Note that CoppeliaSim
+            texture coordinates are flipped vertically compared with Pillow
+            and OpenCV and this flag must be true in general.
+        """
+        texture_coords = np.asarray(texture_coords)
+        if not isinstance(texture, np.ndarray):
+            raise TypeError('texture must be np.ndarray type')
+        height, width = texture.shape[:2]
+
+        options = 0
+        if not interpolate:
+            options |= 1
+        if decal_mode:
+            options |= 2
+        if is_rgba:
+            options |= 16
+        if fliph:
+            options |= 32
+        if flipv:
+            options |= 64
+
+        sim.simApplyTexture(
+            self._handle,
+            textureCoordinates=texture_coords.flatten().tolist(),
+            textCoordSize=texture_coords.size,
+            texture=texture.flatten().tolist(),
+            textureResolution=(width, height),
+            options=options,
+        )
 
 
 object_type_to_class[ObjectType.SHAPE] = Shape
