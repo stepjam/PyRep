@@ -389,6 +389,13 @@ def simGetStringParameter(parameter):
     return sval
 
 
+def simGetEngineFloatParameter(parameter, objectHandle):
+    ok = ffi.new('unsigned char *')
+    ret = lib.simGetEngineFloatParameter(parameter, objectHandle, ffi.NULL, ok)
+    _check_return(ret)
+    return ret
+
+
 def simGetCollisionHandle(collisionObjectName):
     ret = lib.simGetCollisionHandle(collisionObjectName.encode('ascii'))
     _check_return(ret)
