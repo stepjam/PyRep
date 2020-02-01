@@ -149,7 +149,7 @@ class VisionSensor(Object):
         :return: The current PerspectiveMode.
         """
         perspective_mode = sim.simGetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_perspective_mode
+            self._handle, sim.sim_visionintparam_perspective_operation,
         )
         return PerspectiveMode(perspective_mode)
 
@@ -161,7 +161,7 @@ class VisionSensor(Object):
             PerspectiveMode.PERSPECTIVE
         """
         sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_perspective_mode,
+            self._handle, sim.sim_visionintparam_perspective_operation,
             perspective_mode.value
         )
 
