@@ -85,6 +85,34 @@ class TestShapes(TestCore):
         self.assertEqual(texture.get_texture_id(),
                          self.dynamic_cube.get_texture().get_texture_id())
 
+    def test_get_shape_viz(self):
+        visual = Shape('cracker_box_visual')
+        info = visual.get_shape_viz(index=0)
+        self.assertIsInstance(info.vertices, np.ndarray)
+        self.assertEqual(info.vertices.shape[1], 3)
+        self.assertIsInstance(info.indices, np.ndarray)
+        self.assertEqual(info.indices.shape[1], 3)
+        self.assertIsInstance(info.normals, np.ndarray)
+        self.assertEqual(info.normals.shape[1], 3)
+        self.assertIsInstance(info.shading_angle, float)
+        self.assertIsInstance(info.colors, np.ndarray)
+        self.assertTupleEqual(info.colors.shape, (9,))
+        self.assertIsInstance(info.texture, np.ndarray)
+        self.assertTupleEqual(info.texture.shape, (512, 512, 4))
+        self.assertIsInstance(info.texture_id, int)
+        self.assertIsInstance(info.texture_coords, np.ndarray)
+        self.assertEqual(info.texture_coords.shape[1], 2)
+        self.assertIsInstance(info.texture_apply_mode, int)
+        self.assertIsInstance(info.texture_options, int)
+
+    def test_apply_texture(self):
+        visual = Shape('cracker_box_visual')
+        info = visual.get_shape_viz(index=0)
+        self.assertNotEqual(info.texture_coords.size, 0)
+        self.assertNotEqual(info.texture.size, 0)
+        texture = info.texture[:, :, [2, 1, 0, 3]]  # rgba -> bgra
+        visual.apply_texture(info.texture_coords, texture, is_rgba=True)
+
 
 if __name__ == '__main__':
     unittest.main()

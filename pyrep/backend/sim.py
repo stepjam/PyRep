@@ -1,6 +1,25 @@
 from .simConst import *
 from ._sim_cffi import ffi, lib
 import numpy as np
+import collections
+
+
+SShapeVizInfo = collections.namedtuple(
+    'SShapeVizInfo',
+    [
+        'vertices',
+        'indices',
+        'normals',
+        'shadingAngle',
+        'colors',
+        'texture',
+        'textureId',
+        'textureRes',
+        'textureCoords',
+        'textureApplyMode',
+        'textureOptions',
+    ],
+)
 
 
 def _check_return(ret):
@@ -881,6 +900,41 @@ def simGetShapeMesh(shapeHandle):
     return retVerticies, retIndices, outNormals
 
 
+def simGetShapeViz(shapeHandle, index):
+    info = ffi.new('struct SShapeVizInfo *')
+    ret = lib.simGetShapeViz(shapeHandle, index, info)
+    _check_return(ret)
+
+    vertices = [info.vertices[i] for i in range(info.verticesSize)]
+    indices = [info.indices[i] for i in range(info.indicesSize)]
+    normals = [info.normals[i] for i in range(info.indicesSize * 3)]
+    colors = list(info.colors)
+    textureSize = info.textureRes[0] * info.textureRes[1] * 4
+    if textureSize == 0:
+        texture = []
+        textureCoords = []
+    else:
+        texture = np.frombuffer(
+            ffi.buffer(info.texture, textureSize), np.uint8)
+        texture = texture.tolist()
+        textureCoords = [info.textureCoords[i] for i in
+                        range(info.indicesSize * 2)]
+
+    return SShapeVizInfo(
+        vertices=vertices,
+        indices=indices,
+        normals=normals,
+        shadingAngle=info.shadingAngle,
+        colors=colors,
+        texture=texture,
+        textureId=info.textureId,
+        textureRes=info.textureRes,
+        textureCoords=textureCoords,
+        textureApplyMode=info.textureApplyMode,
+        textureOptions=info.textureOptions,
+    )
+
+
 def simConvexDecompose(shapeHandle, options, intParams, floatParams):
     return lib.simConvexDecompose(shapeHandle, options, intParams, floatParams)
 
@@ -928,6 +982,14 @@ def simGetScriptText(scriptHandle):
 
 def simGetScriptAssociatedWithObject(objectHandle):
     ret = lib.simGetScriptAssociatedWithObject(objectHandle)
+    return ret
+
+
+def simApplyTexture(shapeHandle, textureCoordinates, textCoordSize,
+                    texture, textureResolution, options):
+    ret = lib.simApplyTexture(shapeHandle, textureCoordinates, textCoordSize,
+                              texture, textureResolution, options)
+    _check_return(ret)
     return ret
 
 

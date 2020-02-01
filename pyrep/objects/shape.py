@@ -1,9 +1,28 @@
 from typing import List, Tuple
+import numpy as np
 from pyrep.backend import sim
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType, PrimitiveShape, TextureMappingMode
 from pyrep.textures.texture import Texture
 import os
+import collections
+
+
+SShapeVizInfo = collections.namedtuple(
+    'SShapeVizInfo',
+    [
+        'vertices',
+        'indices',
+        'normals',
+        'shading_angle',
+        'colors',
+        'texture',
+        'texture_id',
+        'texture_coords',
+        'texture_apply_mode',
+        'texture_options',
+    ],
+)
 
 
 class Shape(Object):
@@ -356,6 +375,84 @@ class Shape(Object):
         """
         handles = sim.simUngroupShape(self.get_handle())
         return [Shape(handle) for handle in handles]
+
+    def apply_texture(self, texture_coords: np.ndarray, texture: np.ndarray,
+                      interpolate: bool = True, decal_mode: bool = False,
+                      is_rgba: bool = False, fliph: bool = False,
+                      flipv: bool = False) -> None:
+        """Apply texture to the shape.
+
+        :param texture_coords: A list of (u, v) values that indicate the
+            vertex position on the shape. For each of the shape's triangle,
+            there should be exactly 3 UV texture coordinate pairs
+        :param texture: The RGB or RGBA texture.
+        :param interpolate: A flag to interpolate adjacent texture pixels.
+        :param decal_mode: Texture is applied as a decal (its appearance
+            won't be influenced by light conditions).
+        :param is_rgba: A flag to use RGBA texture.
+        :param fliph: A flag to flip texture horizontally.
+        :param flipv: A flag to flip texture vertically. Note that CoppeliaSim
+            texture coordinates are flipped vertically compared with Pillow
+            and OpenCV and this flag must be true in general.
+        """
+        texture_coords = np.asarray(texture_coords)
+        if not isinstance(texture, np.ndarray):
+            raise TypeError('texture must be np.ndarray type')
+        height, width = texture.shape[:2]
+
+        options = 0
+        if not interpolate:
+            options |= 1
+        if decal_mode:
+            options |= 2
+        if is_rgba:
+            options |= 16
+        if fliph:
+            options |= 32
+        if flipv:
+            options |= 64
+
+        sim.simApplyTexture(
+            self._handle,
+            textureCoordinates=texture_coords.flatten().tolist(),
+            textCoordSize=texture_coords.size,
+            texture=texture.flatten().tolist(),
+            textureResolution=(width, height),
+            options=options,
+        )
+
+    def get_shape_viz(self, index):
+        """Retrieves a shape's visual information.
+
+        :param index: 0-based index of the shape element to retrieve
+            (compound shapes contain more than one shape element)
+
+        :return: SShapeVizInfo.
+        """
+        info = sim.simGetShapeViz(shapeHandle=self._handle, index=index)
+
+        vertices = np.array(info.vertices, dtype=float).reshape(-1, 3)
+        indices = np.array(info.indices, dtype=float).reshape(-1, 3)
+        normals = np.array(info.normals, dtype=float).reshape(-1, 3)
+        colors = np.array(info.colors, dtype=float)
+        texture = np.array(info.texture, dtype=np.uint8).reshape(
+            info.textureRes[1], info.textureRes[0], 4)
+        textureCoords = np.array(info.textureCoords, dtype=float).reshape(
+            -1, 2)
+
+        res = SShapeVizInfo(
+            vertices=vertices,
+            indices=indices,
+            normals=normals,
+            shading_angle=info.shadingAngle,
+            colors=colors,
+            texture=texture,
+            texture_id=info.textureId,
+            texture_coords=textureCoords,
+            texture_apply_mode=info.textureApplyMode,
+            texture_options=info.textureOptions,
+        )
+        return res
 
 
 object_type_to_class[ObjectType.SHAPE] = Shape
