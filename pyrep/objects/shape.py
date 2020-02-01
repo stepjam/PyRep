@@ -5,6 +5,24 @@ from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType, PrimitiveShape, TextureMappingMode
 from pyrep.textures.texture import Texture
 import os
+import collections
+
+
+SShapeVizInfo = collections.namedtuple(
+    'SShapeVizInfo',
+    [
+        'vertices',
+        'indices',
+        'normals',
+        'shading_angle',
+        'colors',
+        'texture',
+        'texture_id',
+        'texture_coords',
+        'texture_apply_mode',
+        'texture_options',
+    ],
+)
 
 
 class Shape(Object):
@@ -402,6 +420,39 @@ class Shape(Object):
             textureResolution=(width, height),
             options=options,
         )
+
+    def get_shape_viz(self, index):
+        """Retrieves a shape's visual information.
+
+        :param index: 0-based index of the shape element to retrieve
+            (compound shapes contain more than one shape element)
+
+        :return: SShapeVizInfo.
+        """
+        info = sim.simGetShapeViz(shapeHandle=self._handle, index=index)
+
+        vertices = np.array(info.vertices, dtype=float).reshape(-1, 3)
+        indices = np.array(info.indices, dtype=float).reshape(-1, 3)
+        normals = np.array(info.normals, dtype=float).reshape(-1, 3)
+        colors = np.array(info.colors, dtype=float)
+        texture = np.array(info.texture, dtype=np.uint8).reshape(
+            info.textureRes[1], info.textureRes[0], 4)
+        textureCoords = np.array(info.textureCoords, dtype=float).reshape(
+            -1, 2)
+
+        res = SShapeVizInfo(
+            vertices=vertices,
+            indices=indices,
+            normals=normals,
+            shading_angle=info.shadingAngle,
+            colors=colors,
+            texture=texture,
+            texture_id=info.textureId,
+            texture_coords=textureCoords,
+            texture_apply_mode=info.textureApplyMode,
+            texture_options=info.textureOptions,
+        )
+        return res
 
 
 object_type_to_class[ObjectType.SHAPE] = Shape
