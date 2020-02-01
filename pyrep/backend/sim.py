@@ -396,6 +396,13 @@ def simGetEngineFloatParameter(parameter, objectHandle):
     return ret
 
 
+def simSetEngineFloatParameter(parameter, objectHandle, val):
+    ret = lib.simSetEngineFloatParameter(parameter, objectHandle, ffi.NULL,
+                                         val)
+    _check_return(ret)
+    return ret
+
+
 def simGetCollisionHandle(collisionObjectName):
     ret = lib.simGetCollisionHandle(collisionObjectName.encode('ascii'))
     _check_return(ret)
