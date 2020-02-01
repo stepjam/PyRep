@@ -633,6 +633,22 @@ class Object(object):
         return sim.simCheckDistance(
             self.get_handle(), other.get_handle(), -1)[6]
 
+    def get_bullet_friction(self) -> float:
+        """Get bullet friction parameter.
+
+        :return: The friction.
+        """
+        return sim.simGetEngineFloatParameter(sim.sim_bullet_body_friction,
+                                              self._handle)
+
+    def set_bullet_friction(self, friction) -> None:
+        """Set bullet friction parameter.
+
+        :param friction: The friction to set.
+        """
+        sim.simSetEngineFloatParameter(sim.sim_bullet_body_friction,
+                                       self._handle, friction)
+
     # === Private methods ===
 
     def _check_model(self) -> None:
