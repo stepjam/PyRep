@@ -223,6 +223,11 @@ class TestObjects(TestCore):
         dist = self.dummy.check_distance(self.cube0)
         self.assertAlmostEqual(dist, 1.4629, places=3)
 
+    def test_set_get_bullet_friction(self):
+        self.dynamic_cube.set_bullet_friction(0.7)
+        friction = self.dynamic_cube.get_bullet_friction()
+        self.assertAlmostEqual(friction, 0.7, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()
