@@ -78,12 +78,12 @@ class PyRep(object):
             c++ client application. This is causes the function to block.
             For most users, this will be set to False.
         """
-        if len(scene_file) > 0 and not os.path.isfile(
-                os.path.abspath(scene_file)):
+        abs_scene_file = os.path.abspath(scene_file)
+        if len(scene_file) > 0 and not os.path.isfile(abs_scene_file):
             raise PyRepError('Scene file does not exist: %s' % scene_file)
         cwd = os.getcwd()
         self._ui_thread = threading.Thread(target=self._run_ui_thread,
-                                           args=(scene_file, headless))
+                                           args=(abs_scene_file, headless))
         self._ui_thread.daemon = True
         self._ui_thread.start()
 
