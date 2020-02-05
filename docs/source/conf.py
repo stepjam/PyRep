@@ -33,7 +33,7 @@ extensions = [
     'sphinx.ext.napoleon'
 ]
 
-autodoc_mock_imports = ["pyrep.backend._v_rep_cffi"]
+autodoc_mock_imports = ["pyrep.backend._sim_cffi"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
