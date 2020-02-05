@@ -74,9 +74,11 @@ class TestShapes(TestCore):
 
     def test_get_mesh_data(self):
         vertices, indices, normals = self.dynamic_cube.get_mesh_data()
-        self.assertEqual(len(vertices), 24)
-        self.assertEqual(len(indices), 36)
-        self.assertEqual(len(normals), 108)
+        n_vertices = 8
+        n_faces = 12
+        self.assertEqual(vertices.shape, (n_vertices, 3))
+        self.assertEqual(indices.shape, (n_faces, 3))
+        self.assertEqual(normals.shape, (n_faces * 3, 3))
 
     def test_set_texture(self):
         _, texture = self.pyrep.create_texture(
