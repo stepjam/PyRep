@@ -7,7 +7,7 @@ from pyrep.objects.cartesian_path import CartesianPath
 from pyrep.errors import ConfigurationError, ConfigurationPathError, IKError
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.const import PYREP_SCRIPT_TYPE
-from typing import List
+from typing import List, Union
 import numpy as np
 
 
@@ -35,9 +35,10 @@ class Arm(RobotComponent):
         self._collision_collection = sim.simGetCollectionHandle(
             '%s_arm%s' % (name, suffix))
 
-    def get_configs_for_tip_pose(self, position: List[float],
-                                 euler: List[float] = None,
-                                 quaternion: List[float] = None,
+    def get_configs_for_tip_pose(self,
+                                 position: Union[List[float], np.ndarray],
+                                 euler: Union[List[float], np.ndarray] = None,
+                                 quaternion: Union[List[float], np.ndarray] = None,
                                  ignore_collisions=False,
                                  trials=300, max_configs=60) -> List[List[float]]:
 
@@ -82,8 +83,9 @@ class Arm(RobotComponent):
         num_configs = int(len(ret_floats)/len(handles))
         return [[ret_floats[len(handles)*i+j] for j in range(len(handles))] for i in range(num_configs)]
 
-    def solve_ik(self, position: List[float], euler: List[float] = None,
-                 quaternion: List[float] = None) -> List[float]:
+    def solve_ik(self, position: Union[List[float], np.ndarray],
+                 euler: Union[List[float], np.ndarray] = None,
+                 quaternion: Union[List[float], np.ndarray] = None) -> List[float]:
         """Solves an IK group and returns the calculated joint values.
 
         Must specify either rotation in euler or quaternions, but not both!
@@ -131,9 +133,9 @@ class Arm(RobotComponent):
                 'Could not create a path from cartesian path.')
         return ArmConfigurationPath(self, ret_floats)
 
-    def get_linear_path(self, position: List[float],
-                        euler: List[float] = None,
-                        quaternion: List[float] = None,
+    def get_linear_path(self, position: Union[List[float], np.ndarray],
+                        euler: Union[List[float], np.ndarray] = None,
+                        quaternion: Union[List[float], np.ndarray] = None,
                         steps=50, ignore_collisions=False
                         ) -> ArmConfigurationPath:
         """Gets a linear configuration path given a target pose.
@@ -180,9 +182,9 @@ class Arm(RobotComponent):
             raise ConfigurationPathError('Could not create path.')
         return ArmConfigurationPath(self, ret_floats)
 
-    def get_nonlinear_path(self, position: List[float],
-                           euler: List[float] = None,
-                           quaternion: List[float] = None,
+    def get_nonlinear_path(self, position: Union[List[float], np.ndarray],
+                           euler: Union[List[float], np.ndarray] = None,
+                           quaternion: Union[List[float], np.ndarray] = None,
                            ignore_collisions=False,
                            trials=100, max_configs=60, trials_per_goal=6,
                            algorithm=Algos.SBL) -> ArmConfigurationPath:
@@ -234,9 +236,9 @@ class Arm(RobotComponent):
             raise ConfigurationPathError('Could not create path.')
         return ArmConfigurationPath(self, ret_floats)
 
-    def get_path(self, position: List[float],
-                 euler: List[float] = None,
-                 quaternion: List[float] = None,
+    def get_path(self, position: Union[List[float], np.ndarray],
+                 euler: Union[List[float], np.ndarray] = None,
+                 quaternion: Union[List[float], np.ndarray] = None,
                  ignore_collisions=False,
                  trials=100, max_configs=60, trials_per_goal=6,
                  algorithm=Algos.SBL

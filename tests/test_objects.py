@@ -45,6 +45,10 @@ class TestObjects(TestCore):
         self.assertEqual(self.dynamic_cube.get_name(), 'test1')
 
     def test_get_set_position(self):
+        position = self.cube0.get_position()
+        self.assertIsInstance(position, np.ndarray)
+        self.assertEqual(position.shape, (3,))
+
         self.cube0.set_position([0.1, 0.1, 0.1], self.cubes_under_dummy)
         self.assertTrue(np.allclose(
             self.cube0.get_position(self.cubes_under_dummy), [0.1, 0.1, 0.1]))
@@ -52,6 +56,10 @@ class TestObjects(TestCore):
         self.assertTrue(np.allclose(self.cube0.get_position(), [0.2, 0.2, 0.2]))
 
     def test_get_set_orientation(self):
+        orientation = self.cube0.get_orientation()
+        self.assertIsInstance(orientation, np.ndarray)
+        self.assertEqual(orientation.shape, (3,))
+
         self.cube0.set_orientation([0.0, 0.0, 0.2], self.cubes_under_dummy)
         self.assertTrue(np.allclose(
             self.cube0.get_orientation(self.cubes_under_dummy),
@@ -61,6 +69,10 @@ class TestObjects(TestCore):
             self.cube0.get_orientation(), [0.0, 0.0, 0.3]))
 
     def test_get_set_quaternion(self):
+        quaternion = self.cube0.get_quaternion()
+        self.assertIsInstance(quaternion, np.ndarray)
+        self.assertEqual(quaternion.shape, (4,))
+
         # x, y, z, w
         self.cube0.set_quaternion([1., 0., 0., 0.], self.cubes_under_dummy)
         self.assertTrue(np.allclose(
@@ -70,6 +82,13 @@ class TestObjects(TestCore):
         self.assertTrue(np.allclose(
             self.cube0.get_quaternion(),
             [np.sqrt(0.5), 0, 0., np.sqrt(0.5)]))
+
+    def test_get_velocity(self):
+        linear_vel, angular_vel = self.cube0.get_velocity()
+        self.assertIsInstance(linear_vel, np.ndarray)
+        self.assertEqual(linear_vel.shape, (3,))
+        self.assertIsInstance(angular_vel, np.ndarray)
+        self.assertEqual(angular_vel.shape, (3,))
 
     def test_get_set_parent(self):
         self.dynamic_cube.set_parent(self.dummy)

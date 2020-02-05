@@ -5,7 +5,7 @@ from pyrep.robots.robot_component import RobotComponent
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.errors import ConfigurationPathError
 from pyrep.const import PYREP_SCRIPT_TYPE
-from typing import List
+from typing import List, Union
 from math import sqrt
 import numpy as np
 
@@ -53,15 +53,14 @@ class MobileBase(RobotComponent):
         self.intermediate_target_base.set_parent(None)
         self.target_base.set_parent(None)
 
-    def get_2d_pose(self) -> List[float]:
+    def get_2d_pose(self) -> np.ndarray:
         """Gets the 2D (top-down) pose of the robot [x, y, yaw].
 
         :return: A List containing the x, y, yaw (in radians).
         """
-        return (self.get_position()[:2] +
-                self.get_orientation()[-1:])
+        return np.r_[self.get_position()[:2], self.get_orientation()[-1:]]
 
-    def set_2d_pose(self, pose: List[float]) -> None:
+    def set_2d_pose(self, pose: Union[List[float], np.ndarray]) -> None:
         """Sets the 2D (top-down) pose of the robot [x, y, yaw]
 
         :param pose: A List containing the x, y, yaw (in radians).
