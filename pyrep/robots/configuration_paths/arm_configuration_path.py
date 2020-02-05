@@ -1,8 +1,9 @@
 from pyrep.backend import sim
 from pyrep.robots.configuration_paths.configuration_path import (
     ConfigurationPath)
+from pyrep.robots.arms.arm import Arm
 import numpy as np
-from typing import List
+from typing import List, Optional
 
 
 class ArmConfigurationPath(ConfigurationPath):
@@ -17,10 +18,10 @@ class ArmConfigurationPath(ConfigurationPath):
     control systems.
     """
 
-    def __init__(self, arm: 'Arm', path_points: List[float]):
+    def __init__(self, arm: Arm, path_points: List[float]):
         self._arm = arm
         self._path_points = np.array(path_points)
-        self._rml_handle = None
+        self._rml_handle: Optional[int] = None
         self._drawing_handle = None
         self._path_done = False
         self._num_joints = arm.get_joint_count()
@@ -181,7 +182,7 @@ class ArmConfigurationPath(ConfigurationPath):
     def _get_path_point_lengths(self) -> List[float]:
         path_points = self._path_points
         prev_points = path_points[0:len(self._arm.joints)]
-        dists = [0]
+        dists = [0.]
         d = 0
         for i in range(len(self._arm.joints), len(self._path_points),
                        len(self._arm.joints)):

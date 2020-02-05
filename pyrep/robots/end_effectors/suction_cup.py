@@ -14,8 +14,8 @@ class SuctionCup(Shape):
         super().__init__(name + suffix if base_name is None else base_name + suffix)
         self._proximity_sensor = ProximitySensor('%s_sensor%s' % (name, suffix))
         self._attach_point = ForceSensor('%s_connection%s' % (name, suffix))
-        self._old_parents = []
-        self._grasped_objects = []
+        self._old_parents: List[Object] = []
+        self._grasped_objects: List[Object] = []
 
     def grasp(self, obj: Object) -> bool:
         """Attach the object to the suction cup if it is detected.
@@ -31,7 +31,7 @@ class SuctionCup(Shape):
         # Check if detected and that we are not already grasping it.
         if detected and obj not in self._grasped_objects:
             self._grasped_objects.append(obj)
-            self._old_parents.append(obj.get_parent())
+            self._old_parents.append(obj.get_parent())  # type: ignore
             obj.set_parent(self._attach_point, keep_in_place=True)
         return detected
 

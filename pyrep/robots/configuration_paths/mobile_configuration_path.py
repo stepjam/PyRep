@@ -1,6 +1,7 @@
 from pyrep.backend import sim, utils
 from pyrep.robots.configuration_paths.configuration_path import (
     ConfigurationPath)
+from pyrep.robots.mobiles.mobile_base import MobileBase
 from pyrep.const import PYREP_SCRIPT_TYPE
 from math import sqrt
 from typing import List
@@ -16,7 +17,7 @@ class MobileConfigurationPath(ConfigurationPath):
     _get_base_actuation function employing a proportional controller.
     """
 
-    def __init__(self, mobile: 'MobileBase', path_points: List[List[float]]):
+    def __init__(self, mobile: MobileBase, path_points: List[List[float]]):
         self._mobile = mobile
         self._path_points = path_points
         self._drawing_handle = None

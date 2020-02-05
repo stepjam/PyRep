@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from pyrep.objects.object import Object
 from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.objects.force_sensor import ForceSensor
@@ -19,8 +19,8 @@ class Gripper(RobotComponent):
         attach_name = '%s_attachPoint%s' % (name, suffix)
         self._proximity_sensor = ProximitySensor(prox_name)
         self._attach_point = ForceSensor(attach_name)
-        self._old_parents = []
-        self._grasped_objects = []
+        self._old_parents: List[Object] = []
+        self._grasped_objects: List[Object] = []
         self._prev_positions = [None] * len(joint_names)
         self._prev_vels = [None] * len(joint_names)  # Used to stop oscillating
 
@@ -46,7 +46,7 @@ class Gripper(RobotComponent):
         # Check if detected and that we are not already grasping it.
         if detected and obj not in self._grasped_objects:
             self._grasped_objects.append(obj)
-            self._old_parents.append(obj.get_parent())
+            self._old_parents.append(obj.get_parent())  # type: ignore
             obj.set_parent(self._attach_point, keep_in_place=True)
         return detected
 
@@ -95,8 +95,8 @@ class Gripper(RobotComponent):
         """
         if not (0.0 <= amount <= 1.0):
             raise ValueError("'open_amount' should be between 0 and 1.'")
-        _, joint_intervals = self.get_joint_intervals()
-        joint_intervals = np.array(joint_intervals)
+        _, joint_intervals_list = self.get_joint_intervals()
+        joint_intervals = np.array(joint_intervals_list)
 
         # Decide on if we need to open or close
         joint_range = joint_intervals[:, 1] - joint_intervals[:, 0]
@@ -119,9 +119,9 @@ class Gripper(RobotComponent):
                 continue
             done = False
             vel = -velocity if cur - target > 0 else velocity
-            self._prev_vels[i] = vel
+            self._prev_vels[i] = vel  # type: ignore
             j.set_joint_target_velocity(vel)
-        self._prev_positions = current_positions
+        self._prev_positions = current_positions  # type: ignore
         if done:
             self._prev_positions = [None] * self._num_joints
             self._prev_vels = [None] * self._num_joints
@@ -134,8 +134,8 @@ class Gripper(RobotComponent):
         :return: A list of floats between 0 and 1 representing the gripper open
             state for each joint. 1 means open, whilst 0 means closed.
         """
-        _, joint_intervals = self.get_joint_intervals()
-        joint_intervals = np.array(joint_intervals)
+        _, joint_intervals_list = self.get_joint_intervals()
+        joint_intervals = np.array(joint_intervals_list)
         joint_range = joint_intervals[:, 1] - joint_intervals[:, 0]
         return list(np.clip((np.array(
             self.get_joint_positions()) - joint_intervals[:, 0]) /

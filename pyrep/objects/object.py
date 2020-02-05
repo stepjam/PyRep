@@ -2,11 +2,11 @@ from pyrep.backend import sim
 from pyrep.errors import *
 from pyrep.const import ObjectType
 from pyrep.errors import WrongObjectTypeError
-from typing import List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 import numpy as np
 
 
-object_type_to_class = {}
+object_type_to_class: Dict[ObjectType, Any] = {}
 
 
 class Object(object):
@@ -27,7 +27,9 @@ class Object(object):
                     'You requested object of type %s, but the actual type was '
                     '%s' % (assert_type.name, actual.name))
 
-    def __eq__(self, other: 'Object'):
+    def __eq__(self, other: object):
+        if not isinstance(other, Object):
+            raise NotImplementedError
         return self.get_handle() == other.get_handle()
 
     @staticmethod
