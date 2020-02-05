@@ -3,6 +3,7 @@ import io
 import sys
 from contextlib import contextmanager
 from typing import List, Tuple
+from pyrep import testing
 from pyrep.backend import sim
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
@@ -84,12 +85,20 @@ def suppress_std_out_and_err():
         def _redirect_stdout(to_fd):
             sys.stdout.close()
             os.dup2(to_fd, original_stdout_fd)
-            sys.stdout = io.TextIOWrapper(os.fdopen(original_stdout_fd, 'wb'))
+            if testing:
+                sys.stdout = io.TextIOWrapper(
+                    os.fdopen(original_stdout_fd, 'wb'))
+            else:
+                sys.stdout = os.fdopen(original_stdout_fd, 'w')
 
         def _redirect_stderr(to_fd):
             sys.stderr.close()
             os.dup2(to_fd, original_stderr_fd)
-            sys.stderr = io.TextIOWrapper(os.fdopen(original_stderr_fd, 'wb'))
+            if testing:
+                sys.stderr = io.TextIOWrapper(
+                    os.fdopen(original_stderr_fd, 'wb'))
+            else:
+                sys.stderr = os.fdopen(original_stderr_fd, 'wb')
 
         saved_stdout_fd = os.dup(original_stdout_fd)
         # saved_stderr_fd = os.dup(original_stderr_fd)
