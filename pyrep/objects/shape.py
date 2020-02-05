@@ -209,12 +209,17 @@ class Shape(Object):
         sim.simSetObjectFloatParameter(
             self._handle, sim.sim_shapefloatparam_mass, mass)
 
-    def get_mesh_data(self) -> Tuple[List[float], List[float], List[float]]:
+    def get_mesh_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Retrieves a shape's mesh information.
 
+        :param asnumpy: A flag to cast vertices as numpy array with reshape.
         :return: A tuple containing a list of vertices, indices, and normals.
         """
-        return sim.simGetShapeMesh(self._handle)
+        vertices, indices, normals = sim.simGetShapeMesh(self._handle)
+        vertices = np.array(vertices, dtype=np.float64).reshape(-1, 3)
+        indices = np.array(indices, dtype=np.int64).reshape(-1, 3)
+        normals = np.array(normals, dtype=np.float64).reshape(-1, 3)
+        return vertices, indices, normals
 
     def get_convex_decomposition(self, morph=False, same=False, use_vhacd=False,
                                  individual_meshes=False,
