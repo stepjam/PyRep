@@ -1,7 +1,6 @@
 from pyrep.backend import sim
 from pyrep.robots.configuration_paths.configuration_path import (
     ConfigurationPath)
-from pyrep.robots.arms.arm import Arm
 import numpy as np
 from typing import List, Optional
 
@@ -18,7 +17,7 @@ class ArmConfigurationPath(ConfigurationPath):
     control systems.
     """
 
-    def __init__(self, arm: Arm, path_points: List[float]):
+    def __init__(self, arm: 'Arm', path_points: List[float]):  # type: ignore
         self._arm = arm
         self._path_points = np.array(path_points)
         self._rml_handle: Optional[int] = None
