@@ -1,8 +1,10 @@
 import unittest
+import pyrep
 from pyrep import PyRep
 from os import path
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
+pyrep.testing = True
 
 
 class TestCore(unittest.TestCase):
