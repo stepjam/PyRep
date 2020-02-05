@@ -77,12 +77,12 @@ class MobileConfigurationPath(ConfigurationPath):
         sim.simAddDrawingObjectItem(self._drawing_handle, None)
         init_pose = self._mobile.get_2d_pose()
         self._mobile.set_2d_pose(self._path_points[0][:3])
-        prev_point = tip.get_position()
+        prev_point = list(tip.get_position())
 
         for i in range(len(self._path_points)):
             points = self._path_points[i]
             self._mobile.set_2d_pose(points[:3])
-            p = tip.get_position()
+            p = list(tip.get_position())
             sim.simAddDrawingObjectItem(self._drawing_handle, prev_point + p)
             prev_point = p
 

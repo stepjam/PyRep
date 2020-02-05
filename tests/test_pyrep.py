@@ -44,7 +44,7 @@ class TestPyrep(TestCore):
         start_pos = cube.get_position()
         [self.pyrep.step() for _ in range(2)]
         end_pos = cube.get_position()
-        self.assertNotEqual(start_pos, end_pos)
+        self.assertFalse(np.allclose(start_pos, end_pos))
 
     def test_load_model(self):
         m = self.pyrep.import_model(path.join(ASSET_DIR, 'loadable_model.ttm'))
