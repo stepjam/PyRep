@@ -60,6 +60,16 @@ def script_call(function_name_at_script_name: str,
         function_name_at_script_name, script_handle_or_type, list(ints),
         list(floats), list(strings), bytes)
 
+
+def _is_in_ipython():
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        pass
+    return False
+
+
 @contextmanager
 def suppress_std_out_and_err():
     """Used for suppressing std out/err.
@@ -74,6 +84,10 @@ def suppress_std_out_and_err():
         original_stderr_fd = sys.stderr.fileno()
     except io.UnsupportedOperation:
         # Nothing we can do about this, just don't suppress
+        yield
+        return
+
+    if _is_in_ipython():
         yield
         return
 
