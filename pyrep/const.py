@@ -24,6 +24,7 @@ class ObjectType(Enum):
     FORCE_SENSOR = sim.sim_object_forcesensor_type
     LIGHT = sim.sim_object_light_type
     MIRROR = sim.sim_object_mirror_type
+    OCTREE = sim.sim_object_octree_type
 
 
 class JointType(Enum):

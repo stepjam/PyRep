@@ -24,6 +24,8 @@ install:
   - python3 setup.py install
 # command to run tests
 script:
+  - pip3 install mypy
+  - mypy --ignore-missing-imports -p pyrep
   # We need to rename the local folder otherwise we will test this rather than
   # the installed version.
   - mv pyrep _pyrep

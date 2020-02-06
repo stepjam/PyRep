@@ -41,7 +41,8 @@ class RobotComponent(Object):
             num = int(num) + 1
         else:
             num = 0
-        return self.__class__(num)
+        # FIXME: Pass valid name and joint_names.
+        return self.__class__(num)  # type: ignore
 
     def _get_requested_type(self) -> ObjectType:
         """Gets the type of the object.
@@ -88,7 +89,7 @@ class RobotComponent(Object):
         self._assert_len(positions)
 
         if not allow_force_mode:
-            [j.set_joint_position(p, allow_force_mode)
+            [j.set_joint_position(p, allow_force_mode)  # type: ignore
              for j, p in zip(self.joints, positions)]
             return
 
@@ -101,9 +102,10 @@ class RobotComponent(Object):
         # Disable the dynamics
         sim.simSetModelProperty(self._handle, p)
 
-        [j.set_joint_position(p, allow_force_mode)
+        [j.set_joint_position(p, allow_force_mode)  # type: ignore
          for j, p in zip(self.joints, positions)]
-        [j.set_joint_target_position(p) for j, p in zip(self.joints, positions)]
+        [j.set_joint_target_position(p)  # type: ignore
+         for j, p in zip(self.joints, positions)]
         sim.simExtStep(True)  # Have to step once for changes to take effect
 
         # Re-enable the dynamics
@@ -127,7 +129,7 @@ class RobotComponent(Object):
             linear values depending on the joint type).
         """
         self._assert_len(positions)
-        [j.set_joint_target_position(p)
+        [j.set_joint_target_position(p)  # type: ignore
          for j, p in zip(self.joints, positions)]
 
     def get_joint_target_velocities(self) -> List[float]:
@@ -136,7 +138,8 @@ class RobotComponent(Object):
          :return: List of the target velocity of the joints (linear or angular
             velocity depending on the joint-type).
          """
-        return [j.get_joint_target_velocity() for j in self.joints]
+        return [j.get_joint_target_velocity()  # type: ignore
+                for j in self.joints]
 
     def set_joint_target_velocities(self, velocities: List[float]) -> None:
         """Sets the intrinsic target velocities of the joints.
@@ -145,7 +148,7 @@ class RobotComponent(Object):
             or angular velocities depending on the joint-type).
         """
         self._assert_len(velocities)
-        [j.set_joint_target_velocity(v)
+        [j.set_joint_target_velocity(v)  # type: ignore
          for j, v in zip(self.joints, velocities)]
 
     def get_joint_forces(self) -> List[float]:
@@ -167,7 +170,8 @@ class RobotComponent(Object):
             These cannot be negative values.
         """
         self._assert_len(forces)
-        [j.set_joint_force(f) for j, f in zip(self.joints, forces)]
+        [j.set_joint_force(f)  # type: ignore
+         for j, f in zip(self.joints, forces)]
 
     def get_joint_velocities(self) -> List[float]:
         """Get the current joint velocities.
@@ -205,8 +209,8 @@ class RobotComponent(Object):
         """
         self._assert_len(cyclic)
         self._assert_len(intervals)
-        [j.set_joint_interval(c, i) for j, c, i in zip(
-            self.joints, cyclic, intervals)]
+        [j.set_joint_interval(c, i)  # type: ignore
+         for j, c, i in zip( self.joints, cyclic, intervals)]
 
     def get_joint_upper_velocity_limits(self) -> List[float]:
         """Gets upper velocity limits of the joints.
@@ -220,7 +224,8 @@ class RobotComponent(Object):
 
         :param value: The new value for the control loop state.
         """
-        [j.set_control_loop_enabled(value) for j in self.joints]
+        [j.set_control_loop_enabled(value)  # type: ignore
+         for j in self.joints]
 
     def set_motor_locked_at_zero_velocity(self, value: bool) -> None:
         """Sets if motor is locked when target velocity is zero for all joints.
@@ -230,14 +235,16 @@ class RobotComponent(Object):
 
         :param value: If the motors should be locked at zero velocity.
         """
-        [j.set_motor_locked_at_zero_velocity(value) for j in self.joints]
+        [j.set_motor_locked_at_zero_velocity(value)  # type: ignore
+         for j in self.joints]
 
     def set_joint_mode(self, value: JointMode) -> None:
         """Sets the operation mode of the joint group.
 
         :param value: The new joint mode value.
         """
-        [j.set_joint_mode(value) for j in self.joints]
+        [j.set_joint_mode(value)  # type: ignore
+         for j in self.joints]
 
     def get_visuals(self) -> List[Object]:
         """Gets a list of the visual elements of this component.

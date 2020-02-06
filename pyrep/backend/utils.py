@@ -36,6 +36,7 @@ def to_type(handle: int) -> Object:
         return ForceSensor(handle)
     elif t == sim.sim_object_proximitysensor_type:
         return ProximitySensor(handle)
+    raise ValueError
 
 
 def script_call(function_name_at_script_name: str,

@@ -11,6 +11,7 @@ class Distance(object):
             'Currently there is an error in CoppeliaSim with distance objects. '
             'As soon as CoppeliaSim resolves this issue, this error will be '
             'removed.')
+        self._handle: int
         if isinstance(name_or_handle, int):
             self._handle = name_or_handle
         else:
@@ -19,7 +20,9 @@ class Distance(object):
         if not sim.simGetExplicitHandling(self._handle):
             sim.simSetExplicitHandling(self._handle, 1)
 
-    def __eq__(self, other: 'Distance'):
+    def __eq__(self, other: object):
+        if not isinstance(other, Distance):
+            raise NotImplementedError
         return self.get_handle() == other.get_handle()
 
     def get_handle(self) -> int:
