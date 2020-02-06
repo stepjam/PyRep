@@ -3,7 +3,7 @@ import io
 import sys
 from contextlib import contextmanager
 from typing import List, Tuple
-from pyrep import testing
+import pyrep
 from pyrep.backend import sim
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
@@ -69,7 +69,6 @@ def suppress_std_out_and_err():
     This is needed because the OMPL plugin outputs logging info even when
     logging is turned off.
     """
-
     try:
         # If we are using an IDE, then this will fail
         original_stdout_fd = sys.stdout.fileno()
@@ -86,7 +85,7 @@ def suppress_std_out_and_err():
         def _redirect_stdout(to_fd):
             sys.stdout.close()
             os.dup2(to_fd, original_stdout_fd)
-            if testing:
+            if pyrep.testing:
                 sys.stdout = io.TextIOWrapper(
                     os.fdopen(original_stdout_fd, 'wb'))
             else:
@@ -95,7 +94,7 @@ def suppress_std_out_and_err():
         def _redirect_stderr(to_fd):
             sys.stderr.close()
             os.dup2(to_fd, original_stderr_fd)
-            if testing:
+            if pyrep.testing:
                 sys.stderr = io.TextIOWrapper(
                     os.fdopen(original_stderr_fd, 'wb'))
             else:
