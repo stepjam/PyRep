@@ -6,6 +6,7 @@ from tests.core import TestCore
 from pyrep.objects.shape import Shape
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.object import Object
+from pyrep.objects.vision_sensor import VisionSensor
 import numpy as np
 
 
@@ -227,6 +228,21 @@ class TestObjects(TestCore):
         self.dynamic_cube.set_bullet_friction(0.7)
         friction = self.dynamic_cube.get_bullet_friction()
         self.assertAlmostEqual(friction, 0.7, places=1)
+
+    def test_set_get_explicit_handling(self):
+        cam = VisionSensor.create((640, 480))
+        flag_orig = cam.get_explicit_handling()
+
+        cam.set_explicit_handling(value=1)
+        flag = cam.get_explicit_handling()
+        self.assertEqual(flag, 1)
+
+        cam.set_explicit_handling(value=0)
+        flag = cam.get_explicit_handling()
+        self.assertEqual(flag, 0)
+
+        cam.set_explicit_handling(flag_orig)
+        cam.remove()
 
 
 if __name__ == '__main__':

@@ -649,6 +649,20 @@ class Object(object):
         sim.simSetEngineFloatParameter(sim.sim_bullet_body_friction,
                                        self._handle, friction)
 
+    def get_explicit_handling(self) -> int:
+        """Get explicit handling flags.
+
+        :return: The flag: enabled(1) or disabled(0).
+        """
+        return sim.simGetExplicitHandling(self._handle)
+
+    def set_explicit_handling(self, value: int) -> None:
+        """Set explicit handling flags.
+
+        :param value: A flag to enable(1) or disable(0) explicit handling.
+        """
+        sim.simSetExplicitHandling(self._handle, value)
+
     # === Private methods ===
 
     def _check_model(self) -> None:
