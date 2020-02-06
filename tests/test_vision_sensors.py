@@ -11,6 +11,21 @@ class TestVisionSensors(TestCore):
         [self.pyrep.step() for _ in range(10)]
         self.cam = VisionSensor('cam0')
 
+    def test_handle_explicitly(self):
+        cam = VisionSensor.create((640, 480))
+
+        # blank image
+        rgb = cam.capture_rgb()
+        self.assertEqual(rgb.sum(), 0)
+
+        # non-blank image
+        cam.set_explicit_handling(value=1)
+        cam.handle_explicitly()
+        rgb = cam.capture_rgb()
+        self.assertNotEqual(rgb.sum(), 0)
+
+        cam.remove()
+
     def test_capture_rgb(self):
         img = self.cam.capture_rgb()
         self.assertEqual(img.shape, (16, 16, 3))
