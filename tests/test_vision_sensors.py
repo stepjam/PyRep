@@ -86,5 +86,10 @@ class TestVisionSensors(TestCore):
         self.cam.set_far_clipping_plane(0.5)
         self.assertEqual(self.cam.get_far_clipping_plane(), 0.5)
 
+    def test_get_set_windowed_size(self):
+        self.cam.set_windowed_size((640, 480))
+        self.assertEqual(self.cam.get_windowed_size(), (640, 480))
+
+
 if __name__ == '__main__':
     unittest.main()
