@@ -107,6 +107,17 @@ class VisionSensor(Object):
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.VISION_SENSOR
 
+    def handle_explicitly(self) -> None:
+        """Handle sensor explicitly.
+
+          This enables capturing image (e.g., capture_rgb())
+          without PyRep.step().
+        """
+        if not self.get_explicit_handling():
+            raise RuntimeError('The explicit_handling is not disabled. '
+                               'Call set_explicit_handling(flags=1) first.')
+        sim.simHandleVisionSensor(self._handle)
+
     def capture_rgb(self) -> np.ndarray:
         """Retrieves the rgb-image of a vision sensor.
 

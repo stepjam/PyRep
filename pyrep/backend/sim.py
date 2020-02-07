@@ -197,6 +197,24 @@ def simCreateVisionSensor(options, intParams, floatParams, color):
     return ret
 
 
+def simHandleVisionSensor(sensorHandle):
+    auxValues = ffi.new('float **')
+    auxValuesCount = ffi.new('int **')
+    ret = lib.simHandleVisionSensor(
+        sensorHandle, auxValues, auxValuesCount)
+    _check_return(ret)
+
+    k1 = 0
+    outAuxValues = []
+    for i in range(auxValuesCount[0][0]):
+        k2 = k1 + auxValuesCount[0][i + 1]
+        outAuxValues.extend([x for x in auxValues[0][k1:k2]])
+
+    simReleaseBuffer(ffi.cast('char *', auxValues[0]))
+    simReleaseBuffer(ffi.cast('char *', auxValuesCount[0]))
+    return ret, outAuxValues
+
+
 def simReadVisionSensor(sensorHandle):
     auxValues = ffi.new('float **')
     auxValuesCount = ffi.new('int **')
