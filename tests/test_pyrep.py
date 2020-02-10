@@ -1,4 +1,5 @@
 import unittest
+import tempfile
 from tests.core import TestCore
 from tests.core import ASSET_DIR
 from pyrep.objects.object import Object
@@ -9,6 +10,7 @@ from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.objects.force_sensor import ForceSensor
 from pyrep.objects.cartesian_path import CartesianPath
 from pyrep.errors import WrongObjectTypeError
+import os
 from os import path
 import numpy as np
 
@@ -49,6 +51,11 @@ class TestPyrep(TestCore):
     def test_load_model(self):
         m = self.pyrep.import_model(path.join(ASSET_DIR, 'loadable_model.ttm'))
         self.assertIsInstance(m, Shape)
+
+    def test_export_scene(self):
+        scene_file = tempfile.mktemp('.ttt')
+        self.pyrep.export_scene(scene_file)
+        os.remove(scene_file)
 
     def test_group_objects(self):
         top = Dummy('cubes_under_dummy')

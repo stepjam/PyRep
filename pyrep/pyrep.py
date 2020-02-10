@@ -241,6 +241,14 @@ class PyRep(object):
         sim.simGroupShapes(handles, merge=True)
         return Shape(name)
 
+    def export_scene(self, filename: str) -> None:
+        """Saves the current scene.
+
+        :param filename: scene filename. The filename extension is required
+            ("ttt").
+        """
+        sim.simSaveScene(filename)
+
     def import_model(self, filename: str) -> Object:
         """	Loads a previously saved model.
 
