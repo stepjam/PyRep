@@ -90,7 +90,7 @@ def simQuitSimulator(doNotDisplayMessages):
 
 def simGetObjectHandle(objectName):
     handle = lib.simGetObjectHandle(objectName.encode('ascii'))
-    if handle <= 0:
+    if handle < 0:
         raise RuntimeError('Handle %s does not exist.' % objectName)
     return handle
 
