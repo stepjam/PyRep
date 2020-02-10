@@ -235,8 +235,11 @@ class PyRep(object):
         :return: A single merged shape.
         """
         handles = [o.get_handle() for o in objects]
-        handle = sim.simGroupShapes(handles, merge=True)
-        return Shape(handle)
+        # FIXME: sim.simGroupShapes(merge=True) won't return correct handle,
+        # so we use name to find correct handle of the merged shape.
+        name = objects[-1].get_name()
+        sim.simGroupShapes(handles, merge=True)
+        return Shape(name)
 
     def import_model(self, filename: str) -> Object:
         """	Loads a previously saved model.
