@@ -246,7 +246,9 @@ class Object(object):
         except RuntimeError:
             # Most probably no parent.
             return None
-        return Object(handle)
+        object_type = ObjectType(sim.simGetObjectType(handle))
+        cls = object_type_to_class.get(object_type, Object)
+        return cls(handle)
 
     def set_parent(self, parent_object: Union['Object', None],
                    keep_in_place=True) -> None:
