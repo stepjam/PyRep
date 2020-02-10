@@ -20,12 +20,12 @@ class Object(object):
             self._handle = name_or_handle
         else:
             self._handle = sim.simGetObjectHandle(name_or_handle)
-            assert_type = self._get_requested_type()
-            actual = ObjectType(sim.simGetObjectType(self._handle))
-            if actual != assert_type:
-                raise WrongObjectTypeError(
-                    'You requested object of type %s, but the actual type was '
-                    '%s' % (assert_type.name, actual.name))
+        assert_type = self._get_requested_type()
+        actual = ObjectType(sim.simGetObjectType(self._handle))
+        if actual != assert_type:
+            raise WrongObjectTypeError(
+                'You requested object of type %s, but the actual type was '
+                '%s' % (assert_type.name, actual.name))
 
     def __eq__(self, other: object):
         if not isinstance(other, Object):
