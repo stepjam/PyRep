@@ -35,9 +35,9 @@ class ReacherEnv(object):
 
     def _get_state(self):
         # Return state containing arm joint angles/velocities & target position
-        return (self.agent.get_joint_positions() +
-                self.agent.get_joint_velocities() +
-                self.target.get_position())
+        return np.concatenate([self.agent.get_joint_positions(),
+                               self.agent.get_joint_velocities(),
+                               self.target.get_position()])
 
     def reset(self):
         # Get a random position within a cuboid and set the target position
