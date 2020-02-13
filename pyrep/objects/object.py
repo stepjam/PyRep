@@ -1,3 +1,5 @@
+import warnings
+
 from pyrep.backend import sim
 from pyrep.errors import *
 from pyrep.const import ObjectType
@@ -621,8 +623,38 @@ class Object(object):
         return [sim.simGetObjectFloatParameter(
             self._handle, p) for p in params]
 
-    def get_objects_in_tree(self, object_type=ObjectType.ALL, exclude_base=True,
-                            first_generation_only=False) -> List['Object']:
+    @staticmethod
+    def _get_objects_in_tree(root_object=None, object_type=ObjectType.ALL,
+                             exclude_base=True, first_generation_only=False
+                             ) -> List['Object']:
+        if root_object is None:
+            root_object = sim.sim_handle_scene
+        elif isinstance(root_object, Object):
+            root_object = root_object.get_handle()
+        elif not isinstance(root_object, int):
+            raise ValueError('root_object must be None, int or Object')
+
+        options = 0
+        if exclude_base:
+            options |= 1
+        if first_generation_only:
+            options |= 2
+        handles = sim.simGetObjectsInTree(
+            root_object, object_type.value, options)
+        objects = []
+        for handle in handles:
+            try:
+                objects.append(Object.get_object(handle))
+            except KeyError:
+                # e.g., CAMERA and LIGHT are not officially supported
+                name = Object.get_object_name(handle)
+                type = Object.get_object_type(name)
+                warnings.warn(
+                    "Object ({}, '{}') has {}, "
+                    'which is not supported'.format(handle, name, type))
+        return objects
+
+    def get_objects_in_tree(self, *args, **kwargs) -> List['Object']:
         """Retrieves the objects in a given hierarchy tree.
 
         :param object_type: The object type to retrieve.
@@ -632,19 +664,7 @@ class Object(object):
             object's first children. Otherwise, entire hierarchy is returned.
         :return: A list of objects in the hierarchy tree.
         """
-        options = 0
-        if exclude_base:
-            options |= 1
-        if first_generation_only:
-            options |= 2
-        handles = sim.simGetObjectsInTree(
-            self._handle, object_type.value, options)
-        objects = []
-        for h in handles:
-            object_type = ObjectType(sim.simGetObjectType(h))
-            cls = object_type_to_class.get(object_type, Object)
-            objects.append(cls(h))
-        return objects
+        return self._get_objects_in_tree(self._handle, *args, **kwargs)
 
     def copy(self) -> 'Object':
         """Copy and pastes object in the scene.
