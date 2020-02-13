@@ -55,6 +55,29 @@ class Object(object):
         """
         return ObjectType(sim.simGetObjectType(sim.simGetObjectHandle(name)))
 
+    @staticmethod
+    def get_object_name(name_or_handle: Union[str, int]) -> str:
+        """Gets object name.
+
+        :return: Object name.
+        """
+        if isinstance(name_or_handle, int):
+            name = sim.simGetObjectName(name_or_handle)
+        else:
+            name = name_or_handle
+        return name
+
+    @staticmethod
+    def get_object(name_or_handle: str) -> 'Object':
+        """Gets object retrieved by name.
+
+        :return: The object.
+        """
+        name = Object.get_object_name(name_or_handle)
+        object_type = Object.get_object_type(name)
+        cls = object_type_to_class[object_type]
+        return cls(name)
+
     def _get_requested_type(self) -> ObjectType:
         """Used for internally checking assumptions user made about object type.
 
