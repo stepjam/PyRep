@@ -14,6 +14,10 @@ class TestForceSensors(TestCore):
         self.assertEqual(len(force_vector), 3)
         self.assertEqual(len(torque_vector), 3)
 
+    def test_create(self):
+        sensor = ForceSensor.create()
+        sensor.remove()
+
 
 if __name__ == '__main__':
     unittest.main()

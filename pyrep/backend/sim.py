@@ -174,6 +174,14 @@ def simSetJointInterval(jointHandle, cyclic, interval):
     _check_return(ret)
 
 
+def simCreateForceSensor(options, intParams, floatParams, color):
+    if color is None:
+        color = ffi.NULL
+    handle = lib.simCreateForceSensor(options, intParams, floatParams, color)
+    _check_return(handle)
+    return handle
+
+
 def simBreakForceSensor(forceSensorHandle):
     lib.simBreakForceSensor(forceSensorHandle)
 
