@@ -1,3 +1,4 @@
+import numpy as np
 from pyrep.backend import sim, utils
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
@@ -9,6 +10,7 @@ import time
 import threading
 from threading import Lock
 from typing import Tuple, List
+import warnings
 
 
 class PyRep(object):
@@ -203,6 +205,17 @@ class PyRep(object):
         :param dt: The time step value in seconds.
         """
         sim.simSetFloatParameter(sim.sim_floatparam_simulation_time_step, dt)
+        if not np.allclose(self.get_simulation_timestep(), dt):
+            warnings.warn('Could not change simulation timestep. You may need '
+                          'to change it to "custom dt" using simulation '
+                          'settings dialog.')
+
+    def get_simulation_timestep(self) -> float:
+        """Gets the simulation time step.
+
+        :return: The time step value in seconds.
+        """
+        return sim.simGetSimulationTimeStep()
 
     def set_configuration_tree(self, config_tree: bytes) -> None:
         """Restores configuration information previously retrieved.
