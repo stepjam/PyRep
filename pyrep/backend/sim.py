@@ -174,9 +174,26 @@ def simSetJointInterval(jointHandle, cyclic, interval):
     _check_return(ret)
 
 
+def simAddForceAndTorque(shapeHandle, force, torque):
+    lib.simAddForceAndTorque(shapeHandle, force, torque)
+
+
+def simGetObjectSizeFactor(objectHandle):
+    return lib.simGetObjectSizeFactor(objectHandle)
+    
+def simMultiplyVector(m,vector):
+    """"extend the 3x4 matrix to 4x4 matrix """
+    m_extend = m + [0,0,0,1]
+    m_ar = np.array(m_extend).reshape(4,4)
+    vector_extend = vector+[1]
+    vector_ar = np.array(vector_extend).reshape(4,1)
+    result = np.dot(m_ar, vector_ar)
+    return list(result[:3])
+
+
 def simBreakForceSensor(forceSensorHandle):
     lib.simBreakForceSensor(forceSensorHandle)
-
+     
 
 def simReadForceSensor(forceSensorHandle):
     forceVector  = ffi.new('float[3]')
