@@ -35,6 +35,29 @@ class Arm(RobotComponent):
         self._collision_collection = sim.simGetCollectionHandle(
             '%s_arm%s' % (name, suffix))
 
+    def set_ik_element_properties(self, constraint_x=True, constraint_y=True,
+                                  constraint_z=True,
+                                  constraint_alpha_beta=True,
+                                  constraint_gamma=True) -> None:
+        constraints = 0
+        if constraint_x:
+            constraints |= sim.sim_ik_x_constraint
+        if constraint_y:
+            constraints |= sim.sim_ik_y_constraint
+        if constraint_z:
+            constraints |= sim.sim_ik_z_constraint
+        if constraint_alpha_beta:
+            constraints |= sim.sim_ik_alpha_beta_constraint
+        if constraint_gamma:
+            constraints |= sim.sim_ik_gamma_constraint
+        sim.simSetIkElementProperties(
+            ikGroupHandle=self._ik_group,
+            tipDummyHandle=self._ik_tip.get_handle(),
+            constraints=constraints,
+            precision=None,
+            weight=None,
+        )
+
     def get_configs_for_tip_pose(self,
                                  position: Union[List[float], np.ndarray],
                                  euler: Union[List[float], np.ndarray] = None,
