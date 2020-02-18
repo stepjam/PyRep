@@ -56,6 +56,11 @@ class TestArmsAndConfigurationPaths(TestCore):
                 arm = arm_type()
                 self.assertIsInstance(arm, arm_type)
 
+    def test_set_ik_element_properties(self):
+        arm = Panda()
+        arm.set_ik_element_properties(constraint_gamma=False)
+        arm.set_ik_element_properties()
+
     def test_get_configs_for_tip_pose(self):
         arm = Panda()
         waypoint = Dummy('Panda_waypoint')

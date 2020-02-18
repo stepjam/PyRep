@@ -102,6 +102,19 @@ def simGetIkGroupHandle(ikGroupName):
     return handle
 
 
+def simSetIkElementProperties(ikGroupHandle, tipDummyHandle, constraints,
+                              precision=None, weight=None):
+    if precision is None:
+        precision = ffi.NULL
+    if weight is None:
+        weight = ffi.NULL
+    reserved = ffi.NULL
+    ret = lib.simSetIkElementProperties(
+        ikGroupHandle, tipDummyHandle, constraints, precision, weight, reserved)
+    _check_return(ret)
+    return ret
+
+
 def simGetObjectPosition(objectHandle, relativeToObjectHandle):
     position = ffi.new('float[3]')
     lib.simGetObjectPosition(objectHandle, relativeToObjectHandle, position)
