@@ -35,6 +35,21 @@ class Drone_base(Object):
         self.notFullParticles = 0
         self.pre_v = 0  # previous size factor
 
+        self.particlesTargetVelocities = [0,0,0,0]
+        self.pParam = 2
+        self.iParam = 0
+        self.dParam = 0
+        self.vParam = -2
+
+        self.cumul = 0
+        self.lastE = 0
+        self.pAlphaE = 0
+        self.pBetaE = 0
+        self.psp2 = 0
+        self.psp1 = 0
+        
+        self.prevEuler = 0 
+
     def get_3d_pose(self) -> np.ndarray:
         """Gets the ground truth 3D pose of the robot [x, y, z, yaw, pitch, roll].
 
@@ -90,7 +105,60 @@ class Drone_base(Object):
         :return: Type of the object.
         """
         return ObjectType(sim.simGetObjectType(self.get_handle()))
-    
 
+    def simple_controller(self, target_loc):
+        '''simple PID controller'''
+        
+        sp = [0.0,0.0,0.0]
+        euler = [0.0,0.0,0.0]
+        l = []
+        angu = []
+    
+        targetPos = target_loc
+        #print("target position is: ",target_pos)
+        pos = self.get_3d_pose()[:3]
+
+        l, angu = sim.simGetVelocity(self._handle)
+        e = (targetPos[2]-pos[2])
+        self.cumul = self.cumul + e
+        pv = self.pParam*e
+        thrust = 5.335 + pv + self.iParam*self.cumul + self.dParam * (e-self.lastE) + l[2]*self.vParam
+        self.lastE = e
+    
+        for i in range(3):
+            sp[i] = targetPos[i]-pos[i]
+        
+        m= sim.simGetObjectMatrix(self._handle,-1)
+        vx = [1,0,0]
+        vx = sim.simMultiplyVector(m,vx)
+        vy = [0,1,0]
+        vy = sim.simMultiplyVector(m,vy)
+
+        alphaE = (vy[2]-m[11])
+        alphaCorr = 0.25*alphaE + 2.1*(alphaE-self.pAlphaE)
+        betaE = (vx[2]-m[11])
+        betaCorr = -0.25*betaE-2.1*(betaE-self.pBetaE)
+        self.pAlphaE = alphaE
+        self.pBetaE = betaE
+        alphaCorr = alphaCorr + sp[1]*0.005 + 1*(sp[1]-self.psp2)
+        betaCorr = betaCorr-sp[0]*0.005 - 1*(sp[0]-self.psp1)
+        self.psp2 = sp[1]
+        self.psp1 = sp[0]
+    
+        eulert1 = self.get_3d_pose()[3:]
+        eulert2 = [0.0,0.0,0.0]
+
+        for i in range(3):
+            euler[i] = eulert1[i]-eulert2[i]
+        
+        rotCorr = euler[2]*0.1 + 2*(euler[2]-self.prevEuler)
+        self.prevEuler = euler[2]
+    
+        self.particlesTargetVelocities[0] = thrust*(1-alphaCorr+betaCorr+rotCorr)
+        self.particlesTargetVelocities[1] = thrust*(1-alphaCorr-betaCorr-rotCorr)
+        self.particlesTargetVelocities[2] = thrust*(1+alphaCorr-betaCorr+rotCorr)
+        self.particlesTargetVelocities[3] = thrust*(1+alphaCorr+betaCorr-rotCorr)
+    
+        return self.particlesTargetVelocities
 
     

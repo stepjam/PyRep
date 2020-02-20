@@ -838,11 +838,21 @@ def simAddDrawingObjectItem(objectHandle, itemData):
     ret = lib.simAddDrawingObjectItem(objectHandle, itemData)
     _check_return(ret)
 
+def simGetSimulationTime():
+    return lib.simGetSimulationTime()
+
 
 def simGetSimulationTimeStep():
     step = lib.simGetSimulationTimeStep()
     _check_return(step)
     return step
+
+def simGetVelocity(shapeHandle):
+    linearVelocity = ffi.new('float[3]')
+    angularVelocity = ffi.new('float[3]')
+    vel = lib.simGetVelocity(shapeHandle, linearVelocity, angularVelocity)
+    _check_return(vel)
+    return list(linearVelocity), list(angularVelocity)
 
 
 def simResetDynamicObject(objectHandle):

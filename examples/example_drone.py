@@ -20,22 +20,24 @@ target = Shape.create(type=PrimitiveShape.CUBOID,
                       color=[1.0, 0.1, 0.1],
                       static=False, respondable=True)
 
-position_min, position_max = [-0.4, -0.4, 1.5], [0.4, 0.4, 1.5]
+#position_min, position_max = [-0.4, -0.4, 1.5], [0.4, 0.4, 1.5]
 
 for i in range(LOOPS):
 
     # Get a random position for the drone
-    pos = list(np.random.uniform(position_min, position_max))
+    pos = [0.25,0.0,1.5]
     agent.set_3d_pose(pos+[0.0,0.0,0.0]) # The orientation here is all zeros
 
     #Set the position for the cuboid
-    target.set_position([0.0,0.0,0.4])
+    target.set_position([0.250,0.0,0.4])
 
-    for j in np.arange(100):
+    for j in np.arange(200):
 
         # The velcities set here are just rubbish.
         # YOU SHOULD DEVELOP YOUR OWN VELOCITY CONTROL METHOD
-        agent.set_propller_velocity(5.5, 5.5, 5.5, 5.5)
+        vels = agent.simple_controller([0.25,0.00,1.50])
+        #print(vels[0], vels[1], vels[2], vels[3])
+        agent.set_propller_velocity(vels[0], vels[1], vels[2], vels[3])
 
         # Power each propeller
         agent.control_propeller_thrust(1)
@@ -44,7 +46,7 @@ for i in range(LOOPS):
         agent.control_propeller_thrust(4)
 
         pr.step()
-
+    
 
 pr.stop()
 pr.shutdown()
