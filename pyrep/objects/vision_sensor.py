@@ -1,5 +1,5 @@
 import math
-from typing import List, Union
+from typing import List, Union, Sequence
 from pyrep.backend import sim
 from pyrep.objects.object import Object, object_type_to_class
 import numpy as np
@@ -203,6 +203,30 @@ class VisionSensor(Object):
             self._handle, sim.sim_visionintparam_render_mode,
             render_mode.value
         )
+
+    def get_windowed_size(self) -> Sequence[int]:
+        """Get the size of windowed rendering.
+
+        :return: The (x, y) resolution of the window. 0 for full-screen.
+        """
+        size_x = sim.simGetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_windowed_size_x)
+        size_y = sim.simGetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_windowed_size_y)
+        return size_x, size_y
+
+    def set_windowed_size(self, resolution: Sequence[int] = (0, 0)) -> None:
+        """Set the size of windowed rendering.
+
+        :param resolution: The (x, y) resolution of the window.
+            0 for full-screen.
+        """
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_windowed_size_x,
+            resolution[0])
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.sim_visionintparam_windowed_size_y,
+            resolution[1])
 
     def get_perspective_angle(self) -> float:
         """ Get the Sensor's perspective angle.

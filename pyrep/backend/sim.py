@@ -316,6 +316,12 @@ def simSaveModel(modelHandle, modelPathAndName):
     return val
 
 
+def simSaveScene(filename):
+    val = lib.simSaveScene(filename.encode('ascii'))
+    _check_return(val)
+    return val
+
+
 def simGetObjectName(objectHandle):
     name_raw = lib.simGetObjectName(objectHandle)
     if name_raw == ffi.NULL:

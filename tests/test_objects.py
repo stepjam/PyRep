@@ -55,7 +55,8 @@ class TestObjects(TestCore):
 
     def test_still_exists(self):
         self.assertTrue(self.dynamic_cube.still_exists())
-        self.assertFalse(Shape(-1).still_exists())
+        self.dynamic_cube.remove()
+        self.assertFalse(self.dynamic_cube.still_exists())
 
     def test_object_exists(self):
         yes = Object.exists('dynamic_cube')
