@@ -79,6 +79,10 @@ def suppress_std_out_and_err():
     This is needed because the OMPL plugin outputs logging info even when
     logging is turned off.
     """
+    if not pyrep.suppress_std_out_err:
+        yield
+        return
+
     try:
         # If we are using an IDE, then this will fail
         original_stdout_fd = sys.stdout.fileno()
