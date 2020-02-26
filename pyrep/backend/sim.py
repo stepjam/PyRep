@@ -719,6 +719,11 @@ def simSetShapeColor(shapeHandle, colorName, colorComponent, rgbData):
     _check_return(res)
 
 
+def simReorientShapeBoundingBox(shapeHandle, relativeToHandle):
+    ret = lib.simReorientShapeBoundingBox(shapeHandle, relativeToHandle, 0)
+    _check_return(ret)
+
+
 def simGetObjectMatrix(objectHandle, relativeToObjectHandle):
     matrix = ffi.new('float[12]')
     ret = lib.simGetObjectMatrix(objectHandle, relativeToObjectHandle, matrix)
