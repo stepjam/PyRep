@@ -459,5 +459,9 @@ class Shape(Object):
         )
         return res
 
+    def reorient_bounding_box(self, relative_to=None) -> None:
+        relto = -1 if relative_to is None else relative_to.get_handle()
+        sim.simReorientShapeBoundingBox(self._handle, relto)
+
 
 object_type_to_class[ObjectType.SHAPE] = Shape
