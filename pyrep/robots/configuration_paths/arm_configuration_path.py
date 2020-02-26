@@ -2,7 +2,7 @@ from pyrep.backend import sim
 from pyrep.robots.configuration_paths.configuration_path import (
     ConfigurationPath)
 import numpy as np
-from typing import List, Optional
+from typing import List, Optional, Union
 
 
 class ArmConfigurationPath(ConfigurationPath):
@@ -17,13 +17,22 @@ class ArmConfigurationPath(ConfigurationPath):
     control systems.
     """
 
-    def __init__(self, arm: 'Arm', path_points: List[float]):  # type: ignore
+    def __init__(self, arm: 'Arm',  # type: ignore
+                 path_points: Union[List[float], np.ndarray]):
         self._arm = arm
-        self._path_points = np.array(path_points)
+        self._path_points = np.asarray(path_points)
         self._rml_handle: Optional[int] = None
         self._drawing_handle = None
         self._path_done = False
         self._num_joints = arm.get_joint_count()
+
+    def __len__(self):
+        return len(self._path_points) // self._num_joints
+
+    def __getitem__(self, i):
+        path_points = self._path_points.reshape(-1, self._num_joints)
+        path_points = path_points[i].flatten()
+        return self.__class__(arm=self._arm, path_points=path_points)
 
     def step(self) -> bool:
         """Makes a step along the trajectory.
