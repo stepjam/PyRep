@@ -1,4 +1,5 @@
 import unittest
+import warnings
 import tempfile
 from tests.core import TestCore
 from tests.core import ASSET_DIR
@@ -93,6 +94,30 @@ class TestPyrep(TestCore):
         self.assertEqual(texture.get_texture_id(),
                          plane.get_texture().get_texture_id())
 
+    def test_get_objects_in_tree(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            objects = self.pyrep.get_objects_in_tree()
+            self.assertNotEqual(len(w), 0)
+        for obj in objects:
+            self.assertIsInstance(obj, Object)
+
+        dummys = [Dummy('nested_dummy%d' % i) for i in range(3)]
+        for root_obj in [dummys[0], dummys[0].get_handle()]:
+            objects = self.pyrep.get_objects_in_tree(
+                root_obj, exclude_base=False, first_generation_only=False)
+            self.assertListEqual(objects, dummys)
+            for obj in objects:
+                self.assertIs(type(obj), Dummy)
+
+            self.assertListEqual(
+                self.pyrep.get_objects_in_tree(
+                    root_obj, exclude_base=True, first_generation_only=False),
+                    dummys[1:])
+            self.assertListEqual(
+                self.pyrep.get_objects_in_tree(
+                    root_obj, exclude_base=False,first_generation_only=True),
+                    dummys[:-1])
 
 if __name__ == '__main__':
     unittest.main()
