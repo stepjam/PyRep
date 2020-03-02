@@ -759,9 +759,7 @@ def simGetObjectType(objectHandle):
 def simGetConfigurationTree(objectHandle):
     config = lib.simGetConfigurationTree(objectHandle)
     _check_null_return(config)
-    # TODO: Not use what to do about the encoding here
-    # configs = ffi.string(config)
-    # simReleaseBuffer(config)
+    simReleaseBuffer(config)
     return config
 
 
@@ -993,6 +991,12 @@ def simGetShapeViz(shapeHandle, index):
         textureCoords = [info.textureCoords[i] for i in
                         range(info.indicesSize * 2)]
 
+    simReleaseBuffer(ffi.cast('char *', info.vertices[0]))
+    simReleaseBuffer(ffi.cast('char *', info.indices[0]))
+    simReleaseBuffer(ffi.cast('char *', info.normals[0]))
+    simReleaseBuffer(info.texture)
+    simReleaseBuffer(ffi.cast('char *', info.textureCoords[0]))
+
     return SShapeVizInfo(
         vertices=vertices,
         indices=indices,
@@ -1155,7 +1159,7 @@ def simUngroupShape(shapeHandle):
     shapes = lib.simUngroupShape(shapeHandle, count)
     _check_null_return(shapes)
     handles = [shapes[i] for i in range(count[0])]
-    # simReleaseBuffer(shapes)
+    simReleaseBuffer(shapes)
     return handles
 
 
