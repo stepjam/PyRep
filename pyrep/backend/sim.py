@@ -933,6 +933,15 @@ def simImportMesh(fileformat, pathAndFilename, options,
     return retVerticies, retIndices, retNames
 
 
+def simImportShape(fileformat, pathAndFilename, options,
+                   identicalVerticeTolerance, scalingFactor):
+    handle = lib.simImportShape(
+        fileformat, pathAndFilename.encode('ascii'), options,
+        identicalVerticeTolerance, scalingFactor)
+    _check_return(handle)
+    return handle
+
+
 def simCreateMeshShape(options, shadingAngle, vertices, indices):
     ret = lib.simCreateMeshShape(options, shadingAngle, vertices, len(vertices),
                                  indices, len(indices), ffi.NULL)
