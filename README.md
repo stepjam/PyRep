@@ -1,4 +1,4 @@
-# PyRep [![Build Status](https://travis-ci.com/stepjam/PyRep.svg?token=bQxtiYV3p3bPYhzWMoLi&branch=master)](https://travis-ci.com/stepjam/PyRep) [![Documentation Status](https://readthedocs.org/projects/pyrep/badge/?version=latest)](https://pyrep.readthedocs.io/en/latest/?badge=latest)
+# PyRep [![Build Status](https://travis-ci.com/stepjam/PyRep.svg?token=bQxtiYV3p3bPYhzWMoLi&branch=master)](https://travis-ci.com/stepjam/PyRep) [![Documentation Status](https://readthedocs.org/projects/pyrep/badge/?version=latest)](https://pyrep.readthedocs.io/en/latest/?badge=latest) [![Discord](https://img.shields.io/discord/694945313638842378.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/eTMsa5Y)
 
 
 __PyRep is a toolkit for robot learning research, built on top of [CoppeliaSim](http://www.coppeliarobotics.com/) (previously called V-REP).__
