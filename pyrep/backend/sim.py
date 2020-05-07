@@ -1,8 +1,10 @@
 from .simConst import *
-from ._sim_cffi import ffi, lib
+from ._sim_cffi import ffi
 import numpy as np
 import collections
+import os
 
+lib = ffi.dlopen(os.path.join(os.environ["COPPELIASIM_ROOT"], 'coppeliaSim.dll'))
 
 SShapeVizInfo = collections.namedtuple(
     'SShapeVizInfo',

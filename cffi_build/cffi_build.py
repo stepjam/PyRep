@@ -718,22 +718,9 @@ cwd = os.getcwd()
 cffi_path = os.path.join(cwd, 'cffi_build')
 
 ffibuilder.set_source(
-    "pyrep.backend._sim_cffi",
-    """
-         #include "sim.h"   // the C header of the library
-    """,
-    libraries=['coppeliaSim'],
-    library_dirs=[os.environ['COPPELIASIM_ROOT']],
-    include_dirs=[cffi_path])
+    "pyrep.backend._sim_cffi", None)
 
-# For some reason, cffi makes it such that it looks for libv_rep.so.1
-# rather than libv_rep.so. So we add a symlink.
-path = os.path.join(os.environ['COPPELIASIM_ROOT'], 'libcoppeliaSim.so')
-if not os.path.exists(path + '.1'):
-    print('creating symlink: %s -> %s' % (path + '.1', path))
-    os.symlink(path, path + '.1')
-
-# Copy lua functions to the VREP_ROOT
+# Copy lua functions to the COPPELIASIM_ROOT
 print('copying lua file: %s -> %s' % ('pyrep/backend',
                                       os.environ['COPPELIASIM_ROOT']))
 lua_script_fname = 'simAddOnScript_PyRep.lua'
