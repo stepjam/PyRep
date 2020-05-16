@@ -4,6 +4,7 @@ from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
 from pyrep.textures.texture import Texture
 from pyrep.errors import PyRepError
+from pyrep.backend import sim
 import os
 import sys
 import time
@@ -314,3 +315,11 @@ class PyRep(object):
         :return: A list of objects in the hierarchy tree.
         """
         return Object._get_objects_in_tree(root_object, *args, **kwargs)
+
+    def get_collection_handle_by_name(self, collection_name: str) -> int:
+        """Retrieves the integer handle for a given collection.
+
+        :param collection_name: Name of the collection to retrieve the integer handle for
+        :return: An integer handle for the collection
+        """
+        return sim.simGetCollectionHandle(collection_name)
