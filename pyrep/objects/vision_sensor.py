@@ -317,7 +317,7 @@ class VisionSensor(Object):
 
         :return: Handle of the entity to render
         """
-        sim.simGetObjectInt32Parameter(
+        return sim.simGetObjectInt32Parameter(
             self._handle, sim.sim_visionintparam_entity_to_render
         )
 
