@@ -301,5 +301,25 @@ class VisionSensor(Object):
             self._handle, sim.sim_visionfloatparam_far_clipping, far_clipping
         )
 
+    def set_entity_to_render(self, entity_to_render: int) -> None:
+        """ Set the entity to render to the Sensor, this can be an object or more usefully a collection.
+        -1 to render all objects in scene.
+
+        :param entity_to_render: Handle of the entity to render
+        """
+        sim.simSetObjectInt32Parameter(
+            self._handle, sim.visionintparam_entity_to_render, entity_to_render
+        )
+
+    def get_entity_to_render(self) -> None:
+        """ Get the entity to render to the Sensor, this can be an object or more usefully a collection.
+        -1 if all objects in scene are rendered.
+
+        :return: Handle of the entity to render
+        """
+        sim.simGetObjectInt32Parameter(
+            self._handle, sim.visionintparam_entity_to_render
+        )
+
 
 object_type_to_class[ObjectType.VISION_SENSOR] = VisionSensor

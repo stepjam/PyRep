@@ -90,6 +90,10 @@ class TestVisionSensors(TestCore):
         self.cam.set_windowed_size((640, 480))
         self.assertEqual(self.cam.get_windowed_size(), (640, 480))
 
+    def test_get_set_entity_to_render(self):
+        self.cam.set_entity_to_render(-1)
+        self.assertEqual(self.cam.get_entity_to_render(), -1)
+
 
 if __name__ == '__main__':
     unittest.main()
