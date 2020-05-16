@@ -72,11 +72,11 @@ class PyRep(object):
                 'COPPELIASIM_ROOT was not a correct path. '
                 'See installation instructions')
 
-    def _run_ui_thread(self, scene_file: str, headless: bool, write_vrep_stdout_to_file: bool) -> None:
+    def _run_ui_thread(self, scene_file: str, headless: bool, write_coppeliasim_stdout_to_file: bool) -> None:
         # Need this otherwise extensions will not be loaded
         os.chdir(self._vrep_root)
         options = sim.sim_gui_headless if headless else sim.sim_gui_all
-        if write_vrep_stdout_to_file:
+        if write_coppeliasim_stdout_to_file:
             with open('/tmp/CoppeliaSimLog' + str(time.perf_counter()).replace('.', '') + '.txt', 'w+') as f, \
                     stdout_redirected(f):
                 sim.simExtLaunchUIThread(options=options, scene=scene_file, pyrep_root=self._vrep_root)
@@ -97,7 +97,7 @@ class PyRep(object):
             self.shutdown()
 
     def launch(self, scene_file="", headless=False, responsive_ui=False,
-               blocking=False, write_vrep_stdout_to_file=False) -> None:
+               blocking=False, write_coppeliasim_stdout_to_file=False) -> None:
         """Launches CoppeliaSim.
 
         Launches the UI thread, waits until the UI thread has finished, this
@@ -111,7 +111,7 @@ class PyRep(object):
         :param blocking: Causes CoppeliaSim to launch as if running the default
             c++ client application. This is causes the function to block.
             For most users, this will be set to False.
-        :param write_vrep_stdout_to_file: Causes CoppeliaSim to write the stdout to files in /tmp, rather than the
+        :param write_coppeliasim_stdout_to_file: Causes CoppeliaSim to write the stdout to files in /tmp, rather than the
             terminal stdout as the python script is run. This helps reduce screen clutter, particularly if using
             multiple PyRep instances with multiprocessing, for example.
         """
@@ -120,7 +120,7 @@ class PyRep(object):
             raise PyRepError('Scene file does not exist: %s' % scene_file)
         cwd = os.getcwd()
         self._ui_thread = threading.Thread(target=self._run_ui_thread,
-                                           args=(abs_scene_file, headless, write_vrep_stdout_to_file))
+                                           args=(abs_scene_file, headless, write_coppeliasim_stdout_to_file))
         self._ui_thread.daemon = True
         self._ui_thread.start()
 
