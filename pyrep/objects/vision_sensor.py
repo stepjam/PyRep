@@ -308,7 +308,7 @@ class VisionSensor(Object):
         :param entity_to_render: Handle of the entity to render
         """
         sim.simSetObjectInt32Parameter(
-            self._handle, sim.visionintparam_entity_to_render, entity_to_render
+            self._handle, sim.sim_visionintparam_entity_to_render, entity_to_render
         )
 
     def get_entity_to_render(self) -> None:
@@ -318,7 +318,7 @@ class VisionSensor(Object):
         :return: Handle of the entity to render
         """
         sim.simGetObjectInt32Parameter(
-            self._handle, sim.visionintparam_entity_to_render
+            self._handle, sim.sim_visionintparam_entity_to_render
         )
 
 
