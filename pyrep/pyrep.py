@@ -1,9 +1,11 @@
 import numpy as np
+from contextlib import contextmanager
 from pyrep.backend import sim, utils
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
 from pyrep.textures.texture import Texture
 from pyrep.errors import PyRepError
+from pyrep.backend import sim
 import os
 import sys
 import time
@@ -11,6 +13,32 @@ import threading
 from threading import Lock
 from typing import Tuple, List
 import warnings
+
+
+def fileno(file_or_fd):
+    fd = getattr(file_or_fd, 'fileno', lambda: file_or_fd)()
+    if not isinstance(fd, int):
+        raise ValueError("Expected a file (`.fileno()`) or a file descriptor")
+    return fd
+
+
+@contextmanager
+def stdout_redirected(to=os.devnull, stdout=None):
+    if stdout is None:
+        stdout = sys.stdout
+    stdout_fd = fileno(stdout)
+    with os.fdopen(os.dup(stdout_fd), 'wb') as copied:
+        stdout.flush()
+        try:
+            os.dup2(fileno(to), stdout_fd)
+        except ValueError:
+            with open(to, 'wb') as to_file:
+                os.dup2(to_file.fileno(), stdout_fd)
+        try:
+            yield stdout
+        finally:
+            stdout.flush()
+            os.dup2(copied.fileno(), stdout_fd)
 
 
 class PyRep(object):
@@ -44,12 +72,16 @@ class PyRep(object):
                 'COPPELIASIM_ROOT was not a correct path. '
                 'See installation instructions')
 
-    def _run_ui_thread(self, scene_file: str, headless: bool) -> None:
+    def _run_ui_thread(self, scene_file: str, headless: bool, write_coppeliasim_stdout_to_file: bool) -> None:
         # Need this otherwise extensions will not be loaded
         os.chdir(self._vrep_root)
         options = sim.sim_gui_headless if headless else sim.sim_gui_all
-        sim.simExtLaunchUIThread(options=options, scene=scene_file,
-                                 pyrep_root=self._vrep_root)
+        if write_coppeliasim_stdout_to_file:
+            with open('/tmp/CoppeliaSimLog' + str(time.perf_counter()).replace('.', '') + '.txt', 'w+') as f, \
+                    stdout_redirected(f):
+                sim.simExtLaunchUIThread(options=options, scene=scene_file, pyrep_root=self._vrep_root)
+        else:
+            sim.simExtLaunchUIThread(options=options, scene=scene_file, pyrep_root=self._vrep_root)
 
     def _run_responsive_ui_thread(self) -> None:
         while True:
@@ -65,7 +97,7 @@ class PyRep(object):
             self.shutdown()
 
     def launch(self, scene_file="", headless=False, responsive_ui=False,
-               blocking=False) -> None:
+               blocking=False, write_coppeliasim_stdout_to_file=False) -> None:
         """Launches CoppeliaSim.
 
         Launches the UI thread, waits until the UI thread has finished, this
@@ -79,13 +111,16 @@ class PyRep(object):
         :param blocking: Causes CoppeliaSim to launch as if running the default
             c++ client application. This is causes the function to block.
             For most users, this will be set to False.
+        :param write_coppeliasim_stdout_to_file: Causes CoppeliaSim to write the stdout to files in /tmp, rather than
+            the terminal stdout as the python script is run. This helps reduce screen clutter, particularly if using
+            multiple PyRep instances with multiprocessing, for example.
         """
         abs_scene_file = os.path.abspath(scene_file)
         if len(scene_file) > 0 and not os.path.isfile(abs_scene_file):
             raise PyRepError('Scene file does not exist: %s' % scene_file)
         cwd = os.getcwd()
         self._ui_thread = threading.Thread(target=self._run_ui_thread,
-                                           args=(abs_scene_file, headless))
+                                           args=(abs_scene_file, headless, write_coppeliasim_stdout_to_file))
         self._ui_thread.daemon = True
         self._ui_thread.start()
 
@@ -314,3 +349,11 @@ class PyRep(object):
         :return: A list of objects in the hierarchy tree.
         """
         return Object._get_objects_in_tree(root_object, *args, **kwargs)
+
+    def get_collection_handle_by_name(self, collection_name: str) -> int:
+        """Retrieves the integer handle for a given collection.
+
+        :param collection_name: Name of the collection to retrieve the integer handle for
+        :return: An integer handle for the collection
+        """
+        return sim.simGetCollectionHandle(collection_name)

@@ -78,6 +78,41 @@ class Shape(Object):
             ob.set_color(color)
         return ob
 
+    @classmethod
+    def import_shape(cls, filename: str, scaling_factor=1.0,
+                     keep_identical_vertices=False, ignore_color=False,
+                     ignore_texture=False, reorient_bounding_box=False,
+                     ignore_up_vector=False) -> 'Shape':
+        """Imports a shape with visuals from a file.
+
+        :param filename: The location of the file to import.
+        :param scaling_factor: The scaling factor to apply to the imported vertices
+        :param keep_identical_vertices: Keep identical vertices.
+        :param ignore_color: Do not preserve colors.
+        :param ignore_texture: Do not preserve texture.
+        :param reorient_bounding_box: Reorient the shape's bounding box
+            with the world.
+        :param ignore_up_vector: Ignore up-vector coded in file.
+        :return: The Shape object.
+        """
+        if not os.path.isfile(filename):
+            raise ValueError('Filename does not exist: ' + filename)
+
+        options = 0
+        if keep_identical_vertices:
+            options |= 1
+        if ignore_color:
+            options |= 8
+        if not ignore_texture:
+            options |= 16
+        if reorient_bounding_box:
+            options |= 32
+        if ignore_up_vector:
+            options |= 128
+
+        handle = sim.simImportShape(0, filename, options, 0, scaling_factor)
+        return cls(handle)
+
     @staticmethod
     def import_mesh(filename: str, scaling_factor=1.0,
                     keep_identical_vertices=False,
