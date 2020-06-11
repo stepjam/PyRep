@@ -155,7 +155,7 @@ class VisionSensor(Object):
         self.resolution = resolution
 
     def get_perspective_mode(self) -> PerspectiveMode:
-        """ Retreive the Sensor's perspective mode.
+        """ Retrieve the Sensor's perspective mode.
 
         :return: The current PerspectiveMode.
         """
