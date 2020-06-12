@@ -19,30 +19,12 @@ class SphericalVisionSensor(Object):
         self._sensor_rgb = VisionSensor('%s_sensorRGB' % (self.get_name()))
 
         # directed sub-sensors
-        self._front = VisionSensor('%s_front' % (self.get_name()))
-        top = VisionSensor('%s_top' % (self.get_name()))
-        back = VisionSensor('%s_back' % (self.get_name()))
-        bottom = VisionSensor('%s_bottom' % (self.get_name()))
-        left = VisionSensor('%s_left' % (self.get_name()))
-        right = VisionSensor('%s_right' % (self.get_name()))
-
-        # directed sub-sensors list
-        self._six_sensors = list()
-        self._six_sensors.append(self._front)
-        self._six_sensors.append(top)
-        self._six_sensors.append(back)
-        self._six_sensors.append(bottom)
-        self._six_sensors.append(left)
-        self._six_sensors.append(right)
+        names = ['front', 'top', 'back', 'bottom', 'left', 'right']
+        self._six_sensors = [VisionSensor('%s_%s' % (self.get_name(), n)) for n in names]
+        self._front = self._six_sensors[0]
 
         # directed sub-sensor handles list
-        self._six_sensor_handles = list()
-        self._six_sensor_handles.append(self._front._handle)
-        self._six_sensor_handles.append(top._handle)
-        self._six_sensor_handles.append(back._handle)
-        self._six_sensor_handles.append(bottom._handle)
-        self._six_sensor_handles.append(left._handle)
-        self._six_sensor_handles.append(right._handle)
+        self._six_sensor_handles = [vs.get_handle() for vs in self._six_sensors]
 
         # set all to explicit handling
         self._set_all_to_explicit_handling()
