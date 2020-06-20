@@ -1025,8 +1025,8 @@ def simSetJointMode(shapeHandle, mode):
     _check_return(ret)
 
 
-def simCreatePath(attributes):
-    handle = lib.simCreatePath(attributes, ffi.NULL, ffi.NULL, ffi.NULL)
+def simCreatePath(attributes, intParams, floatParams, color):
+    handle = lib.simCreatePath(attributes, intParams, floatParams, color + [0.]*3 + [0.25]*3 + [0.]*3)
     _check_return(handle)
     return handle
 
