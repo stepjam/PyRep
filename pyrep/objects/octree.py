@@ -1,10 +1,13 @@
-from pyrep.objects.object import Object
-from pyrep.const import ObjectType
 from pyrep.backend import sim
-from typing import List, Optional
+from typing import List, Optional, Union
+from pyrep.objects.object import Object, object_type_to_class
+from pyrep.const import ObjectType
 
 class Octree(Object):
     """An octree object."""
+
+    def __init__(self, name_or_handle: Union[str, int]):
+        super().__init__(name_or_handle)
 
     @staticmethod
     def create(voxel_size: float, point_size: Optional[float] = None,
@@ -116,3 +119,5 @@ class Octree(Object):
         """Clears all voxels from the octree.
         """
         sim.simRemoveVoxelsFromOctree(self._handle, 0, None)
+
+object_type_to_class[ObjectType.OCTREE] = Octree
