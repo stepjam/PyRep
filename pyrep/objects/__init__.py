@@ -7,3 +7,4 @@ from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.objects.shape import Shape
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.octree import Octree
+from pyrep.objects.camera import Camera

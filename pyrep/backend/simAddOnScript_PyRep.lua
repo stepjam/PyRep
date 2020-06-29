@@ -516,3 +516,11 @@ getNonlinearPathMobile=function(inInts,inFloats,inStrings,inBuffer)
 
     return {},path,{},''
 end
+
+handleSpherical=function(inInts,inFloats,inStrings,inBuffer)
+    local depth_handle=inInts[1]
+    local rgb_handle=inInts[2]
+    local six_sensor_handles = {inInts[3], inInts[4], inInts[5], inInts[6], inInts[7], inInts[8]}
+    simVision.handleSpherical(rgb_handle, six_sensor_handles, 360, 180, depth_handle)
+    return {},{},{},''
+end

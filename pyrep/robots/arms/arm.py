@@ -1,4 +1,5 @@
 from pyrep.backend import sim, utils
+from pyrep.objects import Object
 from pyrep.objects.dummy import Dummy
 from pyrep.robots.configuration_paths.arm_configuration_path import (
     ArmConfigurationPath)
@@ -63,8 +64,9 @@ class Arm(RobotComponent):
                                  euler: Union[List[float], np.ndarray] = None,
                                  quaternion: Union[List[float], np.ndarray] = None,
                                  ignore_collisions=False,
-                                 trials=300, max_configs=60) -> List[List[float]]:
-
+                                 trials=300, max_configs=60,
+                                 relative_to: Object = None
+                                 ) -> List[List[float]]:
         """Gets a valid joint configuration for a desired end effector pose.
         Must specify either rotation in euler or quaternions, but not both!
         :param position: The x, y, z position of the target.
@@ -74,8 +76,12 @@ class Arm(RobotComponent):
         :param trials: The maximum number of attempts to reach max_configs
         :param max_configs: The maximum number of configurations we want to
             generate before ranking them.
+        :param relative_to: Indicates relative to which reference frame we want
+        the target pose. Specify None to retrieve the absolute pose,
+        or an Object relative to whose reference frame we want the pose.
         :raises: ConfigurationError if no joint configuration could be found.
-        :return: A list of valid joint configurations for the desired end effector pose.
+        :return: A list of valid joint configurations for the desired
+        end effector pose.
         """
 
         if not ((euler is None) ^ (quaternion is None)):
@@ -83,11 +89,11 @@ class Arm(RobotComponent):
                 'Specify either euler or quaternion values, but not both.')
 
         prev_pose = self._ik_target.get_pose()
-        self._ik_target.set_position(position)
+        self._ik_target.set_position(position, relative_to)
         if euler is not None:
-            self._ik_target.set_orientation(euler)
+            self._ik_target.set_orientation(euler, relative_to)
         elif quaternion is not None:
-            self._ik_target.set_quaternion(quaternion)
+            self._ik_target.set_quaternion(quaternion, relative_to)
 
         handles = [j.get_handle() for j in self.joints]
 
@@ -108,7 +114,8 @@ class Arm(RobotComponent):
 
     def solve_ik(self, position: Union[List[float], np.ndarray],
                  euler: Union[List[float], np.ndarray] = None,
-                 quaternion: Union[List[float], np.ndarray] = None) -> List[float]:
+                 quaternion: Union[List[float], np.ndarray] = None,
+                 relative_to: Object = None) -> List[float]:
         """Solves an IK group and returns the calculated joint values.
 
         Must specify either rotation in euler or quaternions, but not both!
@@ -116,13 +123,16 @@ class Arm(RobotComponent):
         :param position: The x, y, z position of the target.
         :param euler: The x, y, z orientation of the target (in radians).
         :param quaternion: A list containing the quaternion (x,y,z,w).
+        :param relative_to: Indicates relative to which reference frame we want
+        the target pose. Specify None to retrieve the absolute pose,
+        or an Object relative to whose reference frame we want the pose.
         :return: A list containing the calculated joint values.
         """
-        self._ik_target.set_position(position)
+        self._ik_target.set_position(position, relative_to)
         if euler is not None:
-            self._ik_target.set_orientation(euler)
+            self._ik_target.set_orientation(euler, relative_to)
         elif quaternion is not None:
-            self._ik_target.set_quaternion(quaternion)
+            self._ik_target.set_quaternion(quaternion, relative_to)
 
         ik_result, joint_values = sim.simCheckIkGroup(
             self._ik_group, [j.get_handle() for j in self.joints])
@@ -159,8 +169,8 @@ class Arm(RobotComponent):
     def get_linear_path(self, position: Union[List[float], np.ndarray],
                         euler: Union[List[float], np.ndarray] = None,
                         quaternion: Union[List[float], np.ndarray] = None,
-                        steps=50, ignore_collisions=False
-                        ) -> ArmConfigurationPath:
+                        steps=50, ignore_collisions=False,
+                        relative_to: Object = None) -> ArmConfigurationPath:
         """Gets a linear configuration path given a target pose.
 
         Generates a path that drives a robot from its current configuration
@@ -177,6 +187,9 @@ class Arm(RobotComponent):
             required. If the target pose distance is large, a larger number
             of steps leads to better results for this function.
         :param ignore_collisions: If collision checking should be disabled.
+        :param relative_to: Indicates relative to which reference frame we want
+        the target pose. Specify None to retrieve the absolute pose,
+        or an Object relative to whose reference frame we want the pose.
         :raises: ConfigurationPathError if no path could be created.
 
         :return: A linear path in the arm configuration space.
@@ -186,11 +199,11 @@ class Arm(RobotComponent):
                 'Specify either euler or quaternion values, but not both.')
 
         prev_pose = self._ik_target.get_pose()
-        self._ik_target.set_position(position)
+        self._ik_target.set_position(position, relative_to)
         if euler is not None:
-            self._ik_target.set_orientation(euler)
+            self._ik_target.set_orientation(euler, relative_to)
         elif quaternion is not None:
-            self._ik_target.set_quaternion(quaternion)
+            self._ik_target.set_quaternion(quaternion, relative_to)
         handles = [j.get_handle() for j in self.joints]
 
         # Despite verbosity being set to 0, OMPL spits out a lot of text
@@ -210,7 +223,8 @@ class Arm(RobotComponent):
                            quaternion: Union[List[float], np.ndarray] = None,
                            ignore_collisions=False,
                            trials=100, max_configs=60, trials_per_goal=6,
-                           algorithm=Algos.SBL) -> ArmConfigurationPath:
+                           algorithm=Algos.SBL, relative_to: Object = None
+                           ) -> ArmConfigurationPath:
         """Gets a non-linear (planned) configuration path given a target pose.
 
         A path is generated by finding several configs for a pose, and ranking
@@ -228,6 +242,9 @@ class Arm(RobotComponent):
             generate before ranking them.
         :param trials_per_goal: The number of paths per config we want to trial.
         :param algorithm: The algorithm for path planning to use.
+        :param relative_to: Indicates relative to which reference frame we want
+        the target pose. Specify None to retrieve the absolute pose,
+        or an Object relative to whose reference frame we want the pose.
         :raises: ConfigurationPathError if no path could be created.
 
         :return: A non-linear path in the arm configuration space.
@@ -238,11 +255,11 @@ class Arm(RobotComponent):
                 'Specify either euler or quaternion values, but not both.')
 
         prev_pose = self._ik_target.get_pose()
-        self._ik_target.set_position(position)
+        self._ik_target.set_position(position, relative_to)
         if euler is not None:
-            self._ik_target.set_orientation(euler)
+            self._ik_target.set_orientation(euler, relative_to)
         elif quaternion is not None:
-            self._ik_target.set_quaternion(quaternion)
+            self._ik_target.set_quaternion(quaternion, relative_to)
 
         handles = [j.get_handle() for j in self.joints]
 
@@ -264,7 +281,7 @@ class Arm(RobotComponent):
                  quaternion: Union[List[float], np.ndarray] = None,
                  ignore_collisions=False,
                  trials=100, max_configs=60, trials_per_goal=6,
-                 algorithm=Algos.SBL
+                 algorithm=Algos.SBL, relative_to: Object = None
                  ) -> ArmConfigurationPath:
         """Tries to get a linear path, failing that tries a non-linear path.
 
@@ -283,6 +300,9 @@ class Arm(RobotComponent):
             (Only applicable if a non-linear path is needed)
         :param algorithm: The algorithm for path planning to use.
             (Only applicable if a non-linear path is needed)
+        :param relative_to: Indicates relative to which reference frame we want
+        the target pose. Specify None to retrieve the absolute pose,
+        or an Object relative to whose reference frame we want the pose.
 
         :raises: ConfigurationPathError if neither a linear or non-linear path
             can be created.
@@ -290,7 +310,8 @@ class Arm(RobotComponent):
         """
         try:
             p = self.get_linear_path(position, euler, quaternion,
-                                     ignore_collisions=ignore_collisions)
+                                     ignore_collisions=ignore_collisions,
+                                     relative_to=relative_to)
             return p
         except ConfigurationPathError:
             pass  # Allowed. Try again, but with non-linear.
@@ -298,7 +319,7 @@ class Arm(RobotComponent):
         # This time if an exception is thrown, we dont want to catch it.
         p = self.get_nonlinear_path(
             position, euler, quaternion, ignore_collisions, trials, max_configs,
-            trials_per_goal, algorithm)
+            trials_per_goal, algorithm, relative_to=relative_to)
         return p
 
     def get_tip(self) -> Dummy:
