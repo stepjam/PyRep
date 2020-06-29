@@ -12,7 +12,10 @@ class CartesianPath(Object):
     def create(show_line: bool = True, show_orientation: bool = True,
                show_position: bool = True, closed_path: bool = False,
                automatic_orientation: bool = True, flat_path: bool = False,
-               keep_x_up: bool = False) -> 'CartesianPath':
+               keep_x_up: bool = False, line_size: int = 1,
+               length_calculation_method: int = sim.sim_distcalcmethod_dl_if_nonzero, control_point_size: float = 0.01,
+               ang_to_lin_conv_coeff: float = 1., virt_dist_scale_factor: float = 1.,
+               path_color: tuple = (0.1, 0.75, 1.)) -> 'CartesianPath':
         """Creates a cartesian path and inserts in the scene.
 
         :param show_line: Shows line in UI.
@@ -26,7 +29,7 @@ class CartesianPath(Object):
             Bezier point's orientation will automatically be calculated in
             order to have a point's z-axis along the path, and its y-axis
             pointing outwards its curvature (if keep x up is enabled, the
-            y-axis is not particularly constained). If disabled, the user
+            y-axis is not particularly constrained). If disabled, the user
             determines the control point's orientation and the Bezier points'
             orientation will be interpolated from the path's control points'
             orientation.
@@ -36,6 +39,13 @@ class CartesianPath(Object):
         :param keep_x_up: If set, then the automatic orientation functionality
             will align each Bezier point's z-axis along the path and keep its
             x-axis pointing along the path object's z-axis.
+        :param line_size: Size of the line in pixels.
+        :param length_calculation_method: Method for calculating the path length. See
+            https://www.coppeliarobotics.com/helpFiles/en/apiConstants.htm#distanceCalculationMethods
+        :param control_point_size: Size of the control points in the path.
+        :param ang_to_lin_conv_coeff: The angular to linear conversion coefficient.
+        :param virt_dist_scale_factor: The virtual distance scaling factor.
+        :param path_color: Ambient diffuse rgb color of the path.
 
         :return: The newly created cartesian path.
         """
@@ -55,7 +65,9 @@ class CartesianPath(Object):
         if keep_x_up:
             attributes |= sim.sim_pathproperty_keep_x_up
 
-        handle = sim.simCreatePath(attributes)
+        handle = sim.simCreatePath(attributes, [line_size, length_calculation_method, 0],
+                                   [control_point_size, ang_to_lin_conv_coeff, virt_dist_scale_factor],
+                                   list(path_color))
         return CartesianPath(handle)
 
     def _get_requested_type(self) -> ObjectType:

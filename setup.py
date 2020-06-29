@@ -3,7 +3,7 @@ import cffi_build.cffi_build as cffi_build
 
 setup(
     name="PyRep",
-    version="1.1",
+    version="1.2",
     description="Python CoppeliaSim wrapper",
     author="Stephen James",
     author_email="slj12@ic.ac.uk",
@@ -23,3 +23,4 @@ setup(
     ],
     cffi_modules=["cffi_build/cffi_build.py:ffibuilder"],
 )
+

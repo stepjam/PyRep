@@ -29,6 +29,11 @@ class TestShapes(TestCore):
         self.assertTrue(np.allclose(pr.get_orientation(), [0.1, 0.2, 0.3]))
         self.assertTrue(np.allclose(pr.get_color(), [0.7, 0.8, 0.9]))
 
+    def test_import_shape(self):
+        ob = Shape.import_shape(
+            path.join(ASSET_DIR, 'cracker_box/textured_simple.obj'))
+        self.assertIsInstance(ob, Shape)
+
     def test_import_mesh(self):
         ob = Shape.import_mesh(
             path.join(ASSET_DIR, 'test_mesh_bowl.obj'))
