@@ -23,4 +23,3 @@ setup(
     ],
     cffi_modules=["cffi_build/cffi_build.py:ffibuilder"],
 )
-
