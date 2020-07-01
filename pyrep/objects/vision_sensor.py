@@ -114,8 +114,8 @@ class VisionSensor(Object):
           without PyRep.step().
         """
         if not self.get_explicit_handling():
-            raise RuntimeError('The explicit_handling is not disabled. '
-                               'Call set_explicit_handling(flags=1) first.')
+            raise RuntimeError('The explicit_handling is disabled. '
+                               'Call set_explicit_handling(value=1) to enable explicit_handling first.')
         sim.simHandleVisionSensor(self._handle)
 
     def capture_rgb(self) -> np.ndarray:
