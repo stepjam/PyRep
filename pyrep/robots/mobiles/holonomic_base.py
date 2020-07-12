@@ -25,7 +25,7 @@ class HolonomicBase(MobileBase):
         :param count: used for multiple copies of robots.
         :param num_wheels: number of actuated wheels.
         :param distance_from_target: offset from target.
-        :param name: string with robot name (same as base in vrep model).
+        :param name: string with robot name (same as base in CoppeliaSim model).
         :param max_velocity: bounds x,y velocity for motion planning.
         :param max_velocity_rotation: bounds yaw velocity for motion planning.
         :param max_acceleration: bounds acceleration for motion planning.

@@ -19,7 +19,7 @@ class MobileBase(RobotComponent):
 
         :param count: used for multiple copies of robots
         :param num_wheels: number of actuated wheels
-        :param name: string with robot name (same as base in vrep model).
+        :param name: string with robot name (same as base in CoppeliaSim model).
         """
 
         joint_names = ['%s_m_joint%s' % (name, str(i + 1)) for i in
