@@ -100,3 +100,5 @@ ENV/
 
 pyrep/backend/_sim_cffi*
 
+
+robot_ttms/mobiles/NAO.ttt
