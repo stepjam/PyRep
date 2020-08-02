@@ -223,10 +223,27 @@ class Shape(Object):
         """Sets the color of the shape.
 
         :param color: The r, g, b values of the shape.
-        :return:
         """
         sim.simSetShapeColor(
             self._handle, None, sim.sim_colorcomponent_ambient_diffuse, color)
+
+    def get_transparency(self) -> float:
+        """Sets the transparency of the shape.
+
+        :return: The transparency values of the shape.
+        """
+        return sim.simGetShapeColor(
+            self._handle, None, sim.sim_colorcomponent_transparency)[0]
+
+    def set_transparency(self, value: float) -> None:
+        """Sets the transparency of the shape.
+
+        :param value: Value between 0 and 1.
+        """
+        if 0 > value > 1:
+            raise ValueError('Value must be between 0 and 1.')
+        sim.simSetShapeColor(
+            self._handle, None, sim.sim_colorcomponent_transparency, [value])
 
     def get_mass(self) -> float:
         """Gets the mass of the shape.
