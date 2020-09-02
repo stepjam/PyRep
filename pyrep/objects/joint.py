@@ -133,7 +133,7 @@ class Joint(Object):
         :param force: The maximum force or torque that the joint can exert.
             This cannot be a negative value.
         """
-        sim.simSetJointForce(self._handle, force)
+        sim.simSetJointMaxForce(self._handle, force)
 
     def get_joint_velocity(self) -> float:
         """Get the current joint velocity.
