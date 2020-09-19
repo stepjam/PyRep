@@ -59,6 +59,21 @@ class Arm(RobotComponent):
             weight=None,
         )
 
+    def set_ik_group_properties(self, resolution_method='pseudo_inverse', max_iterations=6, dls_damping=0.1) -> None:
+        try:
+            res_method = {'pseudo_inverse': sim.sim_ik_pseudo_inverse_method,
+                          'damped_least_squares': sim.sim_ik_damped_least_squares_method,
+                          'jacobian_transpose': sim.sim_ik_jacobian_transpose_method}[resolution_method]
+        except KeyError:
+            raise Exception('Invalid resolution method,'
+                            'Must be one of ["pseudo_inverse" | "damped_least_squares" | "jacobian_transpose"]')
+        sim.simSetIkGroupProperties(
+            ikGroupHandle=self._ik_group,
+            resolutionMethod=res_method,
+            maxIterations=max_iterations,
+            damping=dls_damping
+        )
+
     def get_configs_for_tip_pose(self,
                                  position: Union[List[float], np.ndarray],
                                  euler: Union[List[float], np.ndarray] = None,
