@@ -99,6 +99,12 @@ class TestArmsAndConfigurationPaths(TestCore):
             waypoint.get_position(), waypoint.get_orientation())
         self.assertIsNotNone(path)
 
+    def test_get_linear_path_relative(self):
+        arm = Panda()
+        path = arm.get_linear_path([0, 0, 0.01], [0, 0, 0],
+                                   relative_to=arm.get_tip())
+        self.assertIsNotNone(path)
+
     def test_get_nonlinear_path(self):
         arm = Panda()
         waypoint = Dummy('Panda_waypoint')

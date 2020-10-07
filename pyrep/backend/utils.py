@@ -13,6 +13,8 @@ from pyrep.objects.joint import Joint
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.objects.force_sensor import ForceSensor
 from pyrep.objects.proximity_sensor import ProximitySensor
+from pyrep.objects.camera import Camera
+from pyrep.objects.octree import Octree
 
 
 def to_type(handle: int) -> Object:
@@ -36,6 +38,10 @@ def to_type(handle: int) -> Object:
         return ForceSensor(handle)
     elif t == sim.sim_object_proximitysensor_type:
         return ProximitySensor(handle)
+    elif t == sim.sim_object_camera_type:
+        return Camera(handle)
+    elif t == sim.sim_object_octree_type:
+        return Octree(handle)
     raise ValueError
 
 
