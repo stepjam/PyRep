@@ -21,7 +21,7 @@
 Write-Output "Installing CoppeliaSim with PyRep"
 
 $start_directory = Get-Location
-$install_folder = "CoppeliaSim_PyRep"
+$install_folder = "CoppeliaSim_Edu_v4_1_0_Win_PyRep_Py_v3_8_6"
 
 # Set environment variables
 $env:COPPELIASIM_ROOT = "$start_directory\$install_folder"
@@ -31,25 +31,25 @@ if (!(Test-Path $install_folder)) {
     New-Item -Name $install_folder -ItemType Directory | Out-Null
 }
 
-$coppeliasim_url = "https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_0_0_Win.zip"
+$coppeliasim_url = "https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Win.zip"
 $coppeliasim_zip = "coppeliasim.zip"
 if (!(Test-Path $coppeliasim_zip -PathType Leaf)) {
-    Write-Output "Downloading CoppeliaSim Edu 4.0.0 from $coppeliasim_url"
+    Write-Output "Downloading CoppeliaSim Edu 4.1.0 from $coppeliasim_url"
     Invoke-WebRequest $coppeliasim_url -OutFile $coppeliasim_zip | Out-Null
 }
 if (!(Test-Path "$install_folder\coppeliaSim.dll" -PathType Leaf)) {
-    Write-Output "Expanding CoppeliaSim Edu 4.0.0"
+    Write-Output "Expanding CoppeliaSim Edu 4.1.0"
     Expand-Archive $coppeliasim_zip -DestinationPath $install_folder | Out-Null
 }
 
-$python_url = "https://www.python.org/ftp/python/3.8.2/python-3.8.2-embed-amd64.zip"
+$python_url = "https://www.python.org/ftp/python/3.8.6/python-3.8.6-embed-amd64.zip"
 $python_zip = "python.zip"
 if (!(Test-Path $python_zip -PathType Leaf)) {
-    Write-Output "Downloading Python 3.8.2 from $python_url"
+    Write-Output "Downloading Python 3.8.6 from $python_url"
     Invoke-WebRequest -Uri $python_url -OutFile $python_zip | Out-Null
 }
 if (!(Test-Path "$install_folder\python.exe" -PathType Leaf)) {
-    Write-Output "Expanding Python 3.8.2"
+    Write-Output "Expanding Python 3.8.6"
     Expand-Archive $python_zip -DestinationPath $install_folder -Force | Out-Null
 }
 
@@ -86,7 +86,7 @@ if (!(Test-Path "$install_folder\PyRep")) {
 
 if (!(Test-Path "$install_folder\setup.ps1")) {
     New-Item -Name $install_folder\setup.ps1 -ItemType File 
-    Set-Content -Path $install_folder\setup.ps1 -Value "`$env:COPPELIASIM_ROOT = Get-Location"
+    Set-Content -Path $install_folder\setup.ps1 -Value "`$env:COPPELIASIM_ROOT = `$PSScriptRoot"
     Add-Content -Path $install_folder\setup.ps1 "`$env:Path = `"`$env:COPPELIASIM_ROOT\Scripts;`$env:COPPELIASIM_ROOT;`" + `$env:Path"
 }
 
