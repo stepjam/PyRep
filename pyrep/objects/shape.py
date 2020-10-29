@@ -51,7 +51,7 @@ class Shape(Object):
         :param static: If the shape is static.
         :param renderable: If the shape is renderable.
         :param position: The x, y, z position.
-        :param orientation: The z, y, z orientation (in radians).
+        :param orientation: The x, y, z orientation (in radians).
         :param color: The r, g, b values of the shape.
         :return: The created Shape object.
         """
