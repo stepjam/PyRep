@@ -453,6 +453,11 @@ def simSetFloatParameter(parameter, value):
     _check_return(ret)
 
 
+def simSetStringParameter(parameter, value):
+    ret = lib.simSetStringParameter(parameter, value.encode('ascii'))
+    _check_return(ret)
+
+
 def simGetStringParameter(parameter):
     val = lib.simGetStringParameter(parameter)
     _check_null_return(val)

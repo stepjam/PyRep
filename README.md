@@ -46,7 +46,7 @@ Finally install the python library:
 
 ```bash
 pip3 install -r requirements.txt
-python3 setup.py install --user
+pip3 install .
 ```
 
 You should be good to go!

@@ -92,4 +92,19 @@ class RenderMode(Enum):
     OPENGL3_WINDOWED = sim.sim_rendermode_opengl3windowed
 
 
+class Verbosity(Enum):
+    NONE = 'none'
+    ERRORS = 'errors'
+    WARNINGS = 'warnings'
+    LOAD_INFOS = 'loadinfos'
+    SCRIPT_ERRORS = 'scripterrors'
+    SCRIPT_WARNINGS = 'scriptwarnings'
+    SCRIPT_INFOS = 'scriptinfos'
+    INFOS = 'infos'
+    DEBUG = 'debug'
+    TRACE = 'trace'
+    TRACE_LUA = 'tracelua'
+    TYRACE_ALL = 'traceall'
+
+
 PYREP_SCRIPT_TYPE = sim.sim_scripttype_addonscript

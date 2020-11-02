@@ -3,7 +3,8 @@ import cffi_build.cffi_build as cffi_build
 from os.path import join
 
 setup(name='PyRep',
-      version='1.2',
+      # Version info corresponds to the CoppeliaSim version needed
+      version='4.1.0',
       description='Python CoppeliaSim wrapper',
       author='Stephen James',
       author_email='slj12@ic.ac.uk',
