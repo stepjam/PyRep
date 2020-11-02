@@ -36,7 +36,8 @@ class HolonomicBase(MobileBase):
         suffix = '' if count == 0 else '#%d' % (count - 1)
 
         self.paramP = 20
-        self.paramO = 30
+        self.paramO = 10
+        # self.paramO = 30
         self.previous_forw_back_vel = 0
         self.previous_left_right_vel = 0
         self.previous_rot_vel = 0
@@ -57,7 +58,7 @@ class HolonomicBase(MobileBase):
         :param velocity: A List with forwardBackward, leftRight and rotation
             velocity (in radian/s)
         """
-        self._reset_wheel()
+        # self._reset_wheel()
         fBVel = velocity[0]
         lRVel = velocity[1]
         rVel = velocity[2]

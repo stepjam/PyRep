@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 import cffi_build.cffi_build as cffi_build
 from os.path import join
 
