@@ -660,7 +660,6 @@ simInt simRegisterJointCtrlCallback(simInt(*callBack)(simInt,simInt,simInt,const
 simInt simGetMechanismHandle(const simChar* mechanismName);
 simInt simHandleMechanism(simInt mechanismHandle);
 simInt simHandleCustomizationScripts(simInt callType);
-simInt simCallScriptFunction(simInt scriptHandleOrType,const simChar* functionNameAtScriptName,SLuaCallBack* data,const simChar* reservedSetToNull);
 simInt simSetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt options,const simInt* pSizes,const simUChar* bytes,const simInt* ints,const simFloat* floats,const simUChar* custom);
 simInt simGetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt* options,simInt* pSizes,simUChar** bytes,simInt** ints,simFloat** floats,simUChar** custom);
 simChar* simGetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,simInt* parameterLength);
