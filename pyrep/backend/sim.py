@@ -1391,4 +1391,5 @@ def simGetContactInfo(contact_obj_a, contact_obj_b, get_contact_normal):
                                        contact)
         contact_list.append(list(contact))
         index += 1
+    contact_list.pop(-1)  # remove the all zero value
     return contact_list
