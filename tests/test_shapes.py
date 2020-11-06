@@ -61,6 +61,10 @@ class TestShapes(TestCore):
         self.dynamic_cube.set_color([.5] * 3)
         self.assertEqual(self.dynamic_cube.get_color(), [.5] * 3)
 
+    def test_get_set_transparency(self):
+        self.dynamic_cube.set_transparency(0.6)
+        self.assertAlmostEqual(self.dynamic_cube.get_transparency(), 0.6)
+
     def test_get_set_mass(self):
         self.dynamic_cube.set_mass(3.5)
         self.assertEqual(self.dynamic_cube.get_mass(), 3.5)

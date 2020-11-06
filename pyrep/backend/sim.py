@@ -115,6 +115,14 @@ def simSetIkElementProperties(ikGroupHandle, tipDummyHandle, constraints,
     return ret
 
 
+def simSetIkGroupProperties(ikGroupHandle, resolutionMethod, maxIterations, damping):
+    reserved = ffi.NULL
+    ret = lib.simSetIkGroupProperties(
+        ikGroupHandle, resolutionMethod, maxIterations, damping, reserved)
+    _check_return(ret)
+    return ret
+
+
 def simGetObjectPosition(objectHandle, relativeToObjectHandle):
     position = ffi.new('float[3]')
     lib.simGetObjectPosition(objectHandle, relativeToObjectHandle, position)
@@ -172,6 +180,19 @@ def simGetJointForce(jointHandle):
 
 def simSetJointForce(jointHandle, force):
     lib.simSetJointForce(jointHandle, force)
+
+
+def simGetJointMaxForce(jointHandle):
+    force = ffi.new('float *')
+    ret = lib.simGetJointMaxForce(jointHandle, force)
+    _check_return(ret)
+    if ret == 0:
+        raise RuntimeError('No value available yet.')
+    return force[0]
+
+
+def simSetJointMaxForce(jointHandle, force):
+    lib.simSetJointMaxForce(jointHandle, force)
 
 
 def simGetJointInterval(jointHandle):
@@ -442,6 +463,11 @@ def simGetFloatParameter(parameter):
 
 def simSetFloatParameter(parameter, value):
     ret = lib.simSetFloatParameter(parameter, value)
+    _check_return(ret)
+
+
+def simSetStringParameter(parameter, value):
+    ret = lib.simSetStringParameter(parameter, value.encode('ascii'))
     _check_return(ret)
 
 

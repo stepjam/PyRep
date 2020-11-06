@@ -246,6 +246,13 @@ class RobotComponent(Object):
         [j.set_joint_mode(value)  # type: ignore
          for j in self.joints]
 
+    def get_joint_modes(self) -> List[JointMode]:
+        """Gets the operation mode of the joint group.
+
+        :return: A list of joint modes.
+        """
+        return [j.get_joint_mode() for j in self.joints]
+
     def get_visuals(self) -> List[Object]:
         """Gets a list of the visual elements of this component.
 

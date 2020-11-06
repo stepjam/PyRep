@@ -37,7 +37,7 @@ struct SShapeVizInfo
     simInt textureRes[2];
     simFloat* textureCoords;
     simInt textureApplyMode;
-    simInt textureOptions;
+    simInt textureOptions; /* not just textures options */
 };
 
 struct SLuaCallBack
@@ -61,6 +61,19 @@ struct SLuaCallBack
     simInt scriptID;
     simDouble* inputDouble;
     simDouble* outputDouble;
+};
+
+struct SSyncMsg
+{
+    unsigned char msg;
+    void* data;
+    size_t dataSize;
+};
+
+struct SSyncRt
+{
+    unsigned char objTypes[3];
+    int objHandles[3];
 };
 
 typedef int (*contactCallback)(int,int,int,int*,float*);
@@ -147,7 +160,6 @@ simInt simCloseScene();
 simInt simSaveScene(const simChar* filename);
 simInt simLoadModel(const simChar* filename);
 simInt simSaveModel(simInt baseOfModelHandle,const simChar* filename);
-simInt simAddStatusbarMessage(const simChar* message);
 simChar* simGetSimulatorMessage(simInt* messageID,simInt* auxiliaryData,simInt* returnedDataSize);
 simInt simAddModuleMenuEntry(const simChar* entryLabel,simInt itemCount,simInt* itemHandles);
 simInt simSetModuleMenuItemState(simInt itemHandle,simInt state,const simChar* label);
@@ -164,7 +176,6 @@ simInt simHandleDistance(simInt distanceObjectHandle,simFloat* smallestDistance)
 simInt simReadDistance(simInt distanceObjectHandle,simFloat* smallestDistance);
 simInt simHandleProximitySensor(simInt sensorHandle,simFloat* detectedPoint,simInt* detectedObjectHandle,simFloat* normalVector);
 simInt simReadProximitySensor(simInt sensorHandle,simFloat* detectedPoint,simInt* detectedObjectHandle,simFloat* normalVector);
-simInt simHandleMill(simInt millHandle,simFloat* removedSurfaceAndVolume);
 simInt simHandleIkGroup(simInt ikGroupHandle);
 simInt simCheckIkGroup(simInt ikGroupHandle,simInt jointCnt,const simInt* jointHandles,simFloat* jointValues,const simInt* jointOptions);
 simInt simHandleDynamics(simFloat deltaTime);
@@ -189,7 +200,6 @@ simInt simGetIkGroupHandle(const simChar* ikGroupName);
 simInt simResetCollision(simInt collisionObjectHandle);
 simInt simResetDistance(simInt distanceObjectHandle);
 simInt simResetProximitySensor(simInt sensorHandle);
-simInt simResetMill(simInt millHandle);
 simInt simCheckProximitySensor(simInt sensorHandle,simInt entityHandle,simFloat* detectedPoint);
 simInt simCheckProximitySensorEx(simInt sensorHandle,simInt entityHandle,simInt detectionMode,simFloat detectionThreshold,simFloat maxAngle,simFloat* detectedPoint,simInt* detectedObjectHandle,simFloat* normalVector);
 simInt simCheckProximitySensorEx2(simInt sensorHandle,simFloat* vertexPointer,simInt itemType,simInt itemCount,simInt detectionMode,simFloat detectionThreshold,simFloat maxAngle,simFloat* detectedPoint,simFloat* normalVector);
@@ -236,19 +246,14 @@ simInt simRegisterScriptVariable(const simChar* varNameAtPluginName,const simCha
 simInt simSetJointTargetVelocity(simInt objectHandle,simFloat targetVelocity);
 simInt simGetJointTargetVelocity(simInt objectHandle,simFloat* targetVelocity);
 simInt simSetPathTargetNominalVelocity(simInt objectHandle,simFloat targetNominalVelocity);
-simChar* simGetScriptRawBuffer(simInt scriptHandle,simInt bufferHandle);
-simInt simSetScriptRawBuffer(simInt scriptHandle,const simChar* buffer,simInt bufferSize);
-simInt simReleaseScriptRawBuffer(simInt scriptHandle,simInt bufferHandle);
 simInt simCopyPasteObjects(simInt* objectHandles,simInt objectCount,simInt options);
 simInt simScaleSelectedObjects(simFloat scalingFactor,simBool scalePositionsToo);
 simInt simScaleObjects(const simInt* objectHandles,simInt objectCount,simFloat scalingFactor,simBool scalePositionsToo);
 simInt simDeleteSelectedObjects();
 simInt simGetObjectUniqueIdentifier(simInt objectHandle,simInt* uniqueIdentifier);
-simInt simGetNameSuffix(const simChar* name);
 simInt simSendData(simInt targetID,simInt dataHeader,const simChar* dataName,const simChar* data,simInt dataLength,simInt antennaHandle,simFloat actionRadius,simFloat emissionAngle1,simFloat emissionAngle2,simFloat persistence);
 simChar* simReceiveData(simInt dataHeader,const simChar* dataName,simInt antennaHandle,simInt index,simInt* dataLength,simInt* senderID,simInt* dataHeaderR,simChar** dataNameR);
 simInt simSetGraphUserData(simInt graphHandle,const simChar* dataStreamName,simFloat data);
-simInt simSetNameSuffix(simInt nameSuffixNumber);
 simInt simAddDrawingObject(simInt objectType,simFloat size,simFloat duplicateTolerance,simInt parentObjectHandle,simInt maxItemCount,const simFloat* ambient_diffuse,const simFloat* setToNULL,const simFloat* specular,const simFloat* emission);
 simInt simRemoveDrawingObject(simInt objectHandle);
 simInt simAddDrawingObjectItem(simInt objectHandle,const simFloat* itemData);
@@ -257,8 +262,6 @@ simInt simRemoveParticleObject(simInt objectHandle);
 simInt simAddParticleObjectItem(simInt objectHandle,const simFloat* itemData);
 simFloat simGetObjectSizeFactor(simInt objectHandle);
 simInt simAnnounceSceneContentChange();
-simInt simResetMilling(simInt objectHandle);
-simInt simApplyMilling(simInt objectHandle);
 simInt simSetIntegerSignal(const simChar* signalName,simInt signalValue);
 simInt simGetIntegerSignal(const simChar* signalName,simInt* signalValue);
 simInt simClearIntegerSignal(const simChar* signalName);
@@ -356,9 +359,9 @@ simFloat* simCheckVisionSensorEx(simInt visionSensorHandle,simInt entityHandle,s
 simInt simGetVisionSensorResolution(simInt visionSensorHandle,simInt* resolution);
 simFloat* simGetVisionSensorImage(simInt visionSensorHandle);
 simUChar* simGetVisionSensorCharImage(simInt visionSensorHandle,simInt* resolutionX,simInt* resolutionY);
+simFloat* simGetVisionSensorDepthBuffer(simInt visionSensorHandle);
 simInt simSetVisionSensorImage(simInt visionSensorHandle,const simFloat* image);
 simInt simSetVisionSensorCharImage(simInt visionSensorHandle,const simUChar* image);
-simFloat* simGetVisionSensorDepthBuffer(simInt visionSensorHandle);
 simInt simRMLPosition(simInt dofs,simDouble timeStep,simInt flags,const simDouble* currentPosVelAccel,const simDouble* maxVelAccelJerk,const simBool* selection,const simDouble* targetPosVel,simDouble* newPosVelAccel,simVoid* auxData);
 simInt simRMLVelocity(simInt dofs,simDouble timeStep,simInt flags,const simDouble* currentPosVelAccel,const simDouble* maxAccelJerk,const simBool* selection,const simDouble* targetVel,simDouble* newPosVelAccel,simVoid* auxData);
 simInt simRMLPos(simInt dofs,simDouble smallestTimeStep,simInt flags,const simDouble* currentPosVelAccel,const simDouble* maxVelAccelJerk,const simBool* selection,const simDouble* targetPosVel,simVoid* auxData);
@@ -501,6 +504,7 @@ simInt simSetStringNamedParam(const simChar* paramName,const simChar* stringPara
 simChar* simGetStringNamedParam(const simChar* paramName,simInt* paramLength);
 simChar* simGetUserParameter(simInt objectHandle,const simChar* parameterName,simInt* parameterLength);
 simInt simSetUserParameter(simInt objectHandle,const simChar* parameterName,const simChar* parameterValue,simInt parameterLength);
+simInt simAddLog(const simChar* pluginName,simInt verbosityLevel,const simChar* logMsg);
 
 
 
@@ -544,7 +548,6 @@ simBool _simGetDynamicsFullRefreshFlag(const simVoid* object);
 simVoid _simSetDynamicsFullRefreshFlag(const simVoid* object,simBool flag);
 simVoid _simSetGeomProxyDynamicsFullRefreshFlag(simVoid* geomData,simBool flag);
 simBool _simGetGeomProxyDynamicsFullRefreshFlag(const simVoid* geomData);
-simBool _simGetParentFollowsDynamic(const simVoid* shape);
 simVoid _simSetShapeDynamicVelocity(simVoid* shape,const simFloat* linear,const simFloat* angular);
 simVoid _simGetAdditionalForceAndTorque(const simVoid* shape,simFloat* force,simFloat* torque);
 simVoid _simClearAdditionalForceAndTorque(const simVoid* shape);
@@ -683,6 +686,7 @@ simInt simGetUIPosition(simInt uiHandle,simInt* position);
 simInt simLoadUI(const simChar* filename,simInt maxCount,simInt* uiHandles);
 simInt simSaveUI(simInt count,const simInt* uiHandles,const simChar* filename);
 simInt simHandleGeneralCallbackScript(simInt callbackId,simInt callbackTag,simVoid* additionalData);
+simInt simRegisterCustomLuaFunction(const simChar* funcName,const simChar* callTips,const simInt* inputArgumentTypes,simVoid(*callBack)(struct SLuaCallBack* p));
 simInt simRegisterCustomLuaVariable(const simChar* varName,const simChar* varValue);
 simInt simRegisterContactCallback(simInt(*callBack)(simInt,simInt,simInt,simInt*,simFloat*));
 simInt simRegisterJointCtrlCallback(simInt(*callBack)(simInt,simInt,simInt,const simInt*,const simFloat*,simFloat*));
@@ -694,4 +698,15 @@ simInt simGetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,sim
 simChar* simGetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,simInt* parameterLength);
 simInt simSetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,const simChar* parameterValue,simInt parameterLength);
 simInt simSetJointForce(simInt objectHandle,simFloat forceOrTorque);
+simInt simHandleMill(simInt millHandle,simFloat* removedSurfaceAndVolume);
+simInt simResetMill(simInt millHandle);
+simInt simResetMilling(simInt objectHandle);
+simInt simApplyMilling(simInt objectHandle);
+simBool _simGetParentFollowsDynamic(const simVoid* shape);
+simInt simGetNameSuffix(const simChar* name);
+simInt simSetNameSuffix(simInt nameSuffixNumber);
+simInt simAddStatusbarMessage(const simChar* message);
+simChar* simGetScriptRawBuffer(simInt scriptHandle,simInt bufferHandle);
+simInt simSetScriptRawBuffer(simInt scriptHandle,const simChar* buffer,simInt bufferSize);
+simInt simReleaseScriptRawBuffer(simInt scriptHandle,simInt bufferHandle);
 // Deprecated end
