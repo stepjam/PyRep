@@ -335,6 +335,10 @@ class Object(object):
         """
         self._set_property(sim.sim_objectspecialproperty_collidable, value)
 
+    def get_contact(self, contact_obj, get_contact_normal: bool) -> List:
+        contact_list = sim.simGetContactInfo(self.get_handle(), contact_obj.get_handle(), get_contact_normal)
+        return contact_list
+
     def is_measurable(self) -> bool:
         """Whether the object is measurable or not.
 

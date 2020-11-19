@@ -140,6 +140,16 @@ class TestObjects(TestCore):
         self.dynamic_cube.set_collidable(True)
         self.assertTrue(self.dynamic_cube.is_collidable())
 
+    def test_get_contact(self):
+        contact = self.dynamic_cube.get_contact(self.simple_model, get_contact_normal=True)
+        self.assertTrue(len(contact) == 0)
+        for _ in range(20):
+            self.pyrep.step()
+        c1 = Shape('colliding_cube1')
+        c0 = Shape('colliding_cube0')
+        contact = c1.get_contact(c0, True)
+        self.assertTrue(len(contact) > 0)
+
     def test_get_set_measurable(self):
         self.dynamic_cube.set_measurable(False)
         self.assertFalse(self.dynamic_cube.is_measurable())
