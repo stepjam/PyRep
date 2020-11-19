@@ -336,8 +336,13 @@ class Object(object):
         self._set_property(sim.sim_objectspecialproperty_collidable, value)
 
     def get_contact(self, contact_obj, get_contact_normal: bool) -> List:
-        contact_list = sim.simGetContactInfo(self.get_handle(), contact_obj.get_handle(), get_contact_normal)
-        return contact_list
+        """Get the contacnt point and force with other object
+
+        :param contact_obj: The object want to check contact info with
+        :param get_contact_normal: Weather get the force and direction
+        :return: a list of all the contact info
+        """
+        return sim.simGetContactInfo(self.get_handle(), contact_obj.get_handle(), get_contact_normal)
 
     def is_measurable(self) -> bool:
         """Whether the object is measurable or not.
