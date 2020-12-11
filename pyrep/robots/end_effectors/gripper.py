@@ -118,7 +118,6 @@ class Gripper(RobotComponent):
                 j.set_joint_target_velocity(0)
                 continue
             done = False
-            vel = -velocity if cur - target > 0 else velocity
             self._prev_vels[i] = vel  # type: ignore
             j.set_joint_target_velocity(vel)
         self._prev_positions = current_positions  # type: ignore
