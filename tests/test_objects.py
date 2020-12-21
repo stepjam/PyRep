@@ -147,7 +147,9 @@ class TestObjects(TestCore):
             self.pyrep.step()
         c1 = Shape('colliding_cube1')
         c0 = Shape('colliding_cube0')
-        contact = c1.get_contact(c0, True)
+        contact = c1.get_contact(None, True)
+        self.assertTrue(len(contact) > 0)
+        contact = c0.get_contact(None, True)
         self.assertTrue(len(contact) > 0)
 
     def test_get_set_measurable(self):
