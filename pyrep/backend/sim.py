@@ -1374,10 +1374,11 @@ def simCheckOctreePointOccupancy(octreeHandle, options, points):
         return False
 
 
-def simGetContactInfo(contact_obj_a_handle, contact_obj_b_handle, get_contact_normal):
+def simGetContactInfo(contact_obj_handle, get_contact_normal):
     index = 0
     contact_list = []
     result = 1
+
     while result > 0:
         if get_contact_normal:
             contact = ffi.new('float[9]')
@@ -1386,10 +1387,14 @@ def simGetContactInfo(contact_obj_a_handle, contact_obj_b_handle, get_contact_no
             contact = ffi.new('float[6]')
             ext = 0
 
-        object_handles = ffi.new('int[]', [contact_obj_a_handle, contact_obj_b_handle])
-        result = lib.simGetContactInfo(sim_handle_all, contact_obj_a_handle, index + ext, object_handles,
+        object_handles = ffi.new('int[2]')
+        result = lib.simGetContactInfo(sim_handle_all, contact_obj_handle, index + ext, object_handles,
                                        contact)
-        contact_list.append(list(contact))
+        contact_info = {
+            "contact": list(contact),
+            "contact_handles": list(object_handles)
+        }
+        contact_list.append(contact_info)
         index += 1
     contact_list.pop(-1)  # remove the all zero value
     return contact_list
