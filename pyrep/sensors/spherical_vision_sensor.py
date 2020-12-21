@@ -6,6 +6,8 @@ from pyrep.objects.object import Object
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.const import PYREP_SCRIPT_TYPE, RenderMode, ObjectType
 
+MIN_DIVISOR = 1e-12
+
 
 class SphericalVisionSensor(Object):
     """An object able capture 360 degree omni-directional images.
@@ -37,10 +39,16 @@ class SphericalVisionSensor(Object):
         self._assert_matching_near_clipping_planes()
         self._assert_matching_far_clipping_planes()
 
+        # omni resolution
+        self._omni_resolution = self._sensor_rgb.get_resolution()
+
         # near and far clipping plane
         self._near_clipping_plane = self.get_near_clipping_plane()
         self._far_clipping_plane = self.get_far_clipping_plane()
         self._clipping_plane_diff = self._far_clipping_plane - self._near_clipping_plane
+
+        # projective cam region image
+        self._planar_to_radial_depth_scalars = self._get_planar_to_radial_depth_scalars()
 
     # Private #
     # --------#
@@ -85,6 +93,63 @@ class SphericalVisionSensor(Object):
     def _get_requested_type(self) -> ObjectType:
         return ObjectType(sim.simGetObjectType(self.get_handle()))
 
+    @staticmethod
+    def _create_uniform_pixel_coords_image(image_dims):
+        pixel_x_coords = np.reshape(np.tile(np.arange(image_dims[1]), [image_dims[0]]),
+                                    (image_dims[0], image_dims[1], 1)).astype(np.float32)
+        pixel_y_coords_ = np.reshape(np.tile(np.arange(image_dims[0]), [image_dims[1]]),
+                                     (image_dims[1], image_dims[0], 1)).astype(np.float32)
+        pixel_y_coords = np.transpose(pixel_y_coords_, (1, 0, 2))
+        return np.concatenate((pixel_x_coords, pixel_y_coords), -1)
+
+    def _get_planar_to_radial_depth_scalars(self):
+
+        # reference: https://en.wikipedia.org/wiki/Spherical_coordinate_system#Cartesian_coordinates
+
+        # polar coord image
+        coord_img = self._create_uniform_pixel_coords_image([self._omni_resolution[1], self._omni_resolution[0]])
+        pixels_per_rad = self._omni_resolution[1] / np.pi
+        polar_angles = coord_img / pixels_per_rad
+        phi = polar_angles[..., 0:1]
+        theta = polar_angles[..., 1:2]
+
+        # image borders wrt the 6 projective cameras
+        phis_rel = ((phi + np.pi/4) % (np.pi/2)) / (np.pi/2)
+        lower_borders = np.arccos(1/((phis_rel*2-1)**2 + 2)**0.5)
+        upper_borders = np.pi - lower_borders
+
+        # omni image regions from the 6 projective cameras
+        xy_region = np.logical_and(theta <= upper_borders, theta >= lower_borders)
+        pos_x = np.logical_and(xy_region, np.logical_or(phi <= 45 * np.pi/180, phi >= (45 + 270) * np.pi/180))
+        pos_y = np.logical_and(xy_region,
+                               np.logical_and(phi >= 45 * np.pi/180, phi <= (45 + 90) * np.pi/180))
+        neg_x = np.logical_and(xy_region,
+                               np.logical_and(phi >= (45 + 90) * np.pi/180, phi <= (45 + 180) * np.pi/180))
+        neg_y = np.logical_and(xy_region,
+                               np.logical_and(phi >= (45 + 180) * np.pi/180, phi <= (45 + 270) * np.pi/180))
+        pos_z = theta <= lower_borders
+        neg_z = theta >= upper_borders
+
+        # trig terms for conversion
+        sin_theta = np.sin(theta)
+        cos_theta = np.cos(theta)
+        sin_phi = np.sin(phi)
+        cos_phi = np.cos(phi)
+
+        # reciprocal terms
+        recip_sin_theta_cos_phi = 1/(sin_theta * cos_phi + MIN_DIVISOR)
+        recip_sin_theta_sin_phi = 1/(sin_theta * sin_phi + MIN_DIVISOR)
+        recip_cos_theta = 1/(cos_theta + MIN_DIVISOR)
+
+        # planar to radial depth scalars
+        return np.where(pos_x, recip_sin_theta_cos_phi,
+                        np.where(neg_x, -recip_sin_theta_cos_phi,
+                                 np.where(pos_y, recip_sin_theta_sin_phi,
+                                          np.where(neg_y, -recip_sin_theta_sin_phi,
+                                                   np.where(pos_z, recip_cos_theta,
+                                                            np.where(neg_z, -recip_cos_theta,
+                                                                     np.zeros_like(recip_cos_theta)))))))[..., 0]
+
     # Public #
     # -------#
 
@@ -110,9 +175,11 @@ class SphericalVisionSensor(Object):
         :param in_meters: Whether the depth should be returned in meters.
         :return: A numpy array of size (width, height)
         """
+        planar_depth = self._sensor_depth.capture_rgb()[:, :, 0]*self._clipping_plane_diff + self._near_clipping_plane
+        radial_depth = planar_depth * self._planar_to_radial_depth_scalars
         if in_meters:
-            return self._sensor_depth.capture_rgb()[:, :, 0]*self._clipping_plane_diff + self._near_clipping_plane
-        return self._sensor_depth.capture_rgb()[:, :, 0]
+            return radial_depth
+        return (radial_depth - self._near_clipping_plane)/self._clipping_plane_diff
 
     def get_resolution(self) -> List[int]:
         """ Return the spherical vision sensor's resolution.
