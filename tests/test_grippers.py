@@ -1,4 +1,6 @@
 import unittest
+
+from pyrep.robots.end_effectors.robotiq85_gripper import Robotiq85Gripper
 from tests.core import TestCore
 from pyrep import PyRep
 from os import path
@@ -15,6 +17,7 @@ GRIPPERS = [
     ('BaxterGripper', BaxterGripper, 0.04),
     ('MicoGripper', MicoGripper, 0.2),
     ('JacoGripper', JacoGripper, 0.2),
+    ('Robotiq85Gripper', Robotiq85Gripper, 0.04),
 ]
 
 
@@ -48,14 +51,15 @@ class TestArmsAndConfigurationPaths(TestCore):
                         self.fail('Took too many steps to close')
                 done = False
                 i = 0
+                open_amount = 1.0 if gripper_name == 'Robotiq85Gripper' else 0.8
                 while not done:
-                    done = gripper.actuate(0.8, velocity=vel)
+                    done = gripper.actuate(open_amount, velocity=vel)
                     self.pyrep.step()
                     i += 1
                     if i > 1000:
                         self.fail('Took too many steps to open')
                 self.assertAlmostEqual(
-                    gripper.get_open_amount()[0], 0.8, delta=0.05)
+                    gripper.get_open_amount()[0], open_amount, delta=0.05)
 
     def test_get_duplicate_gripper(self):
         g = BaxterGripper(1)
