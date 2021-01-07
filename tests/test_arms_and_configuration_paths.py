@@ -18,6 +18,7 @@ from pyrep.robots.arms.ur3 import UR3
 from pyrep.robots.arms.ur5 import UR5
 from pyrep.robots.arms.ur10 import UR10
 from pyrep.robots.arms.dobot import Dobot
+from pyrep.robots.arms.laikago import LaikagoLeftFront, LaikagoLeftRear, LaikagoRightFront, LaikagoRightRear
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
 
@@ -35,6 +36,10 @@ ARMS = [
     ('UR5', UR5),
     ('UR10', UR10),
     ('Dobot', Dobot),
+    ('Laikago_leftfront', LaikagoLeftFront),
+    ('Laikago_leftrear', LaikagoLeftRear),
+    ('Laikago_rightfront', LaikagoRightFront),
+    ('Laikago_rightrear', LaikagoRightRear)
 ]
 
 
