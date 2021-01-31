@@ -85,11 +85,10 @@ class PyRep(object):
 
     def _run_responsive_ui_thread(self) -> None:
         while True:
-            if not self.running:
-                with self._step_lock:
-                    if self._shutting_down or sim.simExtGetExitRequest():
-                        break
-                    sim.simExtStep(False)
+            with self._step_lock:
+                if self._shutting_down or sim.simExtGetExitRequest():
+                    break
+                sim.simExtStep(False)
             time.sleep(0.01)
         # If the exit request was from the UI, then call shutdown, otherwise
         # shutdown caused this thread to terminate.

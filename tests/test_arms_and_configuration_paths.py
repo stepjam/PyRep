@@ -66,12 +66,22 @@ class TestArmsAndConfigurationPaths(TestCore):
         arm.set_ik_group_properties('damped_least_squares')
         arm.set_ik_group_properties('pseudo_inverse')
 
-    def test_get_configs_for_tip_pose(self):
+    def test_solve_ik_via_jacobian(self):
         arm = Panda()
         waypoint = Dummy('Panda_waypoint')
-        configs = arm.get_configs_for_tip_pose(
+        new_config = arm.solve_ik_via_jacobian(
             waypoint.get_position(), waypoint.get_orientation())
+        arm.set_joint_positions(new_config)
+        self.assertTrue(np.allclose(
+            arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001))
+
+    def test_solve_ik_via_sampling(self):
+        arm = Panda()
+        waypoint = Dummy('Panda_waypoint')
+        configs = arm.solve_ik_via_sampling(
+            waypoint.get_position(), waypoint.get_orientation(), max_configs=5)
         self.assertIsNotNone(configs)
+        self.assertEqual(len(configs), 5)
         current_config = arm.get_joint_positions()
         # Checks correct config (last)
         arm.set_joint_positions(configs[-1])

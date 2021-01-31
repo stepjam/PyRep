@@ -10,6 +10,7 @@ from pyrep.const import ConfigurationPathAlgorithms as Algos
 from pyrep.const import PYREP_SCRIPT_TYPE
 from typing import List, Union
 import numpy as np
+import warnings
 
 
 class Arm(RobotComponent):
@@ -74,6 +75,97 @@ class Arm(RobotComponent):
             damping=dls_damping
         )
 
+    def solve_ik_via_sampling(self,
+                              position: Union[List[float], np.ndarray],
+                              euler: Union[List[float], np.ndarray] = None,
+                              quaternion: Union[List[float], np.ndarray] = None,
+                              ignore_collisions: bool = False,
+                              trials: int = 300,
+                              max_configs: int = 1,
+                              distance_threshold: float = 0.65,
+                              max_time_ms: int = 10,
+                              relative_to: Object = None
+                              ) -> np.ndarray:
+        """Solves an IK group and returns the calculated joint values.
+
+        This IK method performs a random searches for manipulator configurations
+        that matches the given end-effector pose in space. When the tip pose
+        is close enough then IK is computed in order to try to bring the
+        tip onto the target. This is the method that should be used when
+        the start pose is far from the end pose.
+
+        We generate 'max_configs' number of samples within X number of 'trials',
+        before ranking them according to angular distance.
+
+        Must specify either rotation in euler or quaternions, but not both!
+
+        :param position: The x, y, z position of the target.
+        :param euler: The x, y, z orientation of the target (in radians).
+        :param quaternion: A list containing the quaternion (x,y,z,w).
+        :param ignore_collisions: If collision checking should be disabled.
+        :param trials: The maximum number of attempts to reach max_configs.
+        :param max_configs: The maximum number of configurations we want to
+            generate before sorting them.
+        :param distance_threshold: Distance indicating when IK should be
+            computed in order to try to bring the tip onto the target.
+        :param max_time_ms: Maximum time in ms spend searching for
+            each configuation.
+        :param relative_to: Indicates relative to which reference frame we want
+            the target pose. Specify None to retrieve the absolute pose,
+            or an Object relative to whose reference frame we want the pose.
+        :raises: ConfigurationError if no joint configuration could be found.
+
+        :return: 'max_configs' number of joint configurations, ranked according
+            to angular distance.
+        """
+        if not ((euler is None) ^ (quaternion is None)):
+            raise ConfigurationPathError(
+                'Specify either euler or quaternion values, but not both.')
+
+        prev_pose = self._ik_target.get_pose()
+        self._ik_target.set_position(position, relative_to)
+        if euler is not None:
+            self._ik_target.set_orientation(euler, relative_to)
+        elif quaternion is not None:
+            self._ik_target.set_quaternion(quaternion, relative_to)
+
+        handles = [j.get_handle() for j in self.joints]
+        cyclics, intervals = self.get_joint_intervals()
+        low_limits, max_limits = list(zip(*intervals))
+        # If there are huge intervals, then limit them
+        low_limits = np.maximum(low_limits, -np.pi*2).tolist()
+        max_limits = np.minimum(max_limits, np.pi*2).tolist()
+
+        collision_pairs = []
+        if not ignore_collisions:
+            collision_pairs = [self._collision_collection, sim.sim_handle_all]
+
+        metric = joint_options = None
+        valid_joint_positions = []
+        for i in range(trials):
+            config = sim.simGetConfigForTipPose(
+                self._ik_group, handles, distance_threshold, int(max_time_ms),
+                metric, collision_pairs, joint_options, low_limits, max_limits)
+            if len(config) > 0:
+                valid_joint_positions.append(config)
+            if len(valid_joint_positions) >= max_configs:
+                break
+
+        self._ik_target.set_pose(prev_pose)
+        if len(valid_joint_positions) == 0:
+            raise ConfigurationError(
+                'Could not find a valid joint configuration for desired '
+                'end effector pose.')
+
+        if len(valid_joint_positions) > 1:
+            current_config = np.array(self.get_joint_positions())
+            # Sort based on angular distance
+            valid_joint_positions.sort(
+                key=lambda x: np.linalg.norm(current_config - x))
+
+        return np.array(valid_joint_positions)
+
+
     def get_configs_for_tip_pose(self,
                                  position: Union[List[float], np.ndarray],
                                  euler: Union[List[float], np.ndarray] = None,
@@ -99,39 +191,24 @@ class Arm(RobotComponent):
         end effector pose.
         """
 
-        if not ((euler is None) ^ (quaternion is None)):
-            raise ConfigurationPathError(
-                'Specify either euler or quaternion values, but not both.')
+        warnings.warn("Please use 'solve_ik_via_sampling' instead.",
+                      DeprecationWarning)
+        return list(self.solve_ik_via_sampling(
+            position, euler, quaternion, ignore_collisions, trials,
+            max_configs, relative_to=relative_to))
 
-        prev_pose = self._ik_target.get_pose()
-        self._ik_target.set_position(position, relative_to)
-        if euler is not None:
-            self._ik_target.set_orientation(euler, relative_to)
-        elif quaternion is not None:
-            self._ik_target.set_quaternion(quaternion, relative_to)
-
-        handles = [j.get_handle() for j in self.joints]
-
-        # Despite verbosity being set to 0, OMPL spits out a lot of text
-        with utils.suppress_std_out_and_err():
-            _, ret_floats, _, _ = utils.script_call(
-                'findSeveralCollisionFreeConfigsAndCheckApproach@PyRep', PYREP_SCRIPT_TYPE,
-                ints=[self._ik_group, self._collision_collection,
-                      int(ignore_collisions), trials, max_configs] + handles)
-        self._ik_target.set_pose(prev_pose)
-
-        if len(ret_floats) == 0:
-            raise ConfigurationError(
-                'Could not find a valid joint configuration for desired end effector pose.')
-
-        num_configs = int(len(ret_floats)/len(handles))
-        return [[ret_floats[len(handles)*i+j] for j in range(len(handles))] for i in range(num_configs)]
-
-    def solve_ik(self, position: Union[List[float], np.ndarray],
-                 euler: Union[List[float], np.ndarray] = None,
-                 quaternion: Union[List[float], np.ndarray] = None,
-                 relative_to: Object = None) -> List[float]:
+    def solve_ik_via_jacobian(
+            self, position: Union[List[float], np.ndarray],
+            euler: Union[List[float], np.ndarray] = None,
+            quaternion: Union[List[float], np.ndarray] = None,
+            relative_to: Object = None) -> List[float]:
         """Solves an IK group and returns the calculated joint values.
+
+        This IK method performs a linearisation around the current robot
+        configuration via the Jacobian. The linearisation is valid when the
+        start and goal pose are not too far away, but after a certain point,
+        linearisation will no longer be valid. In that case, the user is better
+        off using 'solve_ik_via_sampling'.
 
         Must specify either rotation in euler or quaternions, but not both!
 
@@ -157,6 +234,27 @@ class Arm(RobotComponent):
         elif ik_result == sim.sim_ikresult_not_performed:
             raise IKError('IK not performed.')
         return joint_values
+
+    def solve_ik(self, position: Union[List[float], np.ndarray],
+                 euler: Union[List[float], np.ndarray] = None,
+                 quaternion: Union[List[float], np.ndarray] = None,
+                 relative_to: Object = None) -> List[float]:
+        """Solves an IK group and returns the calculated joint values.
+
+        Must specify either rotation in euler or quaternions, but not both!
+
+        :param position: The x, y, z position of the target.
+        :param euler: The x, y, z orientation of the target (in radians).
+        :param quaternion: A list containing the quaternion (x,y,z,w).
+        :param relative_to: Indicates relative to which reference frame we want
+        the target pose. Specify None to retrieve the absolute pose,
+        or an Object relative to whose reference frame we want the pose.
+        :return: A list containing the calculated joint values.
+        """
+        warnings.warn("Please use 'solve_ik_via_jacobian' instead.",
+                      DeprecationWarning)
+        return self.solve_ik_via_jacobian(
+            position, euler, quaternion, relative_to)
 
     def get_path_from_cartesian_path(self, path: CartesianPath
                                      ) -> ArmConfigurationPath:
