@@ -52,26 +52,18 @@ class ArmConfigurationPath(ConfigurationPath):
         self._path_done = done
         return done
 
-    def set_to_start(self, allow_force_mode=True) -> None:
+    def set_to_start(self) -> None:
         """Sets the arm to the beginning of this path.
-
-        :param allow_force_mode: If True, then the position can be set even
-            when the joint mode is in Force mode. It will disable dynamics,
-            move the joint, and then re-enable dynamics.
         """
         start_config = self._path_points[:len(self._arm.joints)]
-        self._arm.set_joint_positions(start_config, allow_force_mode)
+        self._arm.set_joint_positions(start_config)
         self._path_done = False
 
-    def set_to_end(self, allow_force_mode=True) -> None:
+    def set_to_end(self) -> None:
         """Sets the arm to the end of this path.
-
-        :param allow_force_mode: If True, then the position can be set even
-            when the joint mode is in Force mode. It will disable dynamics,
-            move the joint, and then re-enable dynamics.
         """
         final_config = self._path_points[-len(self._arm.joints):]
-        self._arm.set_joint_positions(final_config, allow_force_mode)
+        self._arm.set_joint_positions(final_config)
 
     def visualize(self) -> None:
         """Draws a visualization of the path in the scene.
@@ -90,19 +82,19 @@ class ArmConfigurationPath(ConfigurationPath):
         sim.simAddDrawingObjectItem(self._drawing_handle, None)
         init_angles = self._arm.get_joint_positions()
         self._arm.set_joint_positions(
-            self._path_points[0: len(self._arm.joints)], allow_force_mode=False)
+            self._path_points[0: len(self._arm.joints)])
         prev_point = list(tip.get_position())
 
         for i in range(len(self._arm.joints), len(self._path_points),
                        len(self._arm.joints)):
             points = self._path_points[i:i + len(self._arm.joints)]
-            self._arm.set_joint_positions(points, allow_force_mode=False)
+            self._arm.set_joint_positions(points)
             p = list(tip.get_position())
             sim.simAddDrawingObjectItem(self._drawing_handle, prev_point + p)
             prev_point = p
 
         # Set the arm back to the initial config
-        self._arm.set_joint_positions(init_angles, allow_force_mode=False)
+        self._arm.set_joint_positions(init_angles)
 
     def clear_visualization(self) -> None:
         """Clears/removes a visualization of the path in the scene.

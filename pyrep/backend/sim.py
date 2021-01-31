@@ -1313,10 +1313,12 @@ def simGetUserParameter(objectHandle, parameterName):
     simReleaseBuffer(ffi.cast('char *', parameterValue))
     return val
 
+
 def simCreateOctree(voxelSize, options, pointSize):
     ret = lib.simCreateOctree(voxelSize, options, pointSize, ffi.NULL)
     _check_return(ret)
     return ret
+
 
 def simInsertVoxelsIntoOctree(octreeHandle, options, points, color, tag):
     if color is None:
@@ -1327,6 +1329,7 @@ def simInsertVoxelsIntoOctree(octreeHandle, options, points, color, tag):
                                         len(points)//3, color, tag, ffi.NULL)
     _check_return(ret)
     return ret
+
 
 def simRemoveVoxelsFromOctree(octreeHandle, options, points):
     if points is None:
@@ -1340,6 +1343,7 @@ def simRemoveVoxelsFromOctree(octreeHandle, options, points):
     _check_return(ret)
     return ret
 
+
 def simGetOctreeVoxels(octreeHandle):
     pointCountPointer = ffi.new('int *')
     ret = lib.simGetOctreeVoxels(octreeHandle, pointCountPointer, ffi.NULL)
@@ -1347,6 +1351,7 @@ def simGetOctreeVoxels(octreeHandle):
         return []
     pointCount = pointCountPointer[0]
     return list(ret[0:pointCount*3])
+
 
 def simInsertObjectIntoOctree(octreeHandle, objectHandle, options,
                               color, tag):
@@ -1357,11 +1362,13 @@ def simInsertObjectIntoOctree(octreeHandle, objectHandle, options,
     _check_return(ret)
     return ret
 
+
 def simSubtractObjectFromOctree(octreeHandle, objectHandle, options):
     ret = lib.simSubtractObjectFromOctree(octreeHandle, objectHandle, options,
                                         ffi.NULL)
     _check_return(ret)
     return ret
+
 
 def simCheckOctreePointOccupancy(octreeHandle, options, points):
     ret = lib.simCheckOctreePointOccupancy(octreeHandle, options, points,
@@ -1372,3 +1379,20 @@ def simCheckOctreePointOccupancy(octreeHandle, options, points):
         return True
     else:
         return False
+
+
+def simGetConfigForTipPose(ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs, metric, collisionPairs, jointOptions, lowLimits, ranges):
+    jointCnt = len(jointHandles)
+    collisionPairCnt = len(collisionPairs) // 2
+    collisionPairs = ffi.NULL if len(collisionPairs) == 0 else collisionPairs
+    retConfigm = ffi.new('float[%d]' % jointCnt)
+    reserved = ffi.NULL
+    metric = ffi.NULL if metric is None else metric
+    jointOptions = ffi.NULL if jointOptions is None else jointOptions
+    ret = lib.simGetConfigForTipPose(
+        ikGroupHandle, jointCnt, jointHandles, thresholdDist,
+        maxTimeInMs, retConfigm, metric, collisionPairCnt, collisionPairs,
+        jointOptions, lowLimits, ranges, reserved)
+    _check_return(ret)
+    _check_null_return(retConfigm)
+    return list(retConfigm) if ret == 1 else []

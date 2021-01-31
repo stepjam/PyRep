@@ -74,43 +74,23 @@ class RobotComponent(Object):
         """
         return [j.get_joint_position() for j in self.joints]
 
-    def set_joint_positions(self, positions: List[float],
-                            allow_force_mode=True) -> None:
+    def set_joint_positions(self, positions: List[float]) -> None:
         """Sets the intrinsic position of the joints.
 
         See :py:meth:`Joint.set_joint_position` for more information.
 
         :param positions: A list of positions of the joints (angular or linear
             values depending on the joint type).
-        :param allow_force_mode: If True, then the position can be set even
-            when the joint mode is in Force mode. It will disable dynamics,
-            move the joint, and then re-enable dynamics.
         """
         self._assert_len(positions)
 
-        if not allow_force_mode:
-            [j.set_joint_position(p, allow_force_mode)  # type: ignore
-             for j, p in zip(self.joints, positions)]
-            return
-
-        is_model = self.is_model()
-        if not is_model:
-            self.set_model(True)
-
-        prior = sim.simGetModelProperty(self.get_handle())
-        p = prior | sim.sim_modelproperty_not_dynamic
-        # Disable the dynamics
-        sim.simSetModelProperty(self._handle, p)
-
-        [j.set_joint_position(p, allow_force_mode)  # type: ignore
+        prev_mode = self.get_joint_modes()
+        self.set_joint_mode(JointMode.IK)
+        [j.set_joint_position(p)  # type: ignore
          for j, p in zip(self.joints, positions)]
         [j.set_joint_target_position(p)  # type: ignore
          for j, p in zip(self.joints, positions)]
-        sim.simExtStep(True)  # Have to step once for changes to take effect
-
-        # Re-enable the dynamics
-        sim.simSetModelProperty(self._handle, prior)
-        self.set_model(is_model)
+        self.set_joint_mode(prev_mode[0])
 
     def get_joint_target_positions(self) -> List[float]:
         """Retrieves the target positions of the joints.
