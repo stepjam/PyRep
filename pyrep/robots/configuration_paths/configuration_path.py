@@ -5,10 +5,10 @@ class ConfigurationPath(object):
     def step(self) -> bool:
         raise NotImplementedError()
 
-    def set_to_start(self, allow_force_mode=True) -> None:
+    def set_to_start(self) -> None:
         raise NotImplementedError()
 
-    def set_to_end(self, allow_force_mode=True) -> None:
+    def set_to_end(self) -> None:
         raise NotImplementedError()
 
     def visualize(self) -> None:
