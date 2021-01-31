@@ -44,7 +44,7 @@ class MobileConfigurationPath(ConfigurationPath):
         """
         raise NotImplementedError()
 
-    def set_to_start(self, allow_force_mode=True) -> None:
+    def set_to_start(self) -> None:
         """Sets the mobile base to the beginning of this path.
 
         :param allow_force_mode: Not used.
@@ -53,7 +53,7 @@ class MobileConfigurationPath(ConfigurationPath):
         self._mobile.set_2d_pose(start_config[:3])
         self._path_done = False
 
-    def set_to_end(self, allow_force_mode=True) -> None:
+    def set_to_end(self) -> None:
         """Sets the mobile base to the end of this path.
 
         :param allow_force_mode: Not used.
