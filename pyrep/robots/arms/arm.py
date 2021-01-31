@@ -119,7 +119,7 @@ class Arm(RobotComponent):
             to angular distance.
         """
         if not ((euler is None) ^ (quaternion is None)):
-            raise ConfigurationPathError(
+            raise ConfigurationError(
                 'Specify either euler or quaternion values, but not both.')
 
         prev_pose = self._ik_target.get_pose()
@@ -334,8 +334,13 @@ class Arm(RobotComponent):
                            euler: Union[List[float], np.ndarray] = None,
                            quaternion: Union[List[float], np.ndarray] = None,
                            ignore_collisions=False,
-                           trials=100, max_configs=60, trials_per_goal=6,
-                           algorithm=Algos.SBL, relative_to: Object = None
+                           trials=300,
+                           max_configs=1,
+                           distance_threshold: float = 0.65,
+                           max_time_ms: int = 10,
+                           trials_per_goal=1,
+                           algorithm=Algos.SBL,
+                           relative_to: Object = None
                            ) -> ArmConfigurationPath:
         """Gets a non-linear (planned) configuration path given a target pose.
 
@@ -349,9 +354,15 @@ class Arm(RobotComponent):
         :param euler: The x, y, z orientation of the target (in radians).
         :param quaternion: A list containing the quaternion (x,y,z,w).
         :param ignore_collisions: If collision checking should be disabled.
-        :param trials: The maximum number of attempts to reach max_configs
+        :param trials: The maximum number of attempts to reach max_configs.
+            See 'solve_ik_via_sampling'.
         :param max_configs: The maximum number of configurations we want to
-            generate before ranking them.
+            generate before sorting them. See 'solve_ik_via_sampling'.
+        :param distance_threshold: Distance indicating when IK should be
+            computed in order to try to bring the tip onto the target.
+            See 'solve_ik_via_sampling'.
+        :param max_time_ms: Maximum time in ms spend searching for
+            each configuation. See 'solve_ik_via_sampling'.
         :param trials_per_goal: The number of paths per config we want to trial.
         :param algorithm: The algorithm for path planning to use.
         :param relative_to: Indicates relative to which reference frame we want
@@ -362,27 +373,21 @@ class Arm(RobotComponent):
         :return: A non-linear path in the arm configuration space.
         """
 
-        if not ((euler is None) ^ (quaternion is None)):
-            raise ConfigurationPathError(
-                'Specify either euler or quaternion values, but not both.')
-
-        prev_pose = self._ik_target.get_pose()
-        self._ik_target.set_position(position, relative_to)
-        if euler is not None:
-            self._ik_target.set_orientation(euler, relative_to)
-        elif quaternion is not None:
-            self._ik_target.set_quaternion(quaternion, relative_to)
-
         handles = [j.get_handle() for j in self.joints]
 
-        # Despite verbosity being set to 0, OMPL spits out a lot of text
-        with utils.suppress_std_out_and_err():
-            _, ret_floats, _, _ = utils.script_call(
-                'getNonlinearPath@PyRep', PYREP_SCRIPT_TYPE,
-                ints=[self._ik_group, self._collision_collection,
-                      int(ignore_collisions), trials, max_configs,
-                      trials_per_goal] + handles, strings=[algorithm.value])
-        self._ik_target.set_pose(prev_pose)
+        try:
+            configs = self.solve_ik_via_sampling(
+                position, euler, quaternion, ignore_collisions, trials,
+                max_configs, distance_threshold, max_time_ms, relative_to)
+        except ConfigurationError as e:
+            raise ConfigurationPathError('Could not create path.') from e
+
+        _, ret_floats, _, _ = utils.script_call(
+            'getNonlinearPath@PyRep', PYREP_SCRIPT_TYPE,
+            ints=[self._collision_collection, int(ignore_collisions),
+                  trials_per_goal] + handles,
+            floats=configs.flatten().tolist(),
+            strings=[algorithm.value])
 
         if len(ret_floats) == 0:
             raise ConfigurationPathError('Could not create path.')
@@ -392,8 +397,13 @@ class Arm(RobotComponent):
                  euler: Union[List[float], np.ndarray] = None,
                  quaternion: Union[List[float], np.ndarray] = None,
                  ignore_collisions=False,
-                 trials=100, max_configs=60, trials_per_goal=6,
-                 algorithm=Algos.SBL, relative_to: Object = None
+                 trials=300,
+                 max_configs=1,
+                 distance_threshold: float = 0.65,
+                 max_time_ms: int = 10,
+                 trials_per_goal=1,
+                 algorithm=Algos.SBL,
+                 relative_to: Object = None
                  ) -> ArmConfigurationPath:
         """Tries to get a linear path, failing that tries a non-linear path.
 
@@ -404,14 +414,16 @@ class Arm(RobotComponent):
         :param quaternion: A list containing the quaternion (x,y,z,w).
         :param ignore_collisions: If collision checking should be disabled.
         :param trials: The maximum number of attempts to reach max_configs.
-            (Only applicable if a non-linear path is needed)
+            See 'solve_ik_via_sampling'.
         :param max_configs: The maximum number of configurations we want to
-            generate before ranking them.
-            (Only applicable if a non-linear path is needed)
+            generate before sorting them. See 'solve_ik_via_sampling'.
+        :param distance_threshold: Distance indicating when IK should be
+            computed in order to try to bring the tip onto the target.
+            See 'solve_ik_via_sampling'.
+        :param max_time_ms: Maximum time in ms spend searching for
+            each configuation. See 'solve_ik_via_sampling'.
         :param trials_per_goal: The number of paths per config we want to trial.
-            (Only applicable if a non-linear path is needed)
         :param algorithm: The algorithm for path planning to use.
-            (Only applicable if a non-linear path is needed)
         :param relative_to: Indicates relative to which reference frame we want
         the target pose. Specify None to retrieve the absolute pose,
         or an Object relative to whose reference frame we want the pose.
@@ -431,7 +443,8 @@ class Arm(RobotComponent):
         # This time if an exception is thrown, we dont want to catch it.
         p = self.get_nonlinear_path(
             position, euler, quaternion, ignore_collisions, trials, max_configs,
-            trials_per_goal, algorithm, relative_to=relative_to)
+            distance_threshold, max_time_ms, trials_per_goal, algorithm,
+            relative_to)
         return p
 
     def get_tip(self) -> Dummy:
