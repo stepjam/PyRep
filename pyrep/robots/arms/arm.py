@@ -319,14 +319,13 @@ class Arm(RobotComponent):
             self._ik_target.set_quaternion(quaternion, relative_to)
         handles = [j.get_handle() for j in self.joints]
 
-        # Despite verbosity being set to 0, OMPL spits out a lot of text
-        with utils.suppress_std_out_and_err():
-            _, ret_floats, _, _ = utils.script_call(
-                'getLinearPath@PyRep', PYREP_SCRIPT_TYPE,
-                ints=[steps, self._ik_group, self._collision_collection,
-                      int(ignore_collisions)] + handles)
+        collision_pairs = []
+        if not ignore_collisions:
+            collision_pairs = [self._collision_collection, sim.sim_handle_all]
+        joint_options = None
+        ret_floats = sim.generateIkPath(
+            self._ik_group, handles, steps, collision_pairs, joint_options)
         self._ik_target.set_pose(prev_pose)
-
         if len(ret_floats) == 0:
             raise ConfigurationPathError('Could not create path.')
         return ArmConfigurationPath(self, ret_floats)

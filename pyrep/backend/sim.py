@@ -1396,3 +1396,15 @@ def simGetConfigForTipPose(ikGroupHandle, jointHandles, thresholdDist, maxTimeIn
     _check_return(ret)
     _check_null_return(retConfigm)
     return list(retConfigm) if ret == 1 else []
+
+
+def generateIkPath(ikGroupHandle, jointHandles, ptCnt, collisionPairs, jointOptions):
+    jointCnt = len(jointHandles)
+    collisionPairCnt = len(collisionPairs) // 2
+    collisionPairs = ffi.NULL if len(collisionPairs) == 0 else collisionPairs
+    reserved = ffi.NULL
+    jointOptions = ffi.NULL if jointOptions is None else jointOptions
+    ret = lib.simGenerateIkPath(
+        ikGroupHandle, jointCnt, jointHandles, ptCnt, collisionPairCnt,
+        collisionPairs, jointOptions, reserved)
+    return [] if ret == ffi.NULL else [ret[i] for i in range(ptCnt * jointCnt)]
