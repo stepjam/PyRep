@@ -14,6 +14,7 @@ class Joint(Object):
 
     def __init__(self, name_or_handle: Union[str, int]):
         super().__init__(name_or_handle)
+        self._config_tree = self.get_configuration_tree()
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.JOINT
@@ -42,12 +43,9 @@ class Joint(Object):
         :param positions: A list of positions of the joints (angular or linear
             values depending on the joint type).
         """
-
-        prev_mode = self.get_joint_mode()
-        self.set_joint_mode(JointMode.IK)
+        sim.simSetConfigurationTree(self._config_tree)
         sim.simSetJointPosition(self._handle, position)
         self.set_joint_target_position(position)
-        self.set_joint_mode(prev_mode)
 
     def get_joint_target_position(self) -> float:
         """Retrieves the target position of a joint.

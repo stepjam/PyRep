@@ -23,6 +23,8 @@ class RobotComponent(Object):
         # Joint handles
         self.joints = [Joint(jname + suffix)
                        for jname in joint_names]
+        self._joint_handles = [j.get_handle() for j in self.joints]
+        self._config_tree = self.get_configuration_tree()
 
     def copy(self) -> 'RobotComponent':
         """Copy and pastes the arm in the scene.
@@ -83,14 +85,11 @@ class RobotComponent(Object):
             values depending on the joint type).
         """
         self._assert_len(positions)
-
-        prev_mode = self.get_joint_modes()
-        self.set_joint_mode(JointMode.IK)
-        [j.set_joint_position(p)  # type: ignore
+        sim.simSetConfigurationTree(self._config_tree)
+        [sim.simSetJointPosition(jh, p)  # type: ignore
+         for jh, p in zip(self._joint_handles, positions)]
+        [j.set_joint_target_position(p)
          for j, p in zip(self.joints, positions)]
-        [j.set_joint_target_position(p)  # type: ignore
-         for j, p in zip(self.joints, positions)]
-        self.set_joint_mode(prev_mode[0])
 
     def get_joint_target_positions(self) -> List[float]:
         """Retrieves the target positions of the joints.
