@@ -32,7 +32,9 @@ except IKError:
     input('Press key to run solve_ik_via_sampling...')
     new_joint_pos = agent.solve_ik_via_sampling([x, y, z - 0.4], quaternion=q)[0]
 
-agent.set_joint_positions(new_joint_pos)
+# Because the arm is in Forxe/Torque mode, we need to temporarily disable
+# dynamics in order to instantaneously move joints.
+agent.set_joint_positions(new_joint_pos, disable_dynamics=True)
 input('Press any key to finish...')
 
 pr.stop()

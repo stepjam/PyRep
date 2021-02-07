@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 from pyrep.objects.shape import Shape
 
-from pyrep.backend import sim
+from pyrep.backend import sim, utils
 from pyrep.const import JointType
 from pyrep.objects.object import Object
 from pyrep.objects.joint import Joint
@@ -24,7 +24,6 @@ class RobotComponent(Object):
         self.joints = [Joint(jname + suffix)
                        for jname in joint_names]
         self._joint_handles = [j.get_handle() for j in self.joints]
-        self._config_tree = self.get_configuration_tree()
 
     def copy(self) -> 'RobotComponent':
         """Copy and pastes the arm in the scene.
@@ -76,20 +75,46 @@ class RobotComponent(Object):
         """
         return [j.get_joint_position() for j in self.joints]
 
-    def set_joint_positions(self, positions: List[float]) -> None:
+    def set_joint_positions(self, positions: List[float],
+                            disable_dynamics: bool = False) -> None:
         """Sets the intrinsic position of the joints.
 
         See :py:meth:`Joint.set_joint_position` for more information.
+
+        :param disable_dynamics: If True, then the position can be set even
+            when the joint mode is in Force mode. It will disable dynamics,
+            move the joint, and then re-enable dynamics.
 
         :param positions: A list of positions of the joints (angular or linear
             values depending on the joint type).
         """
         self._assert_len(positions)
-        sim.simSetConfigurationTree(self._config_tree)
+        if not disable_dynamics:
+            [sim.simSetJointPosition(jh, p)  # type: ignore
+             for jh, p in zip(self._joint_handles, positions)]
+            return
+
+        is_model = self.is_model()
+        if not is_model:
+            self.set_model(True)
+
+        prior = sim.simGetModelProperty(self.get_handle())
+        p = prior | sim.sim_modelproperty_not_dynamic
+        # Disable the dynamics
+        sim.simSetModelProperty(self._handle, p)
+        with utils.step_lock:
+            sim.simExtStep(True)  # Have to step for changes to take effect
+
         [sim.simSetJointPosition(jh, p)  # type: ignore
          for jh, p in zip(self._joint_handles, positions)]
-        [j.set_joint_target_position(p)
+        [j.set_joint_target_position(p)  # type: ignore
          for j, p in zip(self.joints, positions)]
+
+        # Re-enable the dynamics
+        sim.simSetModelProperty(self._handle, prior)
+        self.set_model(is_model)
+        with utils.step_lock:
+            sim.simExtStep(True)  # Have to step for changes to take effect
 
     def get_joint_target_positions(self) -> List[float]:
         """Retrieves the target positions of the joints.

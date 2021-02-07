@@ -1,5 +1,5 @@
 from typing import Tuple, List, Union
-from pyrep.backend import sim
+from pyrep.backend import sim, utils
 from pyrep.const import JointType, JointMode
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
@@ -14,7 +14,6 @@ class Joint(Object):
 
     def __init__(self, name_or_handle: Union[str, int]):
         super().__init__(name_or_handle)
-        self._config_tree = self.get_configuration_tree()
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.JOINT
@@ -37,15 +36,40 @@ class Joint(Object):
         """
         return sim.simGetJointPosition(self._handle)
 
-    def set_joint_position(self, position: float) -> None:
+    def set_joint_position(self, position: float,
+                           disable_dynamics: bool = False) -> None:
         """Sets the intrinsic position of the joint.
+
+        :param disable_dynamics: If True, then the position can be set even
+            when the joint mode is in Force mode. It will disable dynamics,
+            move the joint, and then re-enable dynamics.
 
         :param positions: A list of positions of the joints (angular or linear
             values depending on the joint type).
         """
-        sim.simSetConfigurationTree(self._config_tree)
+        if not disable_dynamics:
+            sim.simSetJointPosition(self._handle, position)
+            return
+
+        is_model = self.is_model()
+        if not is_model:
+            self.set_model(True)
+
+        prior = sim.simGetModelProperty(self.get_handle())
+        p = prior | sim.sim_modelproperty_not_dynamic
+        # Disable the dynamics
+        sim.simSetModelProperty(self._handle, p)
+        with utils.step_lock:
+            sim.simExtStep(True)  # Have to step for changes to take effect
+
         sim.simSetJointPosition(self._handle, position)
         self.set_joint_target_position(position)
+
+        # Re-enable the dynamics
+        sim.simSetModelProperty(self._handle, prior)
+        self.set_model(is_model)
+        with utils.step_lock:
+            sim.simExtStep(True)  # Have to step for changes to take effect
 
     def get_joint_target_position(self) -> float:
         """Retrieves the target position of a joint.

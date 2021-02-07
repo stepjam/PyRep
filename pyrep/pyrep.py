@@ -11,7 +11,6 @@ import os
 import sys
 import time
 import threading
-from threading import Lock
 from typing import Tuple, List
 import warnings
 
@@ -57,7 +56,6 @@ class PyRep(object):
 
         self._ui_thread = None
         self._responsive_ui_thread = None
-        self._step_lock = Lock()
 
         self._init_thread_id = None
         self._shutting_down = False
@@ -85,10 +83,11 @@ class PyRep(object):
 
     def _run_responsive_ui_thread(self) -> None:
         while True:
-            with self._step_lock:
-                if self._shutting_down or sim.simExtGetExitRequest():
-                    break
-                sim.simExtStep(False)
+            if not self.running:
+                with utils.step_lock:
+                    if self._shutting_down or sim.simExtGetExitRequest():
+                        break
+                    sim.simExtStep(False)
             time.sleep(0.01)
         # If the exit request was from the UI, then call shutdown, otherwise
         # shutdown caused this thread to terminate.
@@ -221,7 +220,7 @@ class PyRep(object):
         If the physics simulation is not running, then this will only update
         the UI.
         """
-        with self._step_lock:
+        with utils.step_lock:
             sim.simExtStep()
 
     def step_ui(self) -> None:
@@ -231,7 +230,7 @@ class PyRep(object):
         simulation is running.
         This is only applicable when PyRep was launched without a responsive UI.
         """
-        with self._step_lock:
+        with utils.step_lock:
             sim.simExtStep(False)
 
     def set_simulation_timestep(self, dt: float) -> None:
