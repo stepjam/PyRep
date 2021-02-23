@@ -124,7 +124,7 @@ class Joint(Object):
         :return: The force or the torque applied to the joint along/about
             its z-axis.
         """
-        return sim.simGetJointMaxForce(self._handle)
+        return sim.simGetJointForce(self._handle)
 
     def set_joint_force(self, force: float) -> None:
         """Sets the maximum force or torque that a joint can exert.
