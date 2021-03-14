@@ -38,7 +38,7 @@ class Octree(Object):
         if not isinstance(points, list):
             raise ValueError(
                 'Octree.insert_voxels: points parameter is not a list.')
-        if len(points) % 3 is not 0:
+        if len(points) % 3 != 0:
             raise ValueError(
                 'Octree.insert_voxels: points parameter length '
                 'not a multiple of 3.')
@@ -46,7 +46,7 @@ class Octree(Object):
             if not isinstance(color, list):
                 raise ValueError(
                     'Octree.insert_voxels: color parameter not a list.')
-            elif len(color) is not 3:
+            elif len(color) != 3:
                 raise ValueError(
                     'Octree.insert_voxels: color parameter not an RGB list.')
         sim.simInsertVoxelsIntoOctree(self._handle, options, points, color,None) 
@@ -63,7 +63,7 @@ class Octree(Object):
             if not isinstance(points, list):
                 raise ValueError(
                     'Octree.insert_voxels: points parameter is not a list.')
-            if len(points) % 3 is not 0:
+            if len(points) % 3 != 0:
                 raise ValueError(
                     'Octree.insert_voxels: points parameter length '
                     'not a multiple of 3.')
@@ -88,7 +88,7 @@ class Octree(Object):
             if not isinstance(color, list):
                 raise ValueError(
                     'Octree.insert_object: color parameter not a list.')
-            elif len(color) is not 3:
+            elif len(color) != 3:
                 raise ValueError(
                     'Octree.insert_object: color parameter not an RGB list.')
         sim.simInsertObjectIntoOctree(self._handle, obj.get_handle(), options,
@@ -109,7 +109,7 @@ class Octree(Object):
         if not isinstance(points, list):
             raise ValueError(
                 'Octree.check_point_occupancy: points parameter is not a list.')
-        if len(points) % 3 is not 0:
+        if len(points) % 3 != 0:
             raise ValueError(
                 'Octree._check_point_occupancy: points parameter length '
                 'not a multiple of 3.')
