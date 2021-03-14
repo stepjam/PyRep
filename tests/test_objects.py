@@ -131,8 +131,11 @@ class TestObjects(TestCore):
         parent = self.dummy.get_parent()
         self.assertIsNone(parent)
 
-    def test_get_matrix(self):
-        self.assertEqual(len(self.dynamic_cube.get_matrix()), 12)
+    def test_get_set_matrix(self):
+        m = self.dynamic_cube.get_matrix()
+        self.assertEqual(m.shape, (4, 4))
+        self.simple_model.set_matrix(m)
+        self.assertListEqual(self.simple_model.get_matrix().tolist(), m.tolist())
 
     def test_get_set_collidable(self):
         self.dynamic_cube.set_collidable(False)

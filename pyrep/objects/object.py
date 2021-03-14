@@ -287,39 +287,34 @@ class Object(object):
         parent = -1 if parent_object is None else parent_object.get_handle()
         sim.simSetObjectParent(self._handle, parent, keep_in_place)
 
-    def get_matrix(self, relative_to=None) -> List[float]:
+    def get_matrix(self, relative_to=None) -> np.ndarray:
         """Retrieves the transformation matrix of this object.
 
         :param relative_to: Indicates relative to which reference frame we want
             the matrix. Specify None to retrieve the absolute transformation
             matrix, or an Object relative to whose reference frame we want the
             transformation matrix.
-        :return: A list of 12 float values (the last row of the 4x4 matrix (
-            0,0,0,1) is not needed).
-                The x-axis of the orientation component is (m[0], m[4], m[8])
-                The y-axis of the orientation component is (m[1], m[5], m[9])
-                The z-axis of the orientation component is (m[2], m[6], m[10])
-                The translation component is (m[3], m[7], m[11])
+        :return: A 4x4 transformation matrix.
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        return sim.simGetObjectMatrix(self._handle, relto)
+        m = sim.simGetObjectMatrix(self._handle, relto)
+        m_np = np.array(m).reshape((3, 4))
+        return np.concatenate([m_np, [np.array([0, 0, 0, 1])]])
 
-    def set_matrix(self, matrix: List[float], relative_to=None) -> None:
+    def set_matrix(self, matrix: np.ndarray, relative_to=None) -> None:
         """Sets the transformation matrix of this object.
 
         :param relative_to: Indicates relative to which reference frame the
             matrix is specified. Specify None to set the absolute transformation
             matrix, or an Object relative to whose reference frame the
             transformation matrix is specified.
-        :param matrix: A list of 12 float values (the last row of the 4x4 matrix
-            (0,0,0,1) is not needed).
-                The x-axis of the orientation component is (m[0], m[4], m[8])
-                The y-axis of the orientation component is (m[1], m[5], m[9])
-                The z-axis of the orientation component is (m[2], m[6], m[10])
-                The translation component is (m[3], m[7], m[11])
+        :param matrix: A 4x4 transformation matrix.
         """
+        if not isinstance(matrix, np.ndarray):
+            raise ValueError('Expected Numpy 4x4 array.')
         relto = -1 if relative_to is None else relative_to.get_handle()
-        sim.simSetObjectMatrix(self._handle, relto, matrix)
+        sim.simSetObjectMatrix(
+            self._handle, relto, matrix[:3, :4].reshape((12)).tolist())
 
     def is_collidable(self) -> bool:
         """Whether the object is collidable or not.

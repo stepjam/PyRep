@@ -11,7 +11,8 @@ class Gyroscope(Object):
         self._ref = '%s_reference' % (self.get_name())
 
         self._last_time = sim.simGetSimulationTime()
-        self._old_transformation_matrix = self.get_matrix()
+        self._old_transformation_matrix = self.get_matrix()[:3, :4].reshape(
+            (12, )).tolist()
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType(sim.simGetObjectType(self.get_handle()))
@@ -26,7 +27,8 @@ class Gyroscope(Object):
         dt = current_time - self._last_time
 
         inv_old_matrix = sim.simInvertMatrix(self._old_transformation_matrix)
-        transformation_matrix = self.get_matrix()
+        transformation_matrix = self.get_matrix()[:3, :4].reshape(
+            (12, )).tolist()
         mat = sim.simMultiplyMatrices(inv_old_matrix, transformation_matrix)
         euler_angles = sim.simGetEulerAnglesFromMatrix(mat)
 
