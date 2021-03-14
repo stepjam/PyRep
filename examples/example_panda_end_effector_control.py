@@ -21,7 +21,7 @@ pos, quat = agent.get_tip().get_position(), agent.get_tip().get_quaternion()
 
 def move(index, delta):
     pos[index] += delta
-    new_joint_angles = agent.solve_ik(pos, quaternion=quat)
+    new_joint_angles = agent.solve_ik_via_jacobian(pos, quaternion=quat)
     agent.set_joint_target_positions(new_joint_angles)
     pr.step()
 

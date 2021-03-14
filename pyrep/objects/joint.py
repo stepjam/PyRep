@@ -1,5 +1,5 @@
 from typing import Tuple, List, Union
-from pyrep.backend import sim
+from pyrep.backend import sim, utils
 from pyrep.const import JointType, JointMode
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
@@ -37,16 +37,17 @@ class Joint(Object):
         return sim.simGetJointPosition(self._handle)
 
     def set_joint_position(self, position: float,
-                           allow_force_mode=True) -> None:
+                           disable_dynamics: bool = False) -> None:
         """Sets the intrinsic position of the joint.
+
+        :param disable_dynamics: If True, then the position can be set even
+            when the joint mode is in Force mode. It will disable dynamics,
+            move the joint, and then re-enable dynamics.
 
         :param positions: A list of positions of the joints (angular or linear
             values depending on the joint type).
-        :param allow_force_mode: If True, then the position can be set even
-            when the joint mode is in Force mode. It will disable dynamics,
-            move the joint, and then re-enable dynamics.
         """
-        if not allow_force_mode:
+        if not disable_dynamics:
             sim.simSetJointPosition(self._handle, position)
             return
 
@@ -58,14 +59,17 @@ class Joint(Object):
         p = prior | sim.sim_modelproperty_not_dynamic
         # Disable the dynamics
         sim.simSetModelProperty(self._handle, p)
+        with utils.step_lock:
+            sim.simExtStep(True)  # Have to step for changes to take effect
 
         sim.simSetJointPosition(self._handle, position)
         self.set_joint_target_position(position)
-        sim.simExtStep(True)  # Have to step once for changes to take effect
 
         # Re-enable the dynamics
         sim.simSetModelProperty(self._handle, prior)
         self.set_model(is_model)
+        with utils.step_lock:
+            sim.simExtStep(True)  # Have to step for changes to take effect
 
     def get_joint_target_position(self) -> float:
         """Retrieves the target position of a joint.

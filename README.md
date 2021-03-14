@@ -1,12 +1,8 @@
-# PyRep [![Build Status](https://travis-ci.com/stepjam/PyRep.svg?token=bQxtiYV3p3bPYhzWMoLi&branch=master)](https://travis-ci.com/stepjam/PyRep) [![Documentation Status](https://readthedocs.org/projects/pyrep/badge/?version=latest)](https://pyrep.readthedocs.io/en/latest/?badge=latest) [![Discord](https://img.shields.io/discord/694945313638842378.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/eTMsa5Y)
+# PyRep [![Build Status](https://github.com/stepjam/PyRep/workflows/Build/badge.svg)](https://github.com/stepjam/PyRep/actions) [![Documentation Status](https://readthedocs.org/projects/pyrep/badge/?version=latest)](https://pyrep.readthedocs.io/en/latest/?badge=latest) [![Discord](https://img.shields.io/discord/694945313638842378.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/eTMsa5Y)
 
 
 __PyRep is a toolkit for robot learning research, built on top of [CoppeliaSim](http://www.coppeliarobotics.com/) (previously called V-REP).__
 
-__NOTE:__ V-REP has recently been changed to CoppeliaSim. 
-If you had an old version of V-REP/PyRep installed, you should removing all 
-references of V-REP from your bashrc/zshrc (VREP_ROOT, LD_LIBRARY_PATH,
-QT_QPA_PLATFORM_PLUGIN_PATH), and then re-run through the installation section.
 
 - [Install](#install)
 - [Getting Started](#getting-started)

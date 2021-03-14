@@ -1,6 +1,6 @@
-__version__ = '1.2'
+__version__ = '4.1.0.1'
 
 testing = False
-suppress_std_out_err = True
+suppress_std_out_err = False
 
 from .pyrep import PyRep

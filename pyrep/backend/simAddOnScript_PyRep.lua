@@ -1,4 +1,4 @@
--- Additional PyRep functionality. To be placed in the V-REP root directory.
+-- Additional PyRep functionality. To be placed in the CoppeliaSim root directory.
 
 function sysCall_init()
 end
@@ -28,18 +28,6 @@ function sysCall_beforeSimulation()
 end
 
 function sysCall_afterSimulation()
-end
-
-_rotateObject=function(handle,xrot,yrot,zrot)
-    m=sim.getObjectMatrix(handle,-1)
-    axisPos=sim.getObjectPosition(handle,-1)
-    x_axis={m[1],m[5],m[9]}
-    y_axis={m[2],m[6],m[10]}
-    z_axis={m[3],m[7],m[11]}
-    m=sim.rotateAroundAxis(m,z_axis,axisPos,zrot)
-    m=sim.rotateAroundAxis(m,y_axis,axisPos,yrot)
-    m=sim.rotateAroundAxis(m,x_axis,axisPos,xrot)
-    sim.setObjectMatrix(handle,-1,m)
 end
 
 _getConfig=function(jh)
@@ -77,13 +65,6 @@ _sliceFromOffset=function(array, offset)
         sliced[i] = array[i+offset]
     end
     return sliced
-end
-
-_table_concat=function(table1, table2)
-    for i=1,#table2,1 do
-        table1[#table1+1] = table2[i]
-    end
-    return table1
 end
 
 _findPath=function(goalConfigs,cnt,jointHandles,algorithm,collisionPairs)
@@ -224,144 +205,29 @@ _getPoseOnPath=function(pathHandle, relativeDistance)
     return pos, ori
 end
 
-_findSeveralCollisionFreeConfigsAndCheckApproach=function(ikGroup,jointHandles,collisionPairs,trialCnt,maxConfigs)
-    -- Here we search for several robot configurations...
-    -- 1. ..that matches the desired pose (matrix)
-    -- 2. ..that does not collide in that configuration
-    local cc=_getConfig(jointHandles)
-    local l={}
-    local l_and_cs = {}
-    local lowLimits = {}
-    local maxLimits = {}
-
-    for i=1,#jointHandles,1 do
-        jh = jointHandles[i]
-        cyclic, interval = sim.getJointInterval(jh)
-        -- If there are huge intervals, then limit them
-        if interval[1] < -6.28 and interval[2] > 6.28 then
-            pos=sim.getJointPosition(jh)
-            interval[1] = -6.28
-            interval[2] = 6.28
-        end
-        lowLimits[i] = interval[1]
-        maxLimits[i] = interval[2]
-    end
-
-    for i=1,trialCnt,1 do
-        local c = sim.getConfigForTipPose(ikGroup,jointHandles,0.65,10,nil,collisionPairs,nil,lowLimits,maxLimits)
-        if c then
-            local dist=_getConfigDistance(jointHandles,cc,c)
-            local same=false
-            for j=1,#l,1 do
-                if math.abs(l[j]-dist)<0.001 then
-                    -- we might have the exact same config. Avoid that
-                    same=true
-                    for k=1,#jointHandles,1 do
-                        if math.abs(l_and_cs[j][k+1]-c[k])>0.01 then
-                            same=false
-                            break
-                        end
-                    end
-                end
-                if same then
-                    break
-                end
-            end
-            if not same then
-                l_and_cs[#l_and_cs+1] = _table_concat({dist},c)
-                l[#l+1]=dist
-            end
-        end
-        if #l>=maxConfigs then
-            break
-        end
-    end
-    cs = {}
-    if #l_and_cs > 0 then
-        table.sort(l_and_cs, function(x,y) return x[1] < y[1] end)
-
-        for i=1,#l_and_cs,1 do
-            table.remove(l_and_cs[i], 1)
-        end
-        cs = l_and_cs
-    end
-    return cs
-end
-
-_flatten=function(tab)
-    result = {}
-    for _, v in ipairs(tab) do
-        if type(v) == "table" then
-            res = _flatten(v)
-            result = _table_concat(result, res)
-        else
-            table.insert(result, v)
-        end
-    end
-    return result
-end
-
-findSeveralCollisionFreeConfigsAndCheckApproach =function(inInts, inFloats, inStrings, inBuffer)
-    ikGroup = inInts[1]
-    collisionHandle = inInts[2]
-    ignoreCollisions = inInts[3]
-    trialCnt = inInts[4]
-    maxConfigs = inInts[5]
-    jointHandles = _sliceFromOffset(inInts, 5)
-    collisionPairs={collisionHandle, sim.handle_all}
-    if ignoreCollisions==1 then
-        collisionPairs=nil
-    end
-    cs = _findSeveralCollisionFreeConfigsAndCheckApproach(ikGroup,jointHandles,collisionPairs,trialCnt,maxConfigs)
-    return {},_flatten(cs),{},''
-end
-
-getLinearPath=function(inInts,inFloats,inStrings,inBuffer)
-    steps = inInts[1]
-    ikGroup = inInts[2]
-    collisionHandle = inInts[3]
-    ignoreCollisions = inInts[4]
-    jointHandles = _sliceFromOffset(inInts, 4)
-    collisionPairs={collisionHandle, sim.handle_all}
-    if ignoreCollisions==1 then
-        collisionPairs=nil
-    end
-
-    -- Generates (if possible) a linear, collision free path between a robot config and a target pose
-    path = sim.generateIkPath(ikGroup,jointHandles,steps,collisionPairs)
-    if not path then
-        path = {}
-    end
-    return {},path,{},''
-end
-
 getNonlinearPath=function(inInts,inFloats,inStrings,inBuffer)
     algorithm = inStrings[1]
-    ikGroup = inInts[1]
-    collisionHandle = inInts[2]
-    ignoreCollisions = inInts[3]
-    trialCnt = inInts[4]
-    maxConfigs = inInts[5]
-    searchCntPerGoalConfig = inInts[6]
-    jointHandles = _sliceFromOffset(inInts, 6)
+    collisionHandle = inInts[1]
+    ignoreCollisions = inInts[2]
+    searchCntPerGoalConfig = inInts[3]
+    jointHandles = _sliceFromOffset(inInts, 3)
     collisionPairs={collisionHandle, sim.handle_all}
     if ignoreCollisions==1 then
         collisionPairs=nil
     end
 
-    -- Find several configs for pose m, and order them according to the
-    -- distance to current configuration (smaller distance is better).
-    -- In following function we also check for collisions and whether the
-    -- final IK approach is feasable:
-
-    cs = _findSeveralCollisionFreeConfigsAndCheckApproach(ikGroup,jointHandles,collisionPairs,trialCnt,maxConfigs)
-
-    if #cs == 0 then
-        return {},{},{},''
+    local configCnt = #inFloats/#jointHandles
+    goalConfigs = {}
+    for i=1,configCnt,1 do
+        local config={}
+        for j=1,#jointHandles,1 do
+            table.insert(config, inFloats[((i-1) * #jointHandles)+j])
+        end
+        table.insert(goalConfigs, config)
     end
 
     -- Search a path from current config to a goal config.
-    path = _findPath(cs, searchCntPerGoalConfig, jointHandles, algorithm, collisionPairs)
+    path = _findPath(goalConfigs, searchCntPerGoalConfig, jointHandles, algorithm, collisionPairs)
     if path == nil then
         path = {}
     end

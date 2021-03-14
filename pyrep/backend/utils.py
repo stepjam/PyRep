@@ -2,6 +2,7 @@ import os
 import io
 import sys
 from contextlib import contextmanager
+from threading import Lock
 from typing import List, Tuple
 import pyrep
 from pyrep.backend import sim
@@ -15,6 +16,8 @@ from pyrep.objects.force_sensor import ForceSensor
 from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.objects.camera import Camera
 from pyrep.objects.octree import Octree
+
+step_lock = Lock()
 
 
 def to_type(handle: int) -> Object:
