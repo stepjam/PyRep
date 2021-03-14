@@ -1381,6 +1381,32 @@ def simCheckOctreePointOccupancy(octreeHandle, options, points):
         return False
 
 
+def simGetContactInfo(contact_obj_handle, get_contact_normal):
+    index = 0
+    contact_list = []
+    result = 1
+
+    while result > 0:
+        if get_contact_normal:
+            contact = ffi.new('float[9]')
+            ext = sim_handleflag_extended
+        else:
+            contact = ffi.new('float[6]')
+            ext = 0
+
+        object_handles = ffi.new('int[2]')
+        result = lib.simGetContactInfo(sim_handle_all, contact_obj_handle, index + ext, object_handles,
+                                       contact)
+        contact_info = {
+            "contact": list(contact),
+            "contact_handles": list(object_handles)
+        }
+        contact_list.append(contact_info)
+        index += 1
+    contact_list.pop(-1)  # remove the all zero value
+    return contact_list
+
+
 def simGetConfigForTipPose(ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs, metric, collisionPairs, jointOptions, lowLimits, ranges):
     jointCnt = len(jointHandles)
     collisionPairCnt = len(collisionPairs) // 2

@@ -330,6 +330,24 @@ class Object(object):
         """
         self._set_property(sim.sim_objectspecialproperty_collidable, value)
 
+    def get_contact(self, contact_obj=None, get_contact_normal: bool = True) -> List:
+        """Get the contact point and force with other object
+
+        :param contact_obj: The object want to check contact info with, set to None to get contact with all objects
+        :param get_contact_normal: Weather get the force and direction
+        :return: a list of all the contact info
+        """
+        contact_info = sim.simGetContactInfo(self.get_handle(), get_contact_normal)
+        if contact_obj is None:
+            return contact_info
+        else:
+            result = []
+            check_handle = contact_obj.get_handle()
+            for contact in contact_info:
+                if check_handle in contact['contact_handles']:
+                    result.append(contact)
+            return result
+
     def is_measurable(self) -> bool:
         """Whether the object is measurable or not.
 
