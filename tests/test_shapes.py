@@ -124,6 +124,33 @@ class TestShapes(TestCore):
         texture = info.texture[:, :, [2, 1, 0, 3]]  # rgba -> bgra
         visual.apply_texture(info.texture_coords, texture, is_rgba=True)
 
+    def test_decimate_mesh(self):
+        visual = Shape('cracker_box_visual')
+        _, old_indices, _ = visual.get_mesh_data()
+        new_mesh = visual.decimate_mesh(0.2)
+        _, new_indices, _ = new_mesh.get_mesh_data()
+        self.assertLess(len(new_indices), len(old_indices) * 0.3)
+
+    def test_compute_mass_and_inertia(self):
+        before = self.dynamic_cube.get_mass()
+        self.dynamic_cube.compute_mass_and_inertia(2000)
+        after = self.dynamic_cube.get_mass()
+        self.assertNotEqual(before, after)
+
+    def test_add_force(self):
+        before = self.dynamic_cube.get_position()
+        self.dynamic_cube.add_force([0, 0, 0], [100, 100, 100])
+        self.pyrep.step()
+        after = self.dynamic_cube.get_position()
+        self.assertTrue(np.all(before != after))
+
+    def test_add_force_and_torque(self):
+        before = self.dynamic_cube.get_position()
+        self.dynamic_cube.add_force_and_torque([100, 100, 100], [100, 100, 100])
+        self.pyrep.step()
+        after = self.dynamic_cube.get_position()
+        self.assertTrue(np.all(before != after))
+
 
 if __name__ == '__main__':
     unittest.main()

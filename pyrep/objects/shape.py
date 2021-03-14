@@ -261,6 +261,18 @@ class Shape(Object):
         sim.simSetObjectFloatParameter(
             self._handle, sim.sim_shapefloatparam_mass, mass)
 
+    def compute_mass_and_inertia(self, density: float) -> None:
+        """Computes and applies the mass and inertia properties for a
+        convex shape (or convex compound shape), based on a density value.
+
+        :param density: The density expressed in kg/m^3
+        """
+        ret = sim.simComputeMassAndInertia(self._handle, density)
+        if ret == 0:
+            raise ValueError(
+                'The shape must be a convex shape (or convex compound shape)')
+
+
     def get_mesh_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Retrieves a shape's mesh information.
 
@@ -272,6 +284,23 @@ class Shape(Object):
         indices = np.array(indices, dtype=np.int64).reshape(-1, 3)
         normals = np.array(normals, dtype=np.float64).reshape(-1, 3)
         return vertices, indices, normals
+
+    def decimate_mesh(self, percentage: float) -> 'Shape':
+        """Retrieves a shape's mesh information.
+
+        :param percentage: The percentage of the desired decimation (0.1-0.9).
+        :return: A new shape that has a decimated mesh.
+        """
+        if percentage < 0.1 or percentage > 0.9:
+            raise ValueError('percentage param must be between 0.1 and 0.9.')
+        # verts, inds, _ = self.get_mesh_data()
+        verts, inds, _ = sim.simGetShapeMesh(self._handle)
+        new_verts, new_inds = sim.simGetDecimatedMesh(
+            # verts.reshape(-1).tolist(), inds.reshape(-1).tolist(), percentage)
+            verts, inds, percentage)
+        s = Shape.create_mesh(new_verts, new_inds)
+        s.set_matrix(self.get_matrix())
+        return s
 
     def get_convex_decomposition(self, morph=False, same=False, use_vhacd=False,
                                  individual_meshes=False,
@@ -514,6 +543,42 @@ class Shape(Object):
     def reorient_bounding_box(self, relative_to=None) -> None:
         relto = -1 if relative_to is None else relative_to.get_handle()
         sim.simReorientShapeBoundingBox(self._handle, relto)
+
+    def add_force(self, position: np.ndarray, force: np.ndarray,
+                  reset_force_torque: bool = False) -> None:
+        """
+        Adds a non-central force to a shape object that is dynamically enabled.
+        Added forces are cumulative.
+
+        :param position: Relative position where the force should be applied.
+        :param force: The force (in relative coordinates) to add.
+        :param reset_force_torque: Clears the accumulated force and torque.
+        """
+        h = (self._handle | sim.sim_handleflag_resetforcetorque
+             if reset_force_torque else self._handle)
+        sim.simAddForce(h, list(position), list(force))
+
+    def add_force_and_torque(self, force: np.ndarray, torque: np.ndarray,
+                             reset_force: bool = False,
+                             reset_torque: bool = False) -> None:
+        """
+        Adds a force and/or torque to a shape object that is dynamically
+        enabled. Forces are applied at the center of mass.
+        Added forces and torques are cumulative.
+
+        :param force: The force (in absolute coordinates) to add.
+        :param torque: The torque (in absolute coordinates) to add.
+        :param reset_force: Clears the accumulated force.
+        :param reset_torque: Clears the accumulated torque.
+        """
+        h = self._handle
+        if reset_force:
+            h |= sim.sim_handleflag_resetforce
+        if reset_torque:
+            h |= sim.sim_handleflag_resettorque
+        sim.simAddForceAndTorque(h,
+                                 None if force is None else list(force),
+                                 None if torque is None else list(torque))
 
 
 object_type_to_class[ObjectType.SHAPE] = Shape
