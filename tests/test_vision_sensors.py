@@ -38,6 +38,12 @@ class TestVisionSensors(TestCore):
         # Check that it's not a blank depth map
         self.assertFalse(img.min() == img.max() == 1.0)
 
+    def test_capture_pointcloud(self):
+        img = self.cam.capture_pointcloud()
+        self.assertEqual(img.shape, (16, 16, 3))
+        # Check that it's not a blank depth map
+        self.assertFalse(img.min() == img.max() == 1.0)
+
     def test_create(self):
         cam = VisionSensor.create([640, 480],
                                   perspective_mode=True,
@@ -93,6 +99,10 @@ class TestVisionSensors(TestCore):
     def test_get_set_entity_to_render(self):
         self.cam.set_entity_to_render(-1)
         self.assertEqual(self.cam.get_entity_to_render(), -1)
+
+    def test_get_intrinsic_matrix(self):
+        i = self.cam.get_intrinsic_matrix()
+        self.assertEqual(i.shape, (3, 3))
 
 
 if __name__ == '__main__':
