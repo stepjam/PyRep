@@ -467,3 +467,14 @@ class Arm(RobotComponent):
         jacobian, (rows, cols) = sim.simGetIkGroupMatrix(self._ik_group, 0)
         jacobian = np.array(jacobian).reshape((rows, cols), order='F')
         return jacobian
+
+    def check_arm_collision(self, obj: 'Object' = None) -> bool:
+        """Checks whether two entities are colliding.
+
+        :param obj: The other collidable object to check collision against,
+            or None to check against all collidable objects. Note that objects
+            must be marked as collidable!
+        :return: If the object is colliding.
+        """
+        handle = sim.sim_handle_all if obj is None else obj.get_handle()
+        return sim.simCheckCollision(self._collision_collection, handle) == 1
