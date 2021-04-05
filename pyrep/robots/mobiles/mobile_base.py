@@ -130,14 +130,12 @@ class MobileBase(RobotComponent):
         handle_base = self.get_handle()
         handle_target_base = self.target_base.get_handle()
 
-        # Despite verbosity being set to 0, OMPL spits out a lot of text
-        with utils.suppress_std_out_and_err():
-            _, ret_floats, _, _ = utils.script_call(
-                'getNonlinearPathMobile@PyRep', PYREP_SCRIPT_TYPE,
-                ints=[handle_base, handle_target_base,
-                      self._collision_collection,
-                      int(ignore_collisions), path_pts], floats=[boundaries],
-                      strings=[algorithm.value])
+        _, ret_floats, _, _ = utils.script_call(
+            'getNonlinearPathMobile@PyRep', PYREP_SCRIPT_TYPE,
+            ints=[handle_base, handle_target_base,
+                  self._collision_collection,
+                  int(ignore_collisions), path_pts], floats=[boundaries],
+                  strings=[algorithm.value])
 
         # self.set_parent(None)
         # self.base_ref.set_parent(self)
