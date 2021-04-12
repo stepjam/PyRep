@@ -135,33 +135,42 @@ class VisionSensor(Object):
             self._handle, self.resolution, in_meters)
 
     def capture_pointcloud(self) -> np.ndarray:
-        """Retrieves pointcloud in word frame.
+        """Retrieves point cloud in word frame.
 
         :return: A numpy array of size (width, height, 3)
         """
-
-        res = np.array(self.get_resolution())
-
-        intrinsics = self.get_intrinsic_matrix()
         d = self.capture_depth(in_meters=True)
-        upc = _create_uniform_pixel_coords_image(d.shape)
-        pc = upc * np.expand_dims(d, -1)
+        return self.pointcloud_from_depth(d)
 
-        # Get extrinsics
-        C = np.expand_dims(self.get_position(), 0).T
-        R = self.get_matrix()[:-1, :-1]
+    def pointcloud_from_depth(self, depth: np.ndarray) -> np.ndarray:
+        """Converts depth (in meters) to point cloud in word frame.
+
+        :return: A numpy array of size (width, height, 3)
+        """
+        intrinsics = self.get_intrinsic_matrix()
+        return VisionSensor.pointcloud_from_depth_and_camera_params(
+            depth, self.get_matrix(), intrinsics)
+
+    @staticmethod
+    def pointcloud_from_depth_and_camera_params(
+            depth: np.ndarray, extrinsics: np.ndarray,
+            intrinsics: np.ndarray) -> np.ndarray:
+        """Converts depth (in meters) to point cloud in word frame.
+        :return: A numpy array of size (width, height, 3)
+        """
+        upc = _create_uniform_pixel_coords_image(depth.shape)
+        pc = upc * np.expand_dims(depth, -1)
+        C = np.expand_dims(extrinsics[:3, 3], 0).T
+        R = extrinsics[:3, :3]
         R_inv = R.T  # inverse of rot matrix is transpose
         R_inv_C = np.matmul(R_inv, C)
         extrinsics = np.concatenate((R_inv, -R_inv_C), -1)
-
         cam_proj_mat = np.matmul(intrinsics, extrinsics)
         cam_proj_mat_homo = np.concatenate(
             [cam_proj_mat, [np.array([0, 0, 0, 1])]])
         cam_proj_mat_inv = np.linalg.inv(cam_proj_mat_homo)[0:3]
-
         world_coords_homo = np.expand_dims(_pixel_to_world_coords(
             pc, cam_proj_mat_inv), 0)
-
         world_coords = world_coords_homo[..., :-1][0]
         return world_coords
 
