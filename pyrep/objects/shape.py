@@ -272,17 +272,22 @@ class Shape(Object):
             raise ValueError(
                 'The shape must be a convex shape (or convex compound shape)')
 
-
-    def get_mesh_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_mesh_data(self, world_frame=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Retrieves a shape's mesh information.
 
-        :param asnumpy: A flag to cast vertices as numpy array with reshape.
+        :param world_frame: Whether to represent the mesh in the world frame.
         :return: A tuple containing a list of vertices, indices, and normals.
         """
         vertices, indices, normals = sim.simGetShapeMesh(self._handle)
         vertices = np.array(vertices, dtype=np.float64).reshape(-1, 3)
         indices = np.array(indices, dtype=np.int64).reshape(-1, 3)
         normals = np.array(normals, dtype=np.float64).reshape(-1, 3)
+        if world_frame:
+            inv_ext_mat_homo = self.get_matrix()
+            rot_mat = inv_ext_mat_homo[0:3, 0:3]
+            trans = inv_ext_mat_homo[0:3, -1]
+            vertices = np.transpose(np.matmul(rot_mat, np.transpose(vertices, (1, 0))), (1, 0)) + trans
+            normals = np.transpose(np.matmul(rot_mat, np.transpose(normals, (1, 0))), (1, 0))
         return vertices, indices, normals
 
     def decimate_mesh(self, percentage: float) -> 'Shape':
