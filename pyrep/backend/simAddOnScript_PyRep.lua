@@ -108,11 +108,29 @@ _findPath=function(goalConfigs,cnt,jointHandles,algorithm,collisionPairs)
     for i=1,cnt,1 do
         search_time = 4
         local res,_path=simOMPL.compute(task,search_time,-1,300)
+
+        -- Path can sometimes touch on invalid state during simplifying
         if res and _path then
-            local _l=_getPathLength(_path, jointHandles)
-            if _l<l then
-                l=_l
-                path=_path
+            local is_valid=true
+            local jhl=#jointHandles
+            local pc=#_path/jhl
+            for i=1,pc-1,1 do
+                local config={}
+                for j=1,jhl,1 do
+                    config[j]=_path[(i-1)*jhl+j]
+                end
+                is_valid=simOMPL.isStateValid(task, config)
+                if not is_valid then
+                    break
+                end
+            end
+
+            if is_valid then
+                local _l=_getPathLength(_path, jointHandles)
+                if _l<l then
+                    l=_l
+                    path=_path
+                end
             end
         end
     end
