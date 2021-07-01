@@ -5,14 +5,14 @@ __PyRep is a toolkit for robot learning research, built on top of [CoppeliaSim](
 
 
 - [Install](#install)
+- [Running Headless](#running-headless)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
 - [Supported Robots](#supported-robots)
 - [Adding Robots](#adding-robots)
-- [Planned Future Updates](#planned-future-updates)
 - [Contributing](#contributing)
 - [Projects Using PyRep](#projects-using-pyrep)
-- [What Happened to V-REP?](#what-happened-to-v-rep?)
+- [What Happened to V-REP?](#what-happened-to-v-rep)
 - [Citation](#citation)
 
 
@@ -53,17 +53,6 @@ Try running one of the examples in the *examples/* folder.
 
 _Although you can use CoppeliaSim on any platform, communication via PyRep is currently only supported on Linux._
 
-#### Running Headless
-
-If you plan to run on a headless machine, you will also need to run with a virtual framebuffer. E.g.
-
-```bash
-sudo apt-get install xvfb
-xvfb-run python3 my_pyrep_app.py
-# or if you are using jupyter
-# xvfb-run jupyter notebook
-```
-
 #### Troubleshooting
 
 Below are some problems you may encounter during installation. If none of these solve your problem, please raise an issue.
@@ -72,6 +61,32 @@ Below are some problems you may encounter during installation. If none of these 
   - If you are getting this error, then please check that you are not running the interpreter from the project root. If you are, then your Python interpreter will try to import those files rather the installed files.
 - error: command 'x86_64-linux-gnu-gcc' failed
   - You may be missing packages needed for building python extensions. Try: `sudo apt-get install python3-dev`, and then re-run the installation.
+
+## Running Headless
+
+You can run PyRep/CoppeliaSim headlessly with VirtualGL. VirtualGL is an open source toolkit that gives any Unix or Linux remote display software the ability to run OpenGL applications **with full 3D hardware acceleration**.
+First insure that you have the nVidia proprietary driver installed. I.e. you should get an output when running `nvidia-smi`. Now run the following commands:
+```bash
+sudo apt-get install xorg libxcb-randr0-dev libxrender-dev libxkbcommon-dev libxkbcommon-x11-0 libavcodec-dev libavformat-dev libswscale-dev
+sudo nvidia-xconfig -a --use-display-device=None --virtual=1280x1024
+# Install VirtualGL
+wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O virtualgl_2.5.2_amd64.deb
+sudo dpkg -i virtualgl*.deb
+rm virtualgl*.deb
+```
+You will now need to reboot, and then start the X server:
+```bash
+sudo reboot
+nohup sudo X &
+```
+Now we are good to go! To render the application with the first GPU, you can do the following:
+```bash
+export DISPLAY=:0.0
+python my_pyrep_app.py
+```
+To render with the second GPU, you will insetad set display as: `export DISPLAY=:0.1`, and so on.
+
+**Acknowledgement**: Special thanks to Boyuan Chen (UC Berkeley) for bringing VirtualGL to my attention!
 
 ## Getting Started
 
@@ -227,11 +242,6 @@ If the robot you want is not currently supported, then why not add it in!
 
 [Here is a tutorial for adding robots.](tutorials/adding_robots.md)
 
-## Planned Future Updates
-
-- Support for MuJoCo
-- Sim-to-Real support (e.g. domain randomization)
-
 ## Contributing
 
 We want to make PyRep the best tool for rapid robot learning research. If you would like to get involved, then please [get in contact](https://www.doc.ic.ac.uk/~slj12/)!
@@ -251,6 +261,7 @@ If you use PyRep in your work, then get in contact and we can add you to the lis
 ## Acknowledgements
 
 - Georges Nomicos (Imperial College London) for the addition of mobile platforms.
+- Boyuan Chen (UC Berkeley) for bringing VirtualGL to my attention.
 
 ## What Happened to V-REP?
 
