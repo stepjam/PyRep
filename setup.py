@@ -1,4 +1,5 @@
 import codecs
+import os
 import os.path
 from os.path import join
 
@@ -20,6 +21,17 @@ def get_version(rel_path):
             return line.split(delim)[1]
     else:
         raise RuntimeError("Unable to find version string.")
+
+
+# Temp fix for CoppeliaSim 4.1
+if 'COPPELIASIM_ROOT' not in os.environ:
+    raise RuntimeError('COPPELIASIM_ROOT not defined.')
+with open(os.path.join(os.environ['COPPELIASIM_ROOT'], 'system', 'usrset.txt'), 'r') as f:
+    usrset = f.read()
+
+if 'allowOldEduRelease' not in usrset:
+    with open(os.path.join(os.environ['COPPELIASIM_ROOT'], 'system', 'usrset.txt'), 'a') as f:
+        f.write('\nallowOldEduRelease=7501\n')
 
 
 setup(name='PyRep',
