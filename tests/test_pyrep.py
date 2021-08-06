@@ -98,7 +98,7 @@ class TestPyrep(TestCore):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             objects = self.pyrep.get_objects_in_tree()
-            self.assertNotEqual(len(w), 0)
+            self.assertEqual(len(w), 0)
         for obj in objects:
             self.assertIsInstance(obj, Object)
 

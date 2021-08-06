@@ -661,7 +661,6 @@ class Object(object):
             try:
                 objects.append(Object.get_object(handle))
             except KeyError:
-                # e.g., CAMERA and LIGHT are not officially supported
                 name = Object.get_object_name(handle)
                 type = Object.get_object_type(name)
                 warnings.warn(

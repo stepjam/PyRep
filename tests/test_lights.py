@@ -20,9 +20,9 @@ class TestLights(TestCore):
     def test_turn_on_and_off(self):
         for light in self.lights:
             light.turn_on()
-            assert light.is_on()
+            self.assertTrue(light.is_on())
             light.turn_off()
-            assert light.is_off()
+            self.assertTrue(light.is_off())
 
     # light color
 
@@ -31,18 +31,18 @@ class TestLights(TestCore):
             orig_diffuse = light.get_diffuse()
             new_diffuse = np.array([0.2, 0.5, 0.9])
             light.set_diffuse(new_diffuse)
-            assert np.allclose(light.get_diffuse(), new_diffuse)
+            self.assertTrue(np.allclose(light.get_diffuse(), new_diffuse))
             light.set_diffuse(orig_diffuse)
-            assert np.allclose(light.get_diffuse(), orig_diffuse)
+            self.assertTrue(np.allclose(light.get_diffuse(), orig_diffuse))
 
     def test_get_set_light_specular(self):
         for light in self.lights:
             orig_specular = light.get_specular()
             new_specular = np.array([0.2, 0.5, 0.9])
             light.set_specular(new_specular)
-            assert np.allclose(light.get_specular(), new_specular)
+            self.assertTrue(np.allclose(light.get_specular(), new_specular))
             light.set_specular(orig_specular)
-            assert np.allclose(light.get_specular(), orig_specular)
+            self.assertTrue(np.allclose(light.get_specular(), orig_specular))
 
     # light intensity properties
 
@@ -51,27 +51,27 @@ class TestLights(TestCore):
             orig = light.get_intensity_properties()[0]
             new = not orig
             light.set_intensity_properties(cast_shadows=new)
-            assert light.get_intensity_properties()[0] is new
+            self.assertTrue(light.get_intensity_properties()[0] is new)
             light.set_intensity_properties(cast_shadows=orig)
-            assert np.allclose(light.get_intensity_properties()[0], orig)
+            self.assertTrue(np.allclose(light.get_intensity_properties()[0], orig))
 
     def test_get_set_spot_exponent(self):
         for light in self.lights:
             orig = light.get_intensity_properties()[1]
             new = orig + 2
             light.set_intensity_properties(spot_exponent=new)
-            assert light.get_intensity_properties()[1] == new
+            self.assertEqual(light.get_intensity_properties()[1], new)
             light.set_intensity_properties(spot_exponent=orig)
-            assert light.get_intensity_properties()[1] == orig
+            self.assertEqual(light.get_intensity_properties()[1], orig)
 
     def test_get_set_spot_cutoff(self):
         for light in self.lights:
             orig = light.get_intensity_properties()[2]
             new = orig - 0.5
             light.set_intensity_properties(spot_cutoff=new)
-            assert light.get_intensity_properties()[2] == new
+            self.assertEqual(light.get_intensity_properties()[2], new)
             light.set_intensity_properties(spot_cutoff=orig)
-            assert light.get_intensity_properties()[2] == orig
+            self.assertEqual(light.get_intensity_properties()[2], orig)
 
     # ToDo: re-add these tests once attenuation factor setting is supported in CoppeliaSim.
     #  setObjectFloatParams() does not change the properties of the light even with in-scene lua code.
