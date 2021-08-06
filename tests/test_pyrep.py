@@ -95,10 +95,7 @@ class TestPyrep(TestCore):
                          plane.get_texture().get_texture_id())
 
     def test_get_objects_in_tree(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
-            objects = self.pyrep.get_objects_in_tree()
-            self.assertEqual(len(w), 0)
+        objects = self.pyrep.get_objects_in_tree()
         for obj in objects:
             self.assertIsInstance(obj, Object)
 
