@@ -1474,6 +1474,21 @@ def simAddForce(shapeHandle, position, force):
 
 def simAddForceAndTorque(shapeHandle, force, torque):
     ret = lib.simAddForceAndTorque(shapeHandle,
-                          ffi.NULL if force is None else force,
-                          ffi.NULL if torque is None else torque)
+                                   ffi.NULL if force is None else force,
+                                   ffi.NULL if torque is None else torque)
     _check_return(ret)
+
+
+def simSetLightParameters(shapeHandle, state, diffusePart=None, specularPart=None):
+    ret = lib.simSetLightParameters(shapeHandle, state, ffi.NULL,
+                                    ffi.NULL if diffusePart is None else diffusePart,
+                                    ffi.NULL if specularPart is None else specularPart)
+    _check_return(ret)
+
+
+def simGetLightParameters(shapeHandle):
+    diffusePart = ffi.new('float[3]')
+    specularPart = ffi.new('float[3]')
+    ret = lib.simGetLightParameters(shapeHandle, ffi.NULL, diffusePart, specularPart)
+    _check_return(ret)
+    return ret, list(diffusePart), list(specularPart)
