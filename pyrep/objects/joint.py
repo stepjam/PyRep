@@ -65,11 +65,11 @@ class Joint(Object):
         sim.simSetJointPosition(self._handle, position)
         self.set_joint_target_position(position)
 
+        with utils.step_lock:
+            sim.simExtStep(True)  # Have to step for changes to take effect
         # Re-enable the dynamics
         sim.simSetModelProperty(self._handle, prior)
         self.set_model(is_model)
-        with utils.step_lock:
-            sim.simExtStep(True)  # Have to step for changes to take effect
 
     def get_joint_target_position(self) -> float:
         """Retrieves the target position of a joint.
