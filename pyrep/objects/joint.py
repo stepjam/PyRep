@@ -44,7 +44,7 @@ class Joint(Object):
             when the joint mode is in Force mode. It will disable dynamics,
             move the joint, and then re-enable dynamics.
 
-        :param positions: A list of positions of the joints (angular or linear
+        :param position: Position of a joint (angular or linear
             values depending on the joint type).
         """
         if not disable_dynamics:
