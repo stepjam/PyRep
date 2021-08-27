@@ -109,12 +109,11 @@ class RobotComponent(Object):
          for jh, p in zip(self._joint_handles, positions)]
         [j.set_joint_target_position(p)  # type: ignore
          for j, p in zip(self.joints, positions)]
-
+        with utils.step_lock:
+            sim.simExtStep(True)  # Have to step for changes to take effect
         # Re-enable the dynamics
         sim.simSetModelProperty(self._handle, prior)
         self.set_model(is_model)
-        with utils.step_lock:
-            sim.simExtStep(True)  # Have to step for changes to take effect
 
     def get_joint_target_positions(self) -> List[float]:
         """Retrieves the target positions of the joints.
