@@ -59,11 +59,11 @@ class ArmConfigurationPath(ConfigurationPath):
         self._arm.set_joint_positions(start_config)
         self._path_done = False
 
-    def set_to_end(self) -> None:
+    def set_to_end(self, disable_dynamics=False) -> None:
         """Sets the arm to the end of this path.
         """
         final_config = self._path_points[-len(self._arm.joints):]
-        self._arm.set_joint_positions(final_config)
+        self._arm.set_joint_positions(final_config, disable_dynamics=disable_dynamics)
 
     def visualize(self) -> None:
         """Draws a visualization of the path in the scene.
