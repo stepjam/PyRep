@@ -38,6 +38,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COPPELIASIM_ROOT
 export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
 ```
 
+For Mac
+export COPPELIASIM_ROOT=/Applications/coppeliaSim.app/Contents/Resources/
+
 __Remember to source your bashrc (`source ~/.bashrc`) or 
 zshrc (`source ~/.zshrc`) after this.
 
