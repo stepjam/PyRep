@@ -1,5 +1,5 @@
 import unittest
-from tests.core import TestCore
+from core import TestCore
 from pyrep import PyRep
 from pyrep.objects.cartesian_path import CartesianPath
 from pyrep.objects.dummy import Dummy
@@ -18,6 +18,7 @@ from pyrep.robots.arms.ur3 import UR3
 from pyrep.robots.arms.ur5 import UR5
 from pyrep.robots.arms.ur10 import UR10
 from pyrep.robots.arms.dobot import Dobot
+from pyrep.robots.arms.icub import ICUB
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
 
@@ -35,6 +36,7 @@ ARMS = [
     ('UR5', UR5),
     ('UR10', UR10),
     ('Dobot', Dobot),
+    ('ICUB', ICUB),
 ]
 
 
