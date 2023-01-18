@@ -23,14 +23,7 @@ PyRep requires version **4.1** of CoppeliaSim. Download:
 - [Ubuntu 18.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04.tar.xz)
 - [Ubuntu 20.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz)
 
-Once you have downloaded CoppeliaSim, you can pull PyRep from git:
-
-```bash
-git clone https://github.com/stepjam/PyRep.git
-cd PyRep
-```
-
-Add the following to your *~/.bashrc* file: (__NOTE__: the 'EDIT ME' in the first line)
+Once you have downloaded CoppeliaSim, make sure you addd the following to your *~/.bashrc* file: (__NOTE__: the 'EDIT ME' in the first line)
 
 ```bash
 export COPPELIASIM_ROOT=EDIT/ME/PATH/TO/COPPELIASIM/INSTALL/DIR
@@ -41,9 +34,16 @@ export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
 __Remember to source your bashrc (`source ~/.bashrc`) or 
 zshrc (`source ~/.zshrc`) after this.
 
-Finally install the python library:
+You can directly install via pip
+```bash
+pip install git+https://github.com/stepjam/PyRep.git
+```
+
+Alternatively, you can pull PyRep from git then install
 
 ```bash
+git clone https://github.com/stepjam/PyRep.git
+cd PyRep
 pip3 install -r requirements.txt
 pip3 install .
 ```
