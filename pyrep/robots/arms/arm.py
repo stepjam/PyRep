@@ -33,7 +33,9 @@ class Arm(RobotComponent):
         suffix = '' if count == 0 else '#%d' % (count - 1)
         self._ik_target = Dummy('%s_target%s' % (name, suffix))
         self._ik_tip = Dummy('%s_tip%s' % (name, suffix))
-        self._ik_group = sim.simGetIkGroupHandle('%s_ik%s' % (name, suffix))
+        # self._ik_group = sim.simGetIkGroupHandle('%s_ik%s' % (name, suffix))
+        self._ik_env, self._ik_group, self._ik_joints = sim.simGetIkAndEnv('%s_ik%s' % (name, suffix))
+
         self._collision_collection = sim.simGetCollectionHandle(
             '%s_arm%s' % (name, suffix))
 
@@ -143,8 +145,8 @@ class Arm(RobotComponent):
         metric = joint_options = None
         valid_joint_positions = []
         for i in range(trials):
-            config = sim.simGetConfigForTipPose(
-                self._ik_group, handles, distance_threshold, int(max_time_ms),
+            config = sim.simGetConfigForTipPose(self._ik_env,
+                self._ik_group, self._ik_joints, distance_threshold, int(max_time_ms),
                 metric, collision_pairs, joint_options, low_limits, max_limits)
             if len(config) > 0:
                 valid_joint_positions.append(config)
@@ -226,8 +228,8 @@ class Arm(RobotComponent):
         elif quaternion is not None:
             self._ik_target.set_quaternion(quaternion, relative_to)
 
-        ik_result, joint_values = sim.simCheckIkGroup(
-            self._ik_group, [j.get_handle() for j in self.joints])
+        ik_result, joint_values = sim.simCheckIkGroup(self._ik_env,
+            self._ik_group, self._ik_joints)
         if ik_result == sim.sim_ikresult_fail:
             raise IKError('IK failed. Perhaps the distance was between the tip '
                           ' and target was too large.')

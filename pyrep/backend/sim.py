@@ -13,7 +13,6 @@ client = RemoteAPIClient()
 try:
     sim =  client.getObject('sim')
     simIK = client.getObject('simIK')
-    ikEnv = simIK.createEnvironment()
     lib=sim
     client.setStepping(True)
     sim.stopSimulation()
@@ -127,6 +126,7 @@ def simQuitSimulator(doNotDisplayMessages):
 
 def simGetObjectHandle(objectName):
     # handle = sim.getObjectHandle(objectName.encode('ascii'))
+    #add / to name
     handle = sim.getObjectHandle(objectName.encode('ascii'))
     if handle < 0:
         raise RuntimeError('Handle %s does not exist.' % objectName)
@@ -139,6 +139,12 @@ def simGetIkGroupHandle(ikGroupName):
         raise RuntimeError('Ik group does not exist.')
     return handle
 
+def simGetIkAndEnv(ikGroupName):
+    # this should be arm specific not in sim
+    ik_target_handle = sim.getObject("/"+ikGroupName.replace("_ik","/IK"))
+    scriptHandle = sim.getScript(sim.scripttype_childscript, ik_target_handle)
+    ikEnv, ikGroup, ikJoints = sim.callScriptFunction('getEnvAndGroup', scriptHandle)
+    return ikEnv, ikGroup, ikJoints
 
 def simSetIkElementProperties(ikGroupHandle, tipDummyHandle, constraints,
                               precision=None, weight=None):
@@ -881,11 +887,12 @@ def simHandleIkGroup(ikGroupHandle):
     return ret
 
 
-def simCheckIkGroup(ikGroupHandle, jointHandles):
-    ret,jointValues = sim.checkIkGroup(
-        ikGroupHandle , jointHandles)
-    _check_return(ret)
-    return ret, jointValues
+def simCheckIkGroup(environmentHandle, ikGroupHandle, jointHandles):
+    jointPositions = simIK.findConfig(
+        environmentHandle,
+        ikGroupHandle,
+        jointHandles)
+    return 1, jointPositions
 
 
 def simComputeJacobian(ikGroupHandle, options):
@@ -1120,19 +1127,19 @@ def simGetContactInfo(contact_obj_handle, get_contact_normal):
     return contact_list
 
 
-def simGetConfigForTipPose(ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs, metric, collisionPairs, jointOptions, lowLimits, ranges):
-   
-    jointPositions = sim.getConfigForTipPose(
-        ikGroupHandle,
-        jointHandles,
-        thresholdDist,
-        maxTimeInMs,
-        [1,1,1,0.1],
-        collisionPairs ,
-        jointOptions ,
-        lowLimits  ,
-        ranges  )
-    #jointPositions = simIK.findConfig(ikEnv,  ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs / 1000, metric)
+def simGetConfigForTipPose(ikEnv, ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs, metric, collisionPairs, jointOptions, lowLimits, ranges):
+
+    # jointPositions = sim.getConfigForTipPose(
+    #     ikGroupHandle,
+    #     jointHandles,
+    #     thresholdDist,
+    #     maxTimeInMs,
+    #     [1,1,1,0.1],
+    #     collisionPairs ,
+    #     jointOptions ,
+    #     lowLimits  ,
+    #     ranges  )
+    jointPositions = simIK.findConfig(ikEnv,  ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs / 1000, [1, 1, 1, 0.1])
     # ignoring collisions
     # metric = [1, 1, 1, 0.1]
     return jointPositions
