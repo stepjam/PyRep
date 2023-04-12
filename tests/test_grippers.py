@@ -9,6 +9,7 @@ from pyrep.robots.end_effectors.panda_gripper import PandaGripper
 from pyrep.robots.end_effectors.mico_gripper import MicoGripper
 from pyrep.robots.end_effectors.jaco_gripper import JacoGripper
 from pyrep.robots.end_effectors.baxter_gripper import BaxterGripper
+from pyrep.robots.end_effectors.xarm_gripper import XArmGripper
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
 
@@ -18,6 +19,7 @@ GRIPPERS = [
     ('MicoGripper', MicoGripper, 0.2),
     ('JacoGripper', JacoGripper, 0.2),
     ('Robotiq85Gripper', Robotiq85Gripper, 0.04),
+    ('XArmGripper', XArmGripper, 0.04),
 ]
 
 
