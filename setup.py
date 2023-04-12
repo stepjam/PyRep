@@ -27,7 +27,7 @@ def get_version(rel_path):
 if 'COPPELIASIM_ROOT' not in os.environ:
     raise RuntimeError('COPPELIASIM_ROOT not defined.')
 
-usrset_file = os.path.join(os.environ['COPPELIASIM_ROOT'], 'system', 'usrset.txt')
+usrset_file = os.path.join(os.environ['COPPELIASIM_ROOT_MACOS'],'system', 'usrset.txt')
 usrset = ''
 if os.path.isfile(usrset_file):
     with open(usrset_file, 'r') as f:

@@ -67,9 +67,11 @@ class Shape(Object):
         if static:
             options |= 16
 
-        handle = sim.simCreatePureShape(type.value, options, size, mass, None)
+        handle = sim.simCreatePureShape(type.value, options, size)
         ob = Shape(handle)
         ob.set_renderable(renderable)
+        if mass is not None:
+            ob.set_mass(mass)
         if position is not None:
             ob.set_position(position)
         if orientation is not None:

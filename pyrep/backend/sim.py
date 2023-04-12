@@ -1,7 +1,26 @@
+import time
+
+from func_timeout import func_timeout
+import cffi
+
 from .simConst import *
-from ._sim_cffi import ffi, lib
 import numpy as np
 import collections
+from zmqRemoteApi import RemoteAPIClient
+
+lib = None
+client = RemoteAPIClient()
+try:
+    sim =  client.getObject('sim')
+    lib=sim
+    client.setStepping(True)
+    sim.stopSimulation()
+    while sim.getSimulationState() != sim.simulation_stopped:
+        time.sleep(0.1)
+    sim.startSimulation()
+    client.step()
+except:
+    raise IOError("Failed to connect to Coppeliasim, either open it or set setup.use_coppelia_sim to false")
 
 
 SShapeVizInfo = collections.namedtuple(
@@ -29,7 +48,7 @@ def _check_return(ret):
 
 
 def _check_null_return(val):
-    if val == ffi.NULL:
+    if val == None:
         raise RuntimeError(
             'The call failed on the V-REP side by returning null.')
 
@@ -43,25 +62,30 @@ def _check_set_object_parameter(ret):
 
 
 def simExtLaunchUIThread(options, scene, pyrep_root):
-    lib.simExtLaunchUIThread(
-        'PyRep'.encode('ascii'), options, scene.encode('ascii'),
-        pyrep_root.encode('ascii'))
+    sim.loadScene(scene )
+    # lib.simExtLaunchUIThread(
+    #     'PyRep'.encode('ascii'), options, scene.encode('ascii'),
+    #     pyrep_root.encode('ascii'))
 
 
 def simExtSimThreadInit():
-    lib.simExtSimThreadInit()
-
+    # lib.simExtSimThreadInit()
+    pass
 
 def simExtCanInitSimThread():
-    return bool(lib.simExtCanInitSimThread())
+
+    # return bool(lib.simExtCanInitSimThread())
+    return bool(True)
 
 
 def simExtSimThreadDestroy():
-    lib.simExtSimThreadDestroy()
+    pass
+    # lib.simExtSimThreadDestroy()
 
 
 def simExtPostExitRequest():
-    lib.simExtPostExitRequest()
+    pass
+    # lib.simExtPostExitRequest()
 
 
 def simExtGetExitRequest():
@@ -69,34 +93,38 @@ def simExtGetExitRequest():
 
 
 def simExtStep(stepIfRunning=True):
-    lib.simExtStep(stepIfRunning)
+    client.step()
+    #lib.simExtStep(stepIfRunning)
 
 
 def simStartSimulation():
-    lib.simStartSimulation()
+    #lib.simStartSimulation()
+    sim.startSimulation()
 
 
 def simStopSimulation():
-    lib.simStopSimulation()
+    sim.stopSimulation()
 
 
 def simPauseSimulation():
-    return lib.simPauseSimulation()
+    return sim.pauseSimulation()
 
 
 def simQuitSimulator(doNotDisplayMessages):
-    lib.simQuitSimulator(doNotDisplayMessages)
+    pass
+    # lib.simQuitSimulator(doNotDisplayMessages)
 
 
 def simGetObjectHandle(objectName):
-    handle = lib.simGetObjectHandle(objectName.encode('ascii'))
+    # handle = sim.getObjectHandle(objectName.encode('ascii'))
+    handle = sim.getObjectHandle(objectName.encode('ascii'))
     if handle < 0:
         raise RuntimeError('Handle %s does not exist.' % objectName)
     return handle
 
 
 def simGetIkGroupHandle(ikGroupName):
-    handle = lib.simGetIkGroupHandle(ikGroupName.encode('ascii'))
+    handle = sim.getIkGroupHandle(ikGroupName.encode('ascii'))
     if handle <= 0:
         raise RuntimeError('Ik group does not exist.')
     return handle
@@ -105,126 +133,100 @@ def simGetIkGroupHandle(ikGroupName):
 def simSetIkElementProperties(ikGroupHandle, tipDummyHandle, constraints,
                               precision=None, weight=None):
     if precision is None:
-        precision = ffi.NULL
+        precision = None
     if weight is None:
-        weight = ffi.NULL
-    reserved = ffi.NULL
-    ret = lib.simSetIkElementProperties(
+        weight = None
+    reserved = None
+    ret = sim.setIkElementProperties(
         ikGroupHandle, tipDummyHandle, constraints, precision, weight, reserved)
     _check_return(ret)
     return ret
 
 
 def simSetIkGroupProperties(ikGroupHandle, resolutionMethod, maxIterations, damping):
-    reserved = ffi.NULL
-    ret = lib.simSetIkGroupProperties(
+    reserved = None
+    ret = sim.setIkGroupProperties(
         ikGroupHandle, resolutionMethod, maxIterations, damping, reserved)
     _check_return(ret)
     return ret
 
 
 def simGetObjectPosition(objectHandle, relativeToObjectHandle):
-    position = ffi.new('float[3]')
-    lib.simGetObjectPosition(objectHandle, relativeToObjectHandle, position)
+
+    position = sim.getObjectPosition(objectHandle, relativeToObjectHandle)
     return list(position)
 
 
 def simGetJointPosition(jointHandle):
-    position = ffi.new('float *')
-    lib.simGetJointPosition(jointHandle, position)
-    return position[0]
+    return sim.getJointPosition(jointHandle)
+
 
 
 def simSetJointPosition(jointHandle, position):
-    lib.simSetJointPosition(jointHandle, position)
+    sim.setJointPosition(jointHandle, position)
 
 
 def simGetJointMatrix(jointHandle):
-    matrix = ffi.new('float[12]')
-    lib.simGetJointMatrix(jointHandle, matrix)
-    return list(matrix)
+    return sim.getJointMatrix(jointHandle)
 
 
 def simSetSphericalJointMatrix(jointHandle, matrix):
-    lib.simSetSphericalJointMatrix(jointHandle, matrix)
+    sim.setSphericalJointMatrix(jointHandle, matrix)
 
 
 def simGetJointTargetVelocity(jointHandle):
-    vel = ffi.new('float *')
-    lib.simGetJointTargetVelocity(jointHandle, vel)
-    return vel[0]
+    return sim.getJointTargetVelocity(jointHandle)
 
 
 def simSetJointTargetVelocity(jointHandle, targetVelocity):
-    lib.simSetJointTargetVelocity(jointHandle, targetVelocity)
+    sim.setJointTargetVelocity(jointHandle, targetVelocity)
 
 
 def simGetJointTargetPosition(jointHandle):
-    position = ffi.new('float *')
-    lib.simGetJointTargetPosition(jointHandle, position)
-    return position[0]
+    return sim.getJointTargetPosition(jointHandle)
 
 
 def simSetJointTargetPosition(jointHandle, targetPosition):
-    lib.simSetJointTargetPosition(jointHandle, targetPosition)
+    sim.setJointTargetPosition(jointHandle, targetPosition)
 
 
 def simGetJointForce(jointHandle):
-    force = ffi.new('float *')
-    ret = lib.simGetJointForce(jointHandle, force)
-    _check_return(ret)
-    if ret == 0:
-        raise RuntimeError('No value available yet.')
-    return force[0]
-
+    return sim.getJointForce(jointHandle)
 
 def simSetJointForce(jointHandle, force):
-    lib.simSetJointForce(jointHandle, force)
+    sim.setJointForce(jointHandle, force)
 
 
 def simGetJointMaxForce(jointHandle):
-    force = ffi.new('float *')
-    ret = lib.simGetJointMaxForce(jointHandle, force)
-    _check_return(ret)
-    if ret == 0:
-        raise RuntimeError('No value available yet.')
-    return force[0]
+    return sim.getJointMaxForce(jointHandle)
 
 
 def simSetJointMaxForce(jointHandle, force):
-    lib.simSetJointMaxForce(jointHandle, force)
+    sim.setJointMaxForce(jointHandle, force)
 
 
 def simGetJointInterval(jointHandle):
-    cyclic = ffi.new('char *')
-    interval = ffi.new('float [2]')
-    ret = lib.simGetJointInterval(jointHandle, cyclic, interval)
-    _check_return(ret)
-    return ffi.string(cyclic).decode('utf-8') != '', list(interval)
+    cyclic,interval  = sim.getJointInterval(jointHandle)
+    return cyclic, interval
 
 
 def simSetJointInterval(jointHandle, cyclic, interval):
-    ret = lib.simSetJointInterval(jointHandle, cyclic, interval)
-    _check_return(ret)
+    sim.setJointInterval(jointHandle, cyclic, interval)
+
 
 
 def simCreateForceSensor(options, intParams, floatParams, color):
-    if color is None:
-        color = ffi.NULL
-    handle = lib.simCreateForceSensor(options, intParams, floatParams, color)
+    handle = sim.createForceSensor(options, intParams, floatParams, color)
     _check_return(handle)
     return handle
 
 
 def simBreakForceSensor(forceSensorHandle):
-    lib.simBreakForceSensor(forceSensorHandle)
-
+    sim.breakForceSensor(forceSensorHandle)
 
 def simReadForceSensor(forceSensorHandle):
-    forceVector  = ffi.new('float[3]')
-    torqueVector = ffi.new('float[3]')
-    state = lib.simReadForceSensor(forceSensorHandle, forceVector, torqueVector)
-    return state, list(forceVector), list(torqueVector)
+    state, forceVector, torqueVector = lib.simReadForceSensor(forceSensorHandle)
+    return state, forceVector ,  torqueVector
 
 
 def simReleaseBuffer(pointer):
@@ -232,112 +234,74 @@ def simReleaseBuffer(pointer):
 
 
 def simCreateVisionSensor(options, intParams, floatParams, color):
-    if color is None:
-        color = ffi.NULL
+
     ret = lib.simCreateVisionSensor(options, intParams, floatParams, color)
     _check_return(ret)
     return ret
 
 
 def simHandleVisionSensor(sensorHandle):
-    auxValues = ffi.new('float **')
-    auxValuesCount = ffi.new('int **')
-    ret = lib.simHandleVisionSensor(
-        sensorHandle, auxValues, auxValuesCount)
-    _check_return(ret)
-
-    k1 = 0
-    outAuxValues = []
-    for i in range(auxValuesCount[0][0]):
-        k2 = k1 + auxValuesCount[0][i + 1]
-        outAuxValues.extend([x for x in auxValues[0][k1:k2]])
-
-    simReleaseBuffer(ffi.cast('char *', auxValues[0]))
-    simReleaseBuffer(ffi.cast('char *', auxValuesCount[0]))
-    return ret, outAuxValues
+    count,auxValues,_ = lib.simHandleVisionSensor(
+        sensorHandle )
+    return 1, auxValues
 
 
 def simReadVisionSensor(sensorHandle):
-    auxValues = ffi.new('float **')
-    auxValuesCount = ffi.new('int **')
-    state = lib.simReadVisionSensor(sensorHandle, auxValues, auxValuesCount)
-    auxValues2 = []
-    if state == 0:
-        s = 0
-        for i in range(auxValuesCount[0]):
-            auxValues2.append(auxValues[s:s+auxValuesCount[i+1]])
-            s += auxValuesCount[i+1]
-        #free C buffers
-        simReleaseBuffer(auxValues)
-        simReleaseBuffer(auxValuesCount)
-    return state, auxValues2
+    res, auxValues,_ = lib.simReadVisionSensor(sensorHandle)
+    return res, auxValues
 
 
 def simGetVisionSensorImage(sensorHandle, resolution):
-    img_buffer = lib.simGetVisionSensorImage(sensorHandle)
-    T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
-    s = ffi.sizeof(T)  # datatype size
-    np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
-    # Wrap the buffer with numpy.
-    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*3*s), np_T)
+    img, resX, resY = sim.getVisionSensorCharImage(sensorHandle)
+    img = np.frombuffer(img, dtype=np.uint8).reshape(resY, resX, 3)
     img = img.reshape(resolution[1], resolution[0], 3)
     img = np.flip(img, 0).copy()  # Image is upside-down
-    simReleaseBuffer(ffi.cast('char *', img_buffer))
     return img
 
 
 def simGetVisionSensorDepthBuffer(sensorHandle, resolution, in_meters):
-    if in_meters:
-        sensorHandle += sim_handleflag_depthbuffermeters
-    img_buffer = lib.simGetVisionSensorDepthBuffer(sensorHandle)
-    T = ffi.getctype(ffi.typeof(img_buffer).item)  # Buffer data type
-    s = ffi.sizeof(T)  # datatype size
-    np_T = np.dtype('f{:d}'.format(s))  # Numpy equivalent, e.g. float is 'f4'
-    # Wrap the buffer with numpy.
-    img = np.frombuffer(ffi.buffer(img_buffer, resolution[0]*resolution[1]*s), np_T)
-    img = img.reshape(resolution[1], resolution[0])
+
+    img_buffer = sim.getVisionSensorDepth(sensorHandle,
+    options = 1 if in_meters else 0,
+    pos = [0, 0],
+    size = [0, 0])
+    img = np.frombuffer(img_buffer, dtype=np.uint8).reshape(resolution[1], resolution[0], 3)
+    img = img.reshape(resolution[1], resolution[0], 3)
     img = np.flip(img, 0).copy()  # Image is upside-down
-    simReleaseBuffer(ffi.cast('char *', img_buffer))
     return img
 
 
 def simGetVisionSensorResolution(sensorHandle):
-    resolution = ffi.new('int[2]')
-    ret = lib.simGetVisionSensorResolution(sensorHandle, resolution)
-    _check_return(ret)
-    return list(resolution)
+    return sim.getVisionSensorResolution(sensorHandle)
 
 
 def simGetObjectChild(parentObjectHandle, childIndex):
-    val = lib.simGetObjectChild(parentObjectHandle, childIndex)
+    val = sim.getObjectChild(parentObjectHandle, childIndex)
     _check_return(val)
     return val
 
 
 def simGetObjectParent(childObjectHandle):
-    val = lib.simGetObjectParent(childObjectHandle)
+    val = sim.getObjectParent(childObjectHandle)
     _check_return(val)
     return val
 
 
 def simReadProximitySensor(sensorHandle):
-    detectedPoint = ffi.new('float[3]')
-    detectedObjectHandle = ffi.new('int *')
-    detectedSurfaceNormalVector = ffi.new('float[3]')
-    state = lib.simReadProximitySensor(
-        sensorHandle, detectedPoint, detectedObjectHandle,
-        detectedSurfaceNormalVector)
+
+    state, distance, detectedPoint, detectedObjectHandle, \
+        detectedSurfaceNormalVector = \
+        sim.readProximitySensor(sensorHandle)
     _check_return(state)
     return (state, detectedObjectHandle, list(detectedPoint),
             list(detectedSurfaceNormalVector))
 
 
 def simCheckProximitySensor(sensorHandle, entityHandle):
-    detectedPoint = ffi.new('float[3]')
-    state = lib.simCheckProximitySensor(
-        sensorHandle, entityHandle, detectedPoint)
-    _check_return(state)
-    return state, list(detectedPoint)
+    state, distance, detectedPoint, detectedObjectHandle,\
+        surfaceNormalVector = \
+        sim.checkProximitySensor(sensorHandle,entityHandle)
+    return state, detectedPoint
 
 
 def simLoadModel(modelPathAndName):
@@ -365,16 +329,12 @@ def simSaveScene(filename):
 
 
 def simGetObjectName(objectHandle):
-    name_raw = lib.simGetObjectName(objectHandle)
-    if name_raw == ffi.NULL:
-        return ''
-    name = ffi.string(name_raw).decode('utf-8')
-    simReleaseBuffer(name_raw)
+    name = sim.getObjectName(objectHandle)
     return name
 
 
 def simSetObjectName(objectHandle, name):
-    ret = lib.simSetObjectName(objectHandle, name.encode('ascii'))
+    ret = sim.setObjectName(objectHandle, name.encode('ascii'))
     _check_return(ret)
 
 
@@ -383,130 +343,115 @@ def simAddStatusbarMessage(message):
 
 
 def simGetObjectOrientation(objectHandle, relativeToObjectHandle):
-    eulerAngles = ffi.new('float[3]')
-    ret = lib.simGetObjectOrientation(
-        objectHandle, relativeToObjectHandle, eulerAngles)
-    _check_return(ret)
-    return list(eulerAngles)
+    eulerAngles = sim.getObjectOrientation(
+        objectHandle, relativeToObjectHandle)
+    return eulerAngles
 
 
 def simGetObjectQuaternion(objectHandle, relativeToObjectHandle):
-    quaternion = ffi.new('float[4]')
-    ret = lib.simGetObjectQuaternion(
-        objectHandle, relativeToObjectHandle, quaternion)
-    _check_return(ret)
-    return list(quaternion)
+    return sim.getObjectQuaternion(
+        objectHandle, relativeToObjectHandle)
 
 
 def simSetObjectOrientation(objectHandle, relativeToObjectHandle, eulerAngles):
-    ret = lib.simSetObjectOrientation(
+    ret = sim.setObjectOrientation(
         objectHandle, relativeToObjectHandle, eulerAngles)
     _check_return(ret)
 
 
 def simSetObjectQuaternion(objectHandle, relativeToObjectHandle, quaternion):
-    ret = lib.simSetObjectQuaternion(
+    ret = sim.setObjectQuaternion(
         objectHandle, relativeToObjectHandle, quaternion)
     _check_return(ret)
 
 
 def simSetObjectPosition(objectHandle, relativeToObjectHandle, position):
-    ret = lib.simSetObjectPosition(
+    ret = sim.setObjectPosition(
         objectHandle, relativeToObjectHandle, position)
     _check_return(ret)
 
 
 def simSetObjectParent(objectHandle, parentObject, keepInPlace):
-    ret = lib.simSetObjectParent(objectHandle, parentObject, keepInPlace)
+    ret = sim.setObjectParent(objectHandle, parentObject, keepInPlace)
     _check_return(ret)
-
 
 def simGetArrayParameter(paramIdentifier):
-    paramValues = ffi.new('float[3]')
-    ret = lib.simGetArrayParameter(paramIdentifier, paramValues)
-    _check_return(ret)
-    return list(paramValues)
+    paramValues = sim.getArrayParam(paramIdentifier)
+    return paramValues
 
 
 def simSetArrayParameter(paramIdentifier, paramValues):
-    ret = lib.simSetArrayParameter(paramIdentifier, paramValues)
+    ret = sim.setArrayParam(paramIdentifier, paramValues)
     _check_return(ret)
 
 
 def simGetBoolParameter(parameter):
-    ret = lib.simGetBoolParameter(parameter)
+    ret = sim.getBoolParam(parameter)
     _check_return(ret)
     return ret
 
 
 def simSetBoolParameter(parameter, value):
-    ret = lib.simSetBoolParameter(parameter, value)
+    ret = sim.setBoolParam(parameter, value)
     _check_return(ret)
 
 
 def simGetInt32Parameter(parameter):
-    ret = lib.simGetInt32Parameter(parameter)
+    ret = sim.getInt32Param(parameter)
     _check_return(ret)
     return ret
 
 
 def simSetInt32Parameter(parameter, value):
-    ret = lib.simSetInt32Parameter(parameter, value)
+    ret = sim.setInt32Param(parameter, value)
     _check_return(ret)
 
 
 def simGetFloatParameter(parameter):
-    ret = lib.simGetFloatParameter(parameter)
+    ret = sim.getFloatParam(parameter)
     _check_return(ret)
     return ret
 
 
 def simSetFloatParameter(parameter, value):
-    ret = lib.simSetFloatParameter(parameter, value)
+    ret = sim.setFloatParam(parameter, value)
     _check_return(ret)
 
 
 def simSetStringParameter(parameter, value):
-    ret = lib.simSetStringParameter(parameter, value.encode('ascii'))
+    ret = sim.setStringParam(parameter, value.encode('ascii'))
+    # ret = sim.setStringParam(parameter, value.encode('ascii'))
     _check_return(ret)
 
 
 def simGetStringParameter(parameter):
-    val = lib.simGetStringParameter(parameter)
-    _check_null_return(val)
-    sval = ffi.string(val).decode('utf-8')
-    simReleaseBuffer(val)
-    return sval
+    return sim.getStringParam(parameter)
+
 
 
 def simGetEngineFloatParameter(parameter, objectHandle):
-    ok = ffi.new('unsigned char *')
-    ret = lib.simGetEngineFloatParameter(parameter, objectHandle, ffi.NULL, ok)
-    _check_return(ret)
-    return ret
+    return sim.getEngineFloatParam(parameter, objectHandle)
 
 
 def simSetEngineFloatParameter(parameter, objectHandle, val):
-    ret = lib.simSetEngineFloatParameter(parameter, objectHandle, ffi.NULL,
+    sim.setEngineFloatParam(parameter, objectHandle,
                                          val)
-    _check_return(ret)
-    return ret
 
 
 def simGetCollisionHandle(collisionObjectName):
-    ret = lib.simGetCollisionHandle(collisionObjectName.encode('ascii'))
+    ret = sim.getCollisionHandle(collisionObjectName.encode('ascii'))
     _check_return(ret)
     return ret
 
 
 def simGetCollectionHandle(collectionName):
-    ret = lib.simGetCollectionHandle(collectionName.encode('ascii'))
+    ret = sim.getCollectionHandle(collectionName.encode('ascii'))
     _check_return(ret)
     return ret
 
 
 def simGetDistanceHandle(distanceObjectName):
-    ret = lib.simGetDistanceHandle(distanceObjectName.encode('ascii'))
+    ret = sim.getDistanceHandle(distanceObjectName.encode('ascii'))
     _check_return(ret)
     return ret
 
@@ -518,17 +463,13 @@ def simReadCollision(collisionObjectHandle):
 
 
 def simReadDistance(distanceObjectHandle):
-    minimumDistance = ffi.new('float *')
-    ret = lib.simReadDistance(distanceObjectHandle, minimumDistance)
-    _check_return(ret)
-    return minimumDistance[0]
+    result,    distanceData, objectHandlePair = \
+        sim.checkDistance(distanceObjectHandle, sim.handle_all)
+    return distanceData[7]
 
 
 def simHandleDistance(distanceObjectHandle):
-    minimumDistance = ffi.new('float *')
-    ret = lib.simHandleDistance(distanceObjectHandle, minimumDistance)
-    _check_return(ret)
-    return ret
+    return simReadDistance(distanceObjectHandle)
 
 
 def simRemoveObject(objectHandle):
@@ -551,7 +492,7 @@ def simGetObjects(objectType):
     i = 0
     handles = []
     while prev_handle != -1:
-        prev_handle = lib.simGetObjects(i, objectType)
+        prev_handle = sim.getObjects(i, objectType)
         i += 1
         if prev_handle > -1:
             handles.append(prev_handle)
@@ -559,165 +500,71 @@ def simGetObjects(objectType):
 
 
 def simSetObjectInt32Parameter(objectHandle, parameter, value):
-    ret = lib.simSetObjectInt32Parameter(objectHandle, parameter, value)
+    ret = sim.setObjectInt32Param(objectHandle, parameter, 1 if value else 0)
     _check_set_object_parameter(ret)
     _check_return(ret)
 
 
 def simGetObjectInt32Parameter(objectHandle, parameter):
-    value = ffi.new('int *')
-    ret = lib.simGetObjectInt32Parameter(objectHandle, parameter, value)
-    _check_set_object_parameter(ret)
-    _check_return(ret)
-    return value[0]
+    return sim.getObjectInt32Param(objectHandle, parameter)
 
 
 def simSetObjectFloatParameter(objectHandle, parameter, value):
-    ret = lib.simSetObjectFloatParameter(objectHandle, parameter, value)
+    ret = sim.setObjectFloatParam(objectHandle, parameter, value)
     _check_set_object_parameter(ret)
     _check_return(ret)
 
 
 def simGetObjectFloatParameter(objectHandle, parameter):
-    value = ffi.new('float *')
-    ret = lib.simGetObjectFloatParameter(objectHandle, parameter, value)
-    _check_set_object_parameter(ret)
-    _check_return(ret)
-    return value[0]
-
+    return sim.getObjectFloatParam(objectHandle, parameter)
 
 def simGetModelProperty(objectHandle):
-    ret = lib.simGetModelProperty(objectHandle)
+    ret = sim.getModelProperty(objectHandle)
     _check_return(ret)
     return ret
 
 
 def simSetModelProperty(objectHandle, prop):
-    ret = lib.simSetModelProperty(objectHandle, prop)
+    ret = sim.setModelProperty(objectHandle, prop)
     _check_return(ret)
 
 
 def simGetObjectSpecialProperty(objectHandle):
-    ret = lib.simGetObjectSpecialProperty(objectHandle)
+    ret = sim.getObjectSpecialProperty(objectHandle)
     _check_return(ret)
     return ret
 
 
 def simSetObjectSpecialProperty(objectHandle, prop):
-    ret = lib.simSetObjectSpecialProperty(objectHandle, prop)
+    ret = sim.setObjectSpecialProperty(objectHandle, prop)
     _check_return(ret)
 
 
 def simCreateDummy(size, color):
-    if color is None:
-        color = ffi.NULL
     ret = lib.simCreateDummy(size, color)
     _check_return(ret)
     return ret
 
 
 def simGetObjectVelocity(objectHandle):
-    linearVel = ffi.new('float[3]')
-    angularVel = ffi.new('float[3]')
-    ret = lib.simGetObjectVelocity(objectHandle, linearVel, angularVel)
-    _check_return(ret)
-    return list(linearVel), list(angularVel)
+    linearVel, angularVel = sim.getObjectVelocity(objectHandle)
+    return linearVel, angularVel
 
-
-def simCreateStack():
-    ret = lib.simCreateStack()
-    _check_return(ret)
-    return ret
-
-
-def simReleaseStack(stackHandle):
-    ret = lib.simReleaseStack(stackHandle)
-    _check_return(ret)
-
-
-def simPushInt32OntoStack(stackHandle, value):
-    ret = lib.simPushInt32OntoStack(stackHandle, value)
-    _check_return(ret)
-
-
-def simGetStackInt32Value(stackHandle):
-    value = ffi.new('int *')
-    ret = lib.simGetStackInt32Value(stackHandle, value)
-    _check_return(ret)
-    return value[0]
-
-
-def simPushFloatOntoStack(stackHandle, value):
-    ret = lib.simPushFloatOntoStack(stackHandle, value)
-    _check_return(ret)
-
-
-def simGetStackFloatValue(stackHandle):
-    value = ffi.new('float *')
-    ret = lib.simGetStackFloatValue(stackHandle, value)
-    _check_return(ret)
-    return value[0]
-
-
-def simPushStringOntoStack(stackHandle, value):
-    ret = lib.simPushStringOntoStack(stackHandle, value.encode('ascii'), 0)
-    _check_return(ret)
-
-
-def simGetStackStringValue(stackHandle):
-    val = lib.simGetStackFloatValue(stackHandle, ffi.NULL)
-    _check_null_return(val)
-    sval = ffi.string(val).decode('utf-8')
-    simReleaseBuffer(val)
-    return sval
 
 
 def simExtCallScriptFunction(functionNameAtScriptName, scriptHandleOrType,
                              inputInts, inputFloats, inputStrings, inputBuffer):
-    char_pointers = []
-    for s in inputStrings:
-        char_pointers.append(ffi.new('char[]', s.encode('ascii')))
-    strIn = ffi.new('char *[]', char_pointers)
-    outInt = ffi.new('int **')
-    outIntCnt = ffi.new('int *')
-    outFloat = ffi.new('float **')
-    outFloatCnt = ffi.new('int *')
-    outString = ffi.new('char ***')
-    outStringCnt = ffi.new('int *')
-    outBuffer = ffi.new('char **')
-    outBufferSize = ffi.new('int *')
-
-    ret = lib.simExtCallScriptFunction(
-        scriptHandleOrType, functionNameAtScriptName.encode('ascii'),
-        inputInts, len(inputInts),
-        inputFloats, len(inputFloats),
-        strIn, len(inputStrings),
-        str(inputBuffer).encode('ascii'), len(str(inputBuffer)),
-        outInt, outIntCnt, outFloat, outFloatCnt,
-        outString, outStringCnt, outBuffer, outBufferSize)
-    _check_return(ret)
-
-    ret_ints = [outInt[0][i] for i in range(outIntCnt[0])]
-    ret_floats = [outFloat[0][i] for i in range(outFloatCnt[0])]
-    ret_strings = [ffi.string(outString[0][i]).decode('utf-8')
-                   for i in range(outStringCnt[0])]
-    ret_buffer = ''
-    if outBufferSize[0] > 0:
-        ret_buffer = ffi.string(outBuffer[0]).decode('utf-8')
-
-    simReleaseBuffer(ffi.cast('char *', outInt[0]))
-    simReleaseBuffer(ffi.cast('char *', outFloat[0]))
-    [simReleaseBuffer(outString[0][i]) for i in range(outStringCnt[0])]
-    simReleaseBuffer(outBuffer[0])
+    ret_ints,ret_floats,ret_strings,ret_buffer,_ = \
+        lib.callScriptFunction(functionNameAtScriptName.encode('ascii'),
+                               scriptHandleOrType, inputInts,
+                               inputFloats, inputStrings)
 
     return ret_ints, ret_floats, ret_strings, ret_buffer
 
 
-def simCreatePureShape(primitiveType, options, sizes, mass, precision):
-    if precision is None:
-        precision = ffi.NULL
-    handle = lib.simCreatePureShape(
-        primitiveType, options, sizes, mass, precision)
+def simCreatePureShape(primitiveType, options, sizes):
+    handle = lib.createPrimitiveShape(
+        primitiveType,   sizes, options)
     _check_return(handle)
     return handle
 
@@ -730,18 +577,15 @@ def simGroupShapes(shapeHandles, merge=False):
 
 
 def simGetShapeColor(shapeHandle, colorName, colorComponent):
-    rgbData = ffi.new('float[3]')
-    if colorName is None or len(colorName) == 0:
-        colorName = ffi.NULL
-    res = lib.simGetShapeColor(shapeHandle, colorName, colorComponent, rgbData)
-    _check_return(res)
-    return list(rgbData)
+
+    return sim.getShapeColor(shapeHandle, colorName, colorComponent)
+
 
 
 def simSetShapeColor(shapeHandle, colorName, colorComponent, rgbData):
     if colorName is None or len(colorName) == 0:
-        colorName = ffi.NULL
-    res = lib.simSetShapeColor(shapeHandle, colorName, colorComponent, rgbData)
+        colorName = None
+    res = sim.setShapeColor(shapeHandle, colorName, colorComponent, rgbData)
     _check_return(res)
 
 
@@ -751,39 +595,28 @@ def simReorientShapeBoundingBox(shapeHandle, relativeToHandle):
 
 
 def simGetObjectMatrix(objectHandle, relativeToObjectHandle):
-    matrix = ffi.new('float[12]')
-    ret = lib.simGetObjectMatrix(objectHandle, relativeToObjectHandle, matrix)
-    _check_return(ret)
-    return list(matrix)
+    return sim.getObjectMatrix(objectHandle, relativeToObjectHandle)
+
 
 
 def simGetObjectsInTree(treeBaseHandle, objectType, options):
-    objectCount = ffi.new('int *')
-    handles = lib.simGetObjectsInTree(treeBaseHandle, objectType, options,
-                                      objectCount)
-    _check_null_return(handles)
-    ret = [handles[i] for i in range(objectCount[0])]
-    simReleaseBuffer(ffi.cast('char *', handles))
-    return ret
+    handles = sim.getObjectsInTree(treeBaseHandle, objectType, options)
+    return handles
 
 
 def simGetExtensionString(objectHandle, index, key):
-    ext = lib.simGetExtensionString(objectHandle, index, key.encode('ascii'))
-    if ext == ffi.NULL:
-        return ''
-    exts = ffi.string(ext).decode('utf-8')
-    simReleaseBuffer(ext)
-    return exts
+    ext = sim.getExtensionString(objectHandle, index, key.encode('ascii'))
+    return ext
 
 
 def simGetObjectType(objectHandle):
-    ret = lib.simGetObjectType(objectHandle)
+    ret = sim.getObjectType(objectHandle)
     _check_return(ret)
     return ret
 
 
 def simGetConfigurationTree(objectHandle):
-    config = lib.simGetConfigurationTree(objectHandle)
+    config = sim.getConfigurationTree(objectHandle)
     _check_null_return(config)
     # TODO: Not use what to do about the encoding here
     # configs = ffi.string(config)
@@ -792,19 +625,15 @@ def simGetConfigurationTree(objectHandle):
 
 
 def simSetConfigurationTree(data):
-    ret = lib.simSetConfigurationTree(data)
+    ret = sim.setConfigurationTree(data)
     _check_return(ret)
 
 
 def simRotateAroundAxis(matrix, axis, axisPos, angle):
-    matrixOut = ffi.new('float[12]')
-    ret = lib.simRotateAroundAxis(matrix, axis, axisPos, angle, matrixOut)
-    _check_return(ret)
-    return list(matrixOut)
-
+    return lib.simRotateAroundAxis(matrix, axis, axisPos, angle)
 
 def simSetObjectMatrix(objectHandle, relativeToObjectHandle, matrix):
-    ret = lib.simSetObjectMatrix(objectHandle, relativeToObjectHandle, matrix)
+    ret = sim.setObjectMatrix(objectHandle, relativeToObjectHandle, matrix)
     _check_return(ret)
 
 
@@ -815,18 +644,12 @@ def simCheckCollision(entity1Handle, entity2Handle):
 
 
 def simGetPositionOnPath(pathHandle, relativeDistance):
-    position = ffi.new('float[3]')
-    ret = lib.simGetPositionOnPath(pathHandle, relativeDistance, position)
-    _check_return(ret)
-    return list(position)
+    return sim.getPositionOnPath(pathHandle, relativeDistance)
+
 
 
 def simGetOrientationOnPath(pathHandle, relativeDistance):
-    orientation = ffi.new('float[3]')
-    ret = lib.simGetOrientationOnPath(pathHandle, relativeDistance, orientation)
-    _check_return(ret)
-    return list(orientation)
-
+    return sim.getOrientationOnPath(pathHandle, relativeDistance)
 
 def simAddDrawingObject(objectType, size, duplicateTolerance,
                         parentObjectHandle, maxItemCount, ambient_diffuse=None,
@@ -846,15 +669,9 @@ def simAddDrawingObject(objectType, size, duplicateTolerance,
     :param emission: Default emissive color.
     :return: Handle of the drawing object.
     """
-    if ambient_diffuse is None:
-        ambient_diffuse = ffi.NULL
-    if specular is None:
-        specular = ffi.NULL
-    if emission is None:
-        emission = ffi.NULL
     handle = lib.simAddDrawingObject(
         objectType, size, duplicateTolerance, parentObjectHandle, maxItemCount,
-        ambient_diffuse, ffi.NULL, specular, emission)
+        ambient_diffuse, None, specular, emission)
     _check_return(handle)
     return handle
 
@@ -875,33 +692,32 @@ def simAddDrawingObjectItem(objectHandle, itemData):
     :return:
     """
     if itemData is None:
-        itemData = ffi.NULL
+        itemData = None
     ret = lib.simAddDrawingObjectItem(objectHandle, itemData)
     _check_return(ret)
 
 
 def simGetSimulationTimeStep():
-    step = lib.simGetSimulationTimeStep()
+    step = sim.getSimulationTimeStep()
     _check_return(step)
     return step
 
 
 def simResetDynamicObject(objectHandle):
-    ret = lib.simResetDynamicObject(objectHandle)
+    ret = sim.resetDynamicObject(objectHandle)
     _check_return(ret)
 
 
 def simGetJointType(objectHandle):
-    type = lib.simGetJointType(objectHandle)
+    type = sim.getJointType(objectHandle)
     _check_return(type)
     return type
 
 
 def simRMLPos(dofs, smallestTimeStep, flags, currentPosVelAccel,
               maxVelAccelJerk, selection, targetPosVel):
-    smallestTimeStep = ffi.cast('double', smallestTimeStep)
     handle = lib.simRMLPos(dofs, smallestTimeStep, flags, currentPosVelAccel,
-                           maxVelAccelJerk, selection, targetPosVel, ffi.NULL)
+                           maxVelAccelJerk, selection, targetPosVel)
     _check_return(handle)
     return handle
 
@@ -909,17 +725,16 @@ def simRMLPos(dofs, smallestTimeStep, flags, currentPosVelAccel,
 def simRMLVel(dofs, smallestTimeStep, flags, currentPosVelAccel, maxAccelJerk,
               selection, targetVel):
     handle = lib.simRMLVel(dofs, smallestTimeStep, flags, currentPosVelAccel,
-                           maxAccelJerk, selection, targetVel, ffi.NULL)
+                           maxAccelJerk, selection, targetVel)
     _check_return(handle)
     return handle
 
 
 def simRMLStep(handle, timeStep, dofs):
-    newPosVelAccel = ffi.new('double[%d]' % (dofs * 3))
     # timeStep = ffi.cast('double', timeStep)
-    state = lib.simRMLStep(handle, timeStep, newPosVelAccel, ffi.NULL, ffi.NULL)
+    state , newPosVelAccel,_ = lib.simRMLStep(handle, timeStep)
     _check_return(state)
-    return state, list(newPosVelAccel)
+    return state, newPosVelAccel
 
 
 def simRMLRemove(handle):
@@ -929,34 +744,11 @@ def simRMLRemove(handle):
 
 def simImportMesh(fileformat, pathAndFilename, options,
                   identicalVerticeTolerance, scalingFactor):
-    outVerticies = ffi.new('float ***')
-    outVerticiesCount = ffi.new('int **')
-    outIndices = ffi.new('int ***')
-    outIndicesCount = ffi.new('int **')
-    outNames = ffi.new('char ***')
-    count = lib.simImportMesh(
+
+    outVerticies,outIndices,outNames  = lib.simImportMesh(
         fileformat, pathAndFilename.encode('ascii'), options,
-        identicalVerticeTolerance, scalingFactor, outVerticies,
-        outVerticiesCount, outIndices, outIndicesCount, ffi.NULL, outNames)
-    _check_return(count)
-    retVerticies = [[outVerticies[0][i][j]
-                     for j in range(outVerticiesCount[0][i])]
-                    for i in range(count)]
-    retIndices = [[outIndices[0][i][j]
-                   for j in range(outIndicesCount[0][i])]
-                  for i in range(count)]
-    retNames = [ffi.string(outNames[0][i]).decode('utf-8')
-                for i in range(count)]
-    for i in range(count):
-        simReleaseBuffer(ffi.cast('char *', outVerticies[0][i]))
-        simReleaseBuffer(ffi.cast('char *', outIndices[0][i]))
-        simReleaseBuffer(outNames[0][i])
-    simReleaseBuffer(ffi.cast('char *', outVerticies[0]))
-    simReleaseBuffer(ffi.cast('char *', outVerticiesCount[0]))
-    simReleaseBuffer(ffi.cast('char *', outIndices[0]))
-    simReleaseBuffer(ffi.cast('char *', outIndicesCount[0]))
-    simReleaseBuffer(ffi.cast('char *', outNames[0]))
-    return retVerticies, retIndices, retNames
+        identicalVerticeTolerance, scalingFactor)
+    return outVerticies,outIndices,outNames
 
 
 def simImportShape(fileformat, pathAndFilename, options,
@@ -970,68 +762,20 @@ def simImportShape(fileformat, pathAndFilename, options,
 
 def simCreateMeshShape(options, shadingAngle, vertices, indices):
     ret = lib.simCreateMeshShape(options, shadingAngle, vertices, len(vertices),
-                                 indices, len(indices), ffi.NULL)
+                                 indices, len(indices), None)
     return ret
 
 
 def simGetShapeMesh(shapeHandle):
-    outVerticies = ffi.new('float **')
-    outVerticiesCount = ffi.new('int *')
-    outIndices = ffi.new('int **')
-    outIndicesCount = ffi.new('int *')
-    # outNormals is 3 times the size of outIndicesCount
-    outNormals = ffi.new('float **')
-
-    ret = lib.simGetShapeMesh(shapeHandle, outVerticies, outVerticiesCount,
-                              outIndices, outIndicesCount, outNormals)
-    _check_return(ret)
-    retVerticies = [outVerticies[0][i]
-                    for i in range(outVerticiesCount[0])]
-    retIndices = [outIndices[0][i]
-                    for i in range(outIndicesCount[0])]
-    outNormals = [outIndices[0][i]
-                  for i in range(outIndicesCount[0] * 3)]
-
-    simReleaseBuffer(ffi.cast('char *', outVerticies[0]))
-    simReleaseBuffer(ffi.cast('char *', outIndices[0]))
-    simReleaseBuffer(ffi.cast('char *', outNormals[0]))
-
-    return retVerticies, retIndices, outNormals
+    outVerticies,    outIndices,   outNormals = sim.getShapeMesh(shapeHandle)
+    return outVerticies,    outIndices,   outNormals
 
 
 def simGetShapeViz(shapeHandle, index):
-    info = ffi.new('struct SShapeVizInfo *')
-    ret = lib.simGetShapeViz(shapeHandle, index, info)
-    _check_return(ret)
 
-    vertices = [info.vertices[i] for i in range(info.verticesSize)]
-    indices = [info.indices[i] for i in range(info.indicesSize)]
-    normals = [info.normals[i] for i in range(info.indicesSize * 3)]
-    colors = list(info.colors)
-    textureSize = info.textureRes[0] * info.textureRes[1] * 4
-    if textureSize == 0:
-        texture = []
-        textureCoords = []
-    else:
-        texture = np.frombuffer(
-            ffi.buffer(info.texture, textureSize), np.uint8)
-        texture = texture.tolist()
-        textureCoords = [info.textureCoords[i] for i in
-                        range(info.indicesSize * 2)]
+    info = sim.getShapeViz(shapeHandle, index)
 
-    return SShapeVizInfo(
-        vertices=vertices,
-        indices=indices,
-        normals=normals,
-        shadingAngle=info.shadingAngle,
-        colors=colors,
-        texture=texture,
-        textureId=info.textureId,
-        textureRes=info.textureRes,
-        textureCoords=textureCoords,
-        textureApplyMode=info.textureApplyMode,
-        textureOptions=info.textureOptions,
-    )
+    return info
 
 
 def simConvexDecompose(shapeHandle, options, intParams, floatParams):
@@ -1039,15 +783,14 @@ def simConvexDecompose(shapeHandle, options, intParams, floatParams):
 
 
 def simGetJointMode(shapeHandle):
-    options = ffi.new('int*')
-    mode = lib.simGetJointMode(shapeHandle, options)
+    mode = sim.getJointMode(shapeHandle)
     _check_return(mode)
     return mode
 
 
 def simSetJointMode(shapeHandle, mode):
     options = 0
-    ret = lib.simSetJointMode(shapeHandle, mode, options)
+    ret = sim.setJointMode(shapeHandle, mode, options)
     _check_return(ret)
 
 
@@ -1069,18 +812,17 @@ def simAssociateScriptWithObject(scriptHandle, objectHandle):
 
 
 def simSetScriptText(scriptHandle, scriptText):
-    ret = lib.simSetScriptText(scriptHandle, scriptText.encode('ascii'))
+    ret = sim.setScriptText(scriptHandle, scriptText.encode('ascii'))
     _check_return(ret)
 
 
 def simGetScriptText(scriptHandle):
-    ret = lib.simGetScriptText(scriptHandle)
-    ret = ffi.string(ret).decode('utf-8')
+    ret = sim.getScriptText(scriptHandle)
     return ret
 
 
 def simGetScriptAssociatedWithObject(objectHandle):
-    ret = lib.simGetScriptAssociatedWithObject(objectHandle)
+    ret = sim.getScriptAssociatedWithObject(objectHandle)
     return ret
 
 
@@ -1096,36 +838,31 @@ def simCreateTexture(fileName, options):
     # The textureID param that is returned from simCreateTexture seems
     # to be incorrect (in regards to calling simGetShapeTextureId on the
     # generated plane).
-    handle = lib.simCreateTexture(fileName.encode('ascii'), options, ffi.NULL,
-                                  ffi.NULL, ffi.NULL, 0, ffi.NULL, ffi.NULL,
-                                  ffi.NULL)
+    handle = lib.simCreateTexture(fileName.encode('ascii'), options, None,
+                                  None, None, 0, None, None,
+                                  None)
     _check_return(handle)
     return handle
 
 
 def simSetShapeTexture(shapeHandle, textureId, mappingMode, options, uvScaling,
                        position, orientation):
-    if position is None:
-        position = ffi.NULL
-    if orientation is None:
-        orientation = ffi.NULL
 
-    handle = lib.simSetShapeTexture(shapeHandle, textureId, mappingMode,
+
+    handle = sim.setShapeTexture(shapeHandle, textureId, mappingMode,
                                     options, uvScaling, position, orientation)
     _check_return(handle)
 
 
 def simGetShapeTextureId(objectHandle):
-    ret = lib.simGetShapeTextureId(objectHandle)
+    ret = sim.getShapeTextureId(objectHandle)
     _check_return(ret)
     return ret
 
 
 def simCopyPasteObjects(objectHandles, options):
-    handles = ffi.new('int[]', objectHandles)
-    ret = lib.simCopyPasteObjects(handles, len(objectHandles), options)
-    _check_return(ret)
-    return list(handles)
+    handles = lib.simCopyPasteObjects( objectHandles )
+    return handles
 
 
 def simHandleIkGroup(ikGroupHandle):
@@ -1135,95 +872,76 @@ def simHandleIkGroup(ikGroupHandle):
 
 
 def simCheckIkGroup(ikGroupHandle, jointHandles):
-    jointValues = ffi.new('float[%d]' % len(jointHandles))
-    ret = lib.simCheckIkGroup(
-        ikGroupHandle, len(jointHandles), jointHandles, jointValues, ffi.NULL)
+    ret,jointValues = lib.simCheckIkGroup(
+        ikGroupHandle , jointHandles)
     _check_return(ret)
-    return ret, list(jointValues)
+    return ret, jointValues
 
 
 def simComputeJacobian(ikGroupHandle, options):
     # Only works when joints that are in IK or hybrid mode
-    ret = lib.simComputeJacobian(ikGroupHandle, options, ffi.NULL)
+    ret = lib.simComputeJacobian(ikGroupHandle, options, None)
     _check_return(ret)
 
 
 def simGetIkGroupMatrix(ikGroupHandle, options):
-    matrixSize = ffi.new('int[2]')
-    ret = lib.simGetIkGroupMatrix(ikGroupHandle, options, matrixSize)
+    ret,matrixSize = sim.getIkGroupMatrix(ikGroupHandle, options)
     flatJacobian = [ret[i] for i in range(matrixSize[0] * matrixSize[1])]
     # matrixSize[0] represents the row count of the Jacobian.
     # matrixSize[0] represents the column count of the Jacobian.
-    return flatJacobian, list(matrixSize)
+    return flatJacobian, matrixSize
 
 
 def simCheckDistance(entity1Handle, entity2Handle, threshold):
-    distanceData = ffi.new('float [7]')
-    ret = lib.simCheckDistance(
-        entity1Handle, entity2Handle, threshold, distanceData)
-    _check_return(ret)
-    return list(distanceData)
+    return lib.simCheckDistance(
+        entity1Handle, entity2Handle, threshold)
+
 
 
 def simSetExplicitHandling(generalObjectHandle, explicitFlags):
-    ret = lib.simSetExplicitHandling(generalObjectHandle, explicitFlags)
+    ret = sim.setExplicitHandling(generalObjectHandle, explicitFlags)
     _check_return(ret)
 
 
 def simGetExplicitHandling(generalObjectHandle):
-    flag = lib.simGetExplicitHandling(generalObjectHandle)
+    flag = sim.getExplicitHandling(generalObjectHandle)
     _check_return(flag)
     return flag
 
 
 def simUngroupShape(shapeHandle):
-    count = ffi.new('int*')
-    shapes = lib.simUngroupShape(shapeHandle, count)
-    _check_null_return(shapes)
-    handles = [shapes[i] for i in range(count[0])]
-    # simReleaseBuffer(shapes)
-    return handles
+    return  lib.simUngroupShape(shapeHandle)
+
 
 
 def simInvertMatrix(matrix):
-    c_matrix = ffi.new('float []', matrix)
-    ret = lib.simInvertMatrix(c_matrix)
-    _check_return(ret)
-    return list(c_matrix)
+    c_matrix = lib.getMatrixInverse(matrix)
+    return c_matrix
 
 
 def simMultiplyMatrices(inMatrix1, inMatrix2):
-    outMatrix = ffi.new('float []', len(inMatrix1))
-    ret = lib.simMultiplyMatrices(inMatrix1, inMatrix2, outMatrix)
-    _check_return(ret)
-    _check_null_return(outMatrix)
-    return list(outMatrix)
+    return lib.simMultiplyMatrices(inMatrix1, inMatrix2)
 
 
 def simGetEulerAnglesFromMatrix(rotationMatrix):
-    eulerAngles = ffi.new('float [3]')
-    ret = lib.simGetEulerAnglesFromMatrix(rotationMatrix, eulerAngles)
-    _check_return(ret)
-    _check_null_return(eulerAngles)
-    return list(eulerAngles)
+    return sim.getEulerAnglesFromMatrix(rotationMatrix)
+
 
 
 def simGetSimulationTime():
-    time = lib.simGetSimulationTime()
+    time = sim.getSimulationTime()
     _check_return(time)
     return time
 
 
 def simSetIntegerSignal(signalName, signalValue):
-    ret = lib.simSetIntegerSignal(signalName.encode('ascii'), signalValue)
+    ret = sim.setIntegerSignal(signalName.encode('ascii'), signalValue)
     _check_return(ret)
 
 
 def simGetIntegerSignal(signalName):
-    val = ffi.new('int*')
-    ret = lib.simGetIntegerSignal(signalName.encode('ascii'), val)
-    _check_return(ret)
-    return ret, val[0]
+    val = sim.getInt32Signal(signalName.encode('ascii'))
+    return 1, val
 
 
 def simClearIntegerSignal(signalName):
@@ -1233,15 +951,13 @@ def simClearIntegerSignal(signalName):
 
 
 def simSetFloatSignal(signalName, signalValue):
-    ret = lib.simSetFloatSignal(signalName.encode('ascii'), signalValue)
+    ret = sim.setFloatSignal(signalName.encode('ascii'), signalValue)
     _check_return(ret)
 
 
 def simGetFloatSignal(signalName):
-    val = ffi.new('float*')
-    ret = lib.simGetFloatSignal(signalName.encode('ascii'), val)
-    _check_return(ret)
-    return ret, val[0]
+    val = sim.getFloatSignal(signalName.encode('ascii'))
+    return 1, val
 
 
 def simClearFloatSignal(signalName):
@@ -1251,15 +967,13 @@ def simClearFloatSignal(signalName):
 
 
 def simSetDoubleSignal(signalName, signalValue):
-    ret = lib.simSetDoubleSignal(signalName.encode('ascii'), signalValue)
+    ret = sim.setDoubleSignal(signalName.encode('ascii'), signalValue)
     _check_return(ret)
 
 
 def simGetDoubleSignal(signalName):
-    val = ffi.new('double*')
-    ret = lib.simGetDoubleSignal(signalName.encode('ascii'), val)
-    _check_return(ret)
-    return ret, val[0]
+    val = sim.getDoubleSignal(signalName.encode('ascii'))
+    return 1, val
 
 
 def simClearDoubleSignal(signalName):
@@ -1269,21 +983,18 @@ def simClearDoubleSignal(signalName):
 
 
 def simSetStringSignal(signalName, signalValue):
-    ret = lib.simSetStringSignal(
+    ret = sim.setStringSignal(
         signalName.encode('ascii'), signalValue.encode('ascii'),
         len(signalValue))
     _check_return(ret)
 
 
 def simGetStringSignal(signalName):
-    valLen = ffi.new('int*')
-    str_ret = lib.simGetStringSignal(signalName.encode('ascii'), valLen)
-    if str_ret == ffi.NULL:
+    str_ret = sim.getStringSignal(signalName.encode('ascii'))
+    if str_ret == None:
         # No value.
         return 0, None
-    val = ffi.string(str_ret[0:valLen[0]]).decode('utf-8')
-    simReleaseBuffer(ffi.cast('char *', str_ret))
-    return 1, val
+    return 1, str_ret
 
 
 def simClearStringSignal(signalName):
@@ -1296,7 +1007,7 @@ def simSetUserParameter(objectHandle, parameterName, parameterValue):
     # TODO: currently not used by PyRep.
     # User params functionality missing in CoppeliaSim.
     parameterLength = len(parameterValue)
-    ret = lib.simSetUserParameter(
+    ret = sim.setUserParam(
         objectHandle, parameterName.encode('ascii'),
         parameterValue.encode('ascii'), parameterLength)
     _check_return(ret)
@@ -1305,75 +1016,68 @@ def simSetUserParameter(objectHandle, parameterName, parameterValue):
 def simGetUserParameter(objectHandle, parameterName):
     # TODO: currently not used by PyRep.
     # User params functionality missing in CoppeliaSim.
-    parameterLength = ffi.new('int*')
-    parameterValue = lib.simGetUserParameter(
-        objectHandle, parameterName.encode('ascii'), parameterLength)
+    parameterValue = sim.getUserParam(
+        objectHandle, parameterName.encode('ascii'))
     _check_null_return(parameterValue)
-    val = ffi.string((parameterValue[0][:parameterLength[0]])).decode('utf-8')
-    simReleaseBuffer(ffi.cast('char *', parameterValue))
-    return val
+    return parameterValue
 
 
 def simCreateOctree(voxelSize, options, pointSize):
-    ret = lib.simCreateOctree(voxelSize, options, pointSize, ffi.NULL)
+    ret = lib.simCreateOctree(voxelSize, options, pointSize, None)
     _check_return(ret)
     return ret
 
 
 def simInsertVoxelsIntoOctree(octreeHandle, options, points, color, tag):
     if color is None:
-        color = ffi.NULL
+        color = None
     if tag is None:
-        tag = ffi.NULL
+        tag = None
     ret = lib.simInsertVoxelsIntoOctree(octreeHandle, options, points,
-                                        len(points)//3, color, tag, ffi.NULL)
+                                        len(points)//3, color, tag, None)
     _check_return(ret)
     return ret
 
 
 def simRemoveVoxelsFromOctree(octreeHandle, options, points):
     if points is None:
-        points = ffi.NULL
-    if points is ffi.NULL:
+        points = None
+    if points is None:
         pointCount = 0
     else:
         pointCount = len(points)//3
     ret = lib.simRemoveVoxelsFromOctree(octreeHandle, options, points,
-                                        pointCount, ffi.NULL)
+                                        pointCount, None)
     _check_return(ret)
     return ret
 
 
 def simGetOctreeVoxels(octreeHandle):
-    pointCountPointer = ffi.new('int *')
-    ret = lib.simGetOctreeVoxels(octreeHandle, pointCountPointer, ffi.NULL)
-    if ret == ffi.NULL:
-        return []
-    pointCount = pointCountPointer[0]
-    return list(ret[0:pointCount*3])
+    return  sim.getOctreeVoxels(octreeHandle)
+
 
 
 def simInsertObjectIntoOctree(octreeHandle, objectHandle, options,
                               color, tag):
     if color is None:
-        color = ffi.NULL
+        color = None
     ret = lib.simInsertObjectIntoOctree(octreeHandle, objectHandle, options,
-                                        color, tag, ffi.NULL)
+                                        color, tag, None)
     _check_return(ret)
     return ret
 
 
 def simSubtractObjectFromOctree(octreeHandle, objectHandle, options):
     ret = lib.simSubtractObjectFromOctree(octreeHandle, objectHandle, options,
-                                        ffi.NULL)
+                                        None)
     _check_return(ret)
     return ret
 
 
 def simCheckOctreePointOccupancy(octreeHandle, options, points):
     ret = lib.simCheckOctreePointOccupancy(octreeHandle, options, points,
-                                           len(points)//3, ffi.NULL, ffi.NULL,
-                                           ffi.NULL)
+                                           len(points)//3, None, None,
+                                           None)
     _check_return(ret)
     if ret == 1:
         return True
@@ -1388,18 +1092,17 @@ def simGetContactInfo(contact_obj_handle, get_contact_normal):
 
     while result > 0:
         if get_contact_normal:
-            contact = ffi.new('float[9]')
             ext = sim_handleflag_extended
         else:
-            contact = ffi.new('float[6]')
             ext = 0
 
-        object_handles = ffi.new('int[2]')
-        result = lib.simGetContactInfo(sim_handle_all, contact_obj_handle, index + ext, object_handles,
-                                       contact)
+        collidingObjects,collisionPoint,reactionForce,normalVector =\
+            sim.getContactInfo(sim_handle_all, contact_obj_handle, index + ext)
+
         contact_info = {
-            "contact": list(contact),
-            "contact_handles": list(object_handles)
+            "contact": collisionPoint,
+            "contact_handles": collidingObjects,
+            "contact_normal": normalVector
         }
         contact_list.append(contact_info)
         index += 1
@@ -1410,55 +1113,42 @@ def simGetContactInfo(contact_obj_handle, get_contact_normal):
 def simGetConfigForTipPose(ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs, metric, collisionPairs, jointOptions, lowLimits, ranges):
     jointCnt = len(jointHandles)
     collisionPairCnt = len(collisionPairs) // 2
-    collisionPairs = ffi.NULL if len(collisionPairs) == 0 else collisionPairs
-    retConfigm = ffi.new('float[%d]' % jointCnt)
-    reserved = ffi.NULL
-    metric = ffi.NULL if metric is None else metric
-    jointOptions = ffi.NULL if jointOptions is None else jointOptions
-    ret = lib.simGetConfigForTipPose(
+    collisionPairs = None if len(collisionPairs) == 0 else collisionPairs
+    reserved = None
+    metric = None if metric is None else metric
+    jointOptions = None if jointOptions is None else jointOptions
+    retConfigm = sim.getConfigForTipPose(
         ikGroupHandle, jointCnt, jointHandles, thresholdDist,
-        maxTimeInMs, retConfigm, metric, collisionPairCnt, collisionPairs,
-        jointOptions, lowLimits, ranges, reserved)
-    _check_return(ret)
-    _check_null_return(retConfigm)
-    return list(retConfigm) if ret == 1 else []
+        maxTimeInMs, metric, collisionPairs,
+        jointOptions, lowLimits, ranges)
+    return retConfigm
 
 
 def generateIkPath(ikGroupHandle, jointHandles, ptCnt, collisionPairs, jointOptions):
     jointCnt = len(jointHandles)
     collisionPairCnt = len(collisionPairs) // 2
-    collisionPairs = ffi.NULL if len(collisionPairs) == 0 else collisionPairs
-    reserved = ffi.NULL
-    jointOptions = ffi.NULL if jointOptions is None else jointOptions
+    collisionPairs = None if len(collisionPairs) == 0 else collisionPairs
+    reserved = None
+    jointOptions = None if jointOptions is None else jointOptions
     ret = lib.simGenerateIkPath(
         ikGroupHandle, jointCnt, jointHandles, ptCnt, collisionPairCnt,
         collisionPairs, jointOptions, reserved)
-    return [] if ret == ffi.NULL else [ret[i] for i in range(ptCnt * jointCnt)]
+    return [] if ret == None else [ret[i] for i in range(ptCnt * jointCnt)]
 
 
 def simGetDecimatedMesh(inVertices, inIndices, decimationPercent):
-    outVerticies = ffi.new('float **')
-    outVerticiesCount = ffi.new('int *')
-    outIndices = ffi.new('int **')
-    outIndicesCount = ffi.new('int *')
+
     # outNormals is 3 times the size of outIndicesCount
     # outNormals = ffi.new('float **')
 
-    ret = lib.simGetDecimatedMesh(inVertices, len(inVertices),
+    ret, outVerticies, \
+        outIndices, = \
+        sim.getDecimatedMesh(inVertices, len(inVertices),
                                   inIndices, len(inIndices),
-                                  outVerticies, outVerticiesCount,
-                                  outIndices, outIndicesCount,
-                                  decimationPercent, 0, ffi.NULL)
+                                  decimationPercent, 0, None)
     _check_return(ret)
-    retVerticies = [outVerticies[0][i]
-                    for i in range(outVerticiesCount[0])]
-    retIndices = [outIndices[0][i]
-                    for i in range(outIndicesCount[0])]
 
-    simReleaseBuffer(ffi.cast('char *', outVerticies[0]))
-    simReleaseBuffer(ffi.cast('char *', outIndices[0]))
-
-    return retVerticies, retIndices
+    return outVerticies, outIndices
 
 
 def simComputeMassAndInertia(shapeHandle, density):
@@ -1474,21 +1164,20 @@ def simAddForce(shapeHandle, position, force):
 
 def simAddForceAndTorque(shapeHandle, force, torque):
     ret = lib.simAddForceAndTorque(shapeHandle,
-                                   ffi.NULL if force is None else force,
-                                   ffi.NULL if torque is None else torque)
+                                   None if force is None else force,
+                                   None if torque is None else torque)
     _check_return(ret)
 
 
 def simSetLightParameters(shapeHandle, state, diffusePart=None, specularPart=None):
-    ret = lib.simSetLightParameters(shapeHandle, state, ffi.NULL,
-                                    ffi.NULL if diffusePart is None else diffusePart,
-                                    ffi.NULL if specularPart is None else specularPart)
+    ret = sim.setLightParameters(shapeHandle, state, None,
+                                    None if diffusePart is None else diffusePart,
+                                    None if specularPart is None else specularPart)
     _check_return(ret)
 
 
 def simGetLightParameters(shapeHandle):
-    diffusePart = ffi.new('float[3]')
-    specularPart = ffi.new('float[3]')
-    ret = lib.simGetLightParameters(shapeHandle, ffi.NULL, diffusePart, specularPart)
+
+    ret,diffusePart,specularPart = sim.getLightParameters(shapeHandle, None)
     _check_return(ret)
     return ret, list(diffusePart), list(specularPart)

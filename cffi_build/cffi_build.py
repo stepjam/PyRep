@@ -269,9 +269,6 @@ simInt simGetObjectUniqueIdentifier(simInt objectHandle,simInt* uniqueIdentifier
 simInt simSendData(simInt targetID,simInt dataHeader,const simChar* dataName,const simChar* data,simInt dataLength,simInt antennaHandle,simFloat actionRadius,simFloat emissionAngle1,simFloat emissionAngle2,simFloat persistence);
 simChar* simReceiveData(simInt dataHeader,const simChar* dataName,simInt antennaHandle,simInt index,simInt* dataLength,simInt* senderID,simInt* dataHeaderR,simChar** dataNameR);
 simInt simSetGraphUserData(simInt graphHandle,const simChar* dataStreamName,simFloat data);
-simInt simAddDrawingObject(simInt objectType,simFloat size,simFloat duplicateTolerance,simInt parentObjectHandle,simInt maxItemCount,const simFloat* ambient_diffuse,const simFloat* setToNULL,const simFloat* specular,const simFloat* emission);
-simInt simRemoveDrawingObject(simInt objectHandle);
-simInt simAddDrawingObjectItem(simInt objectHandle,const simFloat* itemData);
 simInt simAddParticleObject(simInt objectType,simFloat size,simFloat density,const simVoid* params,simFloat lifeTime,simInt maxItemCount,const simFloat* ambient_diffuse,const simFloat* setToNULL,const simFloat* specular,const simFloat* emission);
 simInt simRemoveParticleObject(simInt objectHandle);
 simInt simAddParticleObjectItem(simInt objectHandle,const simFloat* itemData);
@@ -342,8 +339,6 @@ simInt simCreateMeshShape(simInt options,simFloat shadingAngle,const simFloat* v
 simInt simCreatePureShape(simInt primitiveType,simInt options,const simFloat* sizes,simFloat mass,const simInt* precision);
 simInt simCreateHeightfieldShape(simInt options,simFloat shadingAngle,simInt xPointCount,simInt yPointCount,simFloat xSize,const simFloat* heights);
 simInt simGetShapeMesh(simInt shapeHandle,simFloat** vertices,simInt* verticesSize,simInt** indices,simInt* indicesSize,simFloat** normals);
-simInt simAddBanner(const simChar* label,simFloat size,simInt options,const simFloat* positionAndEulerAngles,simInt parentObjectHandle,const simFloat* labelColors,const simFloat* backgroundColors);
-simInt simRemoveBanner(simInt bannerID);
 simInt simCreateJoint(simInt jointType,simInt jointMode,simInt options,const simFloat* sizes,const simFloat* colorA,const simFloat* colorB);
 simInt simGetObjectIntParameter(simInt objectHandle,simInt parameterID,simInt* parameter);
 simInt simSetObjectIntParameter(simInt objectHandle,simInt parameterID,simInt parameter);
@@ -523,94 +518,79 @@ simInt simAddLog(const simChar* pluginName,simInt verbosityLevel,const simChar* 
 
 
 
-simInt _simGetContactCallbackCount();
-const void* _simGetContactCallback(simInt index);
-simVoid _simSetDynamicSimulationIconCode(simVoid* object,simInt code);
-simVoid _simSetDynamicObjectFlagForVisualization(simVoid* object,simInt flag);
-simInt _simGetObjectListSize(simInt objType);
-const simVoid* _simGetObjectFromIndex(simInt objType,simInt index);
-simInt _simGetObjectID(const simVoid* object);
-simInt _simGetObjectType(const simVoid* object);
-const simVoid** _simGetObjectChildren(const simVoid* object,simInt* count);
-const simVoid* _simGetGeomProxyFromShape(const simVoid* shape);
-const simVoid* _simGetParentObject(const simVoid* object);
-const simVoid* _simGetObject(int objID);
-simVoid _simGetObjectLocalTransformation(const simVoid* object,simFloat* pos,simFloat* quat,simBool excludeFirstJointTransformation);
-simVoid _simSetObjectLocalTransformation(simVoid* object,const simFloat* pos,const simFloat* quat);
-simVoid _simSetObjectCumulativeTransformation(simVoid* object,const simFloat* pos,const simFloat* quat,simBool keepChildrenInPlace);
-simVoid _simGetObjectCumulativeTransformation(const simVoid* object,simFloat* pos,simFloat* quat,simBool excludeFirstJointTransformation);
-simBool _simIsShapeDynamicallyStatic(const simVoid* shape);
-simInt _simGetTreeDynamicProperty(const simVoid* object);
-simInt _simGetDummyLinkType(const simVoid* dummy,simInt* linkedDummyID);
-simInt _simGetJointMode(const simVoid* joint);
-simBool _simIsJointInHybridOperation(const simVoid* joint);
-simVoid _simDisableDynamicTreeForManipulation(const simVoid* object,simBool disableFlag);
-simBool _simIsShapeDynamicallyRespondable(const simVoid* shape);
-simInt _simGetDynamicCollisionMask(const simVoid* shape);
-const simVoid* _simGetLastParentForLocalGlobalCollidable(const simVoid* shape);
-simVoid _simSetShapeIsStaticAndNotRespondableButDynamicTag(const simVoid* shape,simBool tag);
-simBool _simGetShapeIsStaticAndNotRespondableButDynamicTag(const simVoid* shape);
-simVoid _simSetJointPosition(const simVoid* joint,simFloat pos);
-simFloat _simGetJointPosition(const simVoid* joint);
-simVoid _simSetDynamicMotorPositionControlTargetPosition(const simVoid* joint,simFloat pos);
-simVoid _simGetInitialDynamicVelocity(const simVoid* shape,simFloat* vel);
-simVoid _simSetInitialDynamicVelocity(simVoid* shape,const simFloat* vel);
-simVoid _simGetInitialDynamicAngVelocity(const simVoid* shape,simFloat* angularVel);
-simVoid _simSetInitialDynamicAngVelocity(simVoid* shape,const simFloat* angularVel);
-simBool _simGetStartSleeping(const simVoid* shape);
-simBool _simGetWasPutToSleepOnce(const simVoid* shape);
-simBool _simGetDynamicsFullRefreshFlag(const simVoid* object);
-simVoid _simSetDynamicsFullRefreshFlag(const simVoid* object,simBool flag);
-simVoid _simSetGeomProxyDynamicsFullRefreshFlag(simVoid* geomData,simBool flag);
-simBool _simGetGeomProxyDynamicsFullRefreshFlag(const simVoid* geomData);
-simVoid _simSetShapeDynamicVelocity(simVoid* shape,const simFloat* linear,const simFloat* angular);
-simVoid _simGetAdditionalForceAndTorque(const simVoid* shape,simFloat* force,simFloat* torque);
-simVoid _simClearAdditionalForceAndTorque(const simVoid* shape);
-simBool _simGetJointPositionInterval(const simVoid* joint,simFloat* minValue,simFloat* rangeValue);
-simInt _simGetJointType(const simVoid* joint);
-simBool _simIsForceSensorBroken(const simVoid* forceSensor);
-simVoid _simGetDynamicForceSensorLocalTransformationPart2(const simVoid* forceSensor,simFloat* pos,simFloat* quat);
-simBool _simIsDynamicMotorEnabled(const simVoid* joint);
-simBool _simIsDynamicMotorPositionCtrlEnabled(const simVoid* joint);
-simBool _simIsDynamicMotorTorqueModulationEnabled(const simVoid* joint);
-simVoid _simGetMotorPid(const simVoid* joint,simFloat* pParam,simFloat* iParam,simFloat* dParam);
-simFloat _simGetDynamicMotorTargetPosition(const simVoid* joint);
-simFloat _simGetDynamicMotorTargetVelocity(const simVoid* joint);
-simFloat _simGetDynamicMotorMaxForce(const simVoid* joint);
-simFloat _simGetDynamicMotorUpperLimitVelocity(const simVoid* joint);
-simVoid _simSetDynamicMotorReflectedPositionFromDynamicEngine(simVoid* joint,simFloat pos);
-simVoid _simSetJointSphericalTransformation(simVoid* joint,const simFloat* quat);
-simVoid _simAddForceSensorCumulativeForcesAndTorques(simVoid* forceSensor,const simFloat* force,const simFloat* torque,int totalPassesCount);
-simVoid _simAddJointCumulativeForcesOrTorques(simVoid* joint,simFloat forceOrTorque,int totalPassesCount);
-simVoid _simSetDynamicJointLocalTransformationPart2(simVoid* joint,const simFloat* pos,const simFloat* quat);
-simVoid _simSetDynamicForceSensorLocalTransformationPart2(simVoid* forceSensor,const simFloat* pos,const simFloat* quat);
-simVoid _simSetDynamicJointLocalTransformationPart2IsValid(simVoid* joint,simBool valid);
-simVoid _simSetDynamicForceSensorLocalTransformationPart2IsValid(simVoid* forceSensor,simBool valid);
-const simVoid* _simGetGeomWrapFromGeomProxy(const simVoid* geomData);
-simVoid _simGetLocalInertiaFrame(const simVoid* geomInfo,simFloat* pos,simFloat* quat);
-simInt _simGetPurePrimitiveType(const simVoid* geomInfo);
-simBool _simIsGeomWrapGeometric(const simVoid* geomInfo);
-simBool _simIsGeomWrapConvex(const simVoid* geomInfo);
-simInt _simGetGeometricCount(const simVoid* geomInfo);
-simVoid _simGetAllGeometrics(const simVoid* geomInfo,simVoid** allGeometrics);
-simVoid _simGetPurePrimitiveSizes(const simVoid* geometric,simFloat* sizes);
-simVoid _simMakeDynamicAnnouncement(int announceType);
-simVoid _simGetVerticesLocalFrame(const simVoid* geometric,simFloat* pos,simFloat* quat);
-const simFloat* _simGetHeightfieldData(const simVoid* geometric,simInt* xCount,simInt* yCount,simFloat* minHeight,simFloat* maxHeight);
-simVoid _simGetCumulativeMeshes(const simVoid* geomInfo,simFloat** vertices,simInt* verticesSize,simInt** indices,simInt* indicesSize);
-simFloat _simGetMass(const simVoid* geomInfo);
-simVoid _simGetPrincipalMomentOfInertia(const simVoid* geomInfo,simFloat* inertia);
-simVoid _simGetGravity(simFloat* gravity);
-simInt _simGetTimeDiffInMs(simInt previousTime);
-simBool _simDoEntitiesCollide(simInt entity1ID,simInt entity2ID,simInt* cacheBuffer,simBool overrideCollidableFlagIfShape1,simBool overrideCollidableFlagIfShape2,simBool pathOrMotionPlanningRoutineCalling);
-simBool _simGetDistanceBetweenEntitiesIfSmaller(simInt entity1ID,simInt entity2ID,simFloat* distance,simFloat* ray,simInt* cacheBuffer,simBool overrideMeasurableFlagIfNonCollection1,simBool overrideMeasurableFlagIfNonCollection2,simBool pathPlanningRoutineCalling);
-simInt _simHandleJointControl(const simVoid* joint,simInt auxV,const simInt* inputValuesInt,const simFloat* inputValuesFloat,simFloat* outputValues);
-simInt _simHandleCustomContact(simInt objHandle1,simInt objHandle2,simInt engine,simInt* dataInt,simFloat* dataFloat);
-const simVoid* _simGetIkGroupObject(int ikGroupID);
-simInt _simMpHandleIkGroupObject(const simVoid* ikGroup);
-simFloat _simGetPureHollowScaling(const simVoid* geometric);
-simInt _simGetJointCallbackCallOrder(const simVoid* joint);
-simVoid _simDynCallback(const simInt* intData,const simFloat* floatData);
+//simVoid _simSetDynamicSimulationIconCode(simVoid* object,simInt code);
+//simVoid _simSetDynamicObjectFlagForVisualization(simVoid* object,simInt flag);
+//simInt _simGetObjectListSize(simInt objType);
+//const simVoid* _simGetObjectFromIndex(simInt objType,simInt index);
+//simInt _simGetObjectID(const simVoid* object);
+//simInt _simGetObjectType(const simVoid* object);
+//const simVoid** _simGetObjectChildren(const simVoid* object,simInt* count);
+//const simVoid* _simGetGeomProxyFromShape(const simVoid* shape);
+//const simVoid* _simGetParentObject(const simVoid* object);
+//const simVoid* _simGetObject(int objID);
+//simVoid _simGetObjectLocalTransformation(const simVoid* object,simFloat* pos,simFloat* quat,simBool excludeFirstJointTransformation);
+//simVoid _simSetObjectLocalTransformation(simVoid* object,const simFloat* pos,const simFloat* quat);
+//simVoid _simSetObjectCumulativeTransformation(simVoid* object,const simFloat* pos,const simFloat* quat,simBool keepChildrenInPlace);
+//simVoid _simGetObjectCumulativeTransformation(const simVoid* object,simFloat* pos,simFloat* quat,simBool excludeFirstJointTransformation);
+//simBool _simIsShapeDynamicallyStatic(const simVoid* shape);
+//simInt _simGetTreeDynamicProperty(const simVoid* object);
+//simInt _simGetJointMode(const simVoid* joint);
+//simBool _simIsJointInHybridOperation(const simVoid* joint);
+//simBool _simIsShapeDynamicallyRespondable(const simVoid* shape);
+//const simVoid* _simGetLastParentForLocalGlobalCollidable(const simVoid* shape);
+//simVoid _simSetShapeIsStaticAndNotRespondableButDynamicTag(const simVoid* shape,simBool tag);
+//simBool _simGetShapeIsStaticAndNotRespondableButDynamicTag(const simVoid* shape);
+//simVoid _simSetJointPosition(const simVoid* joint,simFloat pos);
+//simFloat _simGetJointPosition(const simVoid* joint);
+//simVoid _simSetDynamicMotorPositionControlTargetPosition(const simVoid* joint,simFloat pos);
+//simVoid _simGetInitialDynamicVelocity(const simVoid* shape,simFloat* vel);
+//simVoid _simSetInitialDynamicVelocity(simVoid* shape,const simFloat* vel);
+//simVoid _simGetInitialDynamicAngVelocity(const simVoid* shape,simFloat* angularVel);
+//simVoid _simSetInitialDynamicAngVelocity(simVoid* shape,const simFloat* angularVel);
+//simBool _simGetStartSleeping(const simVoid* shape);
+//simBool _simGetWasPutToSleepOnce(const simVoid* shape);
+//simBool _simGetDynamicsFullRefreshFlag(const simVoid* object);
+//simVoid _simSetDynamicsFullRefreshFlag(const simVoid* object,simBool flag);
+//simVoid _simSetGeomProxyDynamicsFullRefreshFlag(simVoid* geomData,simBool flag);
+//simBool _simGetGeomProxyDynamicsFullRefreshFlag(const simVoid* geomData);
+//simVoid _simSetShapeDynamicVelocity(simVoid* shape,const simFloat* linear,const simFloat* angular);
+//simBool _simGetJointPositionInterval(const simVoid* joint,simFloat* minValue,simFloat* rangeValue);
+//simInt _simGetJointType(const simVoid* joint);
+//simBool _simIsForceSensorBroken(const simVoid* forceSensor);
+//simBool _simIsDynamicMotorEnabled(const simVoid* joint);
+//simBool _simIsDynamicMotorPositionCtrlEnabled(const simVoid* joint);
+//simBool _simIsDynamicMotorTorqueModulationEnabled(const simVoid* joint);
+//simVoid _simGetMotorPid(const simVoid* joint,simFloat* pParam,simFloat* iParam,simFloat* dParam);
+//simFloat _simGetDynamicMotorTargetPosition(const simVoid* joint);
+//simFloat _simGetDynamicMotorTargetVelocity(const simVoid* joint);
+//simFloat _simGetDynamicMotorUpperLimitVelocity(const simVoid* joint);
+//simVoid _simSetDynamicMotorReflectedPositionFromDynamicEngine(simVoid* joint,simFloat pos);
+//simVoid _simSetJointSphericalTransformation(simVoid* joint,const simFloat* quat);
+//simVoid _simSetDynamicJointLocalTransformationPart2(simVoid* joint,const simFloat* pos,const simFloat* quat);
+//simVoid _simSetDynamicForceSensorLocalTransformationPart2(simVoid* forceSensor,const simFloat* pos,const simFloat* quat);
+//simVoid _simSetDynamicJointLocalTransformationPart2IsValid(simVoid* joint,simBool valid);
+//simVoid _simSetDynamicForceSensorLocalTransformationPart2IsValid(simVoid* forceSensor,simBool valid);
+//const simVoid* _simGetGeomWrapFromGeomProxy(const simVoid* geomData);
+//simVoid _simGetLocalInertiaFrame(const simVoid* geomInfo,simFloat* pos,simFloat* quat);
+//simInt _simGetPurePrimitiveType(const simVoid* geomInfo);
+//simBool _simIsGeomWrapGeometric(const simVoid* geomInfo);
+//simBool _simIsGeomWrapConvex(const simVoid* geomInfo);
+//simInt _simGetGeometricCount(const simVoid* geomInfo);
+//simVoid _simGetPurePrimitiveSizes(const simVoid* geometric,simFloat* sizes);
+//simVoid _simMakeDynamicAnnouncement(int announceType);
+//simVoid _simGetVerticesLocalFrame(const simVoid* geometric,simFloat* pos,simFloat* quat);
+//const simFloat* _simGetHeightfieldData(const simVoid* geometric,simInt* xCount,simInt* yCount,simFloat* minHeight,simFloat* maxHeight);
+
+//simFloat _simGetMass(const simVoid* geomInfo);
+//simVoid _simGetPrincipalMomentOfInertia(const simVoid* geomInfo,simFloat* inertia);
+//simVoid _simGetGravity(simFloat* gravity);
+//simInt _simGetTimeDiffInMs(simInt previousTime);
+//simInt _simHandleJointControl(const simVoid* joint,simInt auxV,const simInt* inputValuesInt,const simFloat* inputValuesFloat,simFloat* outputValues);
+//simInt _simHandleCustomContact(simInt objHandle1,simInt objHandle2,simInt engine,simInt* dataInt,simFloat* dataFloat);
+//const simVoid* _simGetIkGroupObject(int ikGroupID);
+//simInt _simMpHandleIkGroupObject(const simVoid* ikGroup);
+//simFloat _simGetPureHollowScaling(const simVoid* geometric);
+//simInt _simGetJointCallbackCallOrder(const simVoid* joint);
 
 
 // Following courtesy of Stephen James:
@@ -633,97 +613,6 @@ simInt simExtCallScriptFunction(simInt scriptHandleOrType, const simChar* functi
 
 
 // Deprecated begin
-simInt simGetMaterialId(const simChar* materialName);
-simInt simGetShapeMaterial(simInt shapeHandle);
-simInt simHandleVarious();
-simInt simSerialPortOpen(simInt portNumber,simInt baudRate,simVoid* reserved1,simVoid* reserved2);
-simInt simSerialPortClose(simInt portNumber);
-simInt simSerialPortSend(simInt portNumber,const simChar* data,simInt dataLength);
-simInt simSerialPortRead(simInt portNumber,simChar* buffer,simInt dataLengthToRead);
-simInt simJointGetForce(simInt jointHandle,simFloat* forceOrTorque);
-simInt simGetPathPlanningHandle(const simChar* pathPlanningObjectName);
-simInt simGetMotionPlanningHandle(const simChar* motionPlanningObjectName);
-simInt simGetMpConfigForTipPose(simInt motionPlanningObjectHandle,simInt options,simFloat closeNodesDistance,simInt trialCount,const simFloat* tipPose,simInt maxTimeInMs,simFloat* outputJointPositions,const simFloat* referenceConfigs,simInt referenceConfigCount,const simFloat* jointWeights,const simInt* jointBehaviour,simInt correctionPasses);
-simFloat* simFindMpPath(simInt motionPlanningObjectHandle,const simFloat* startConfig,const simFloat* goalConfig,simInt options,simFloat stepSize,simInt* outputConfigsCnt,simInt maxTimeInMs,simFloat* reserved,const simInt* auxIntParams,const simFloat* auxFloatParams);
-simFloat* simSimplifyMpPath(simInt motionPlanningObjectHandle,const simFloat* pathBuffer,simInt configCnt,simInt options,simFloat stepSize,simInt increment,simInt* outputConfigsCnt,simInt maxTimeInMs,simFloat* reserved,const simInt* auxIntParams,const simFloat* auxFloatParams);
-simFloat* simFindIkPath(simInt motionPlanningObjectHandle,const simFloat* startConfig,const simFloat* goalPose,simInt options,simFloat stepSize,simInt* outputConfigsCnt,simFloat* reserved,const simInt* auxIntParams,const simFloat* auxFloatParams);
-simFloat* simGetMpConfigTransition(simInt motionPlanningObjectHandle,const simFloat* startConfig,const simFloat* goalConfig,simInt options,const simInt* select,simFloat calcStepSize,simFloat maxOutStepSize,simInt wayPointCnt,const simFloat* wayPoints,simInt* outputConfigsCnt,const simInt* auxIntParams,const simFloat* auxFloatParams);
-simInt simCreateMotionPlanning(simInt jointCnt,const simInt* jointHandles,const simInt* jointRangeSubdivisions,const simFloat* jointMetricWeights,simInt options,const simInt* intParams,const simFloat* floatParams,const simVoid* reserved);
-simInt simRemoveMotionPlanning(simInt motionPlanningHandle);
-simInt simSearchPath(simInt pathPlanningObjectHandle,simFloat maximumSearchTime);
-simInt simInitializePathSearch(simInt pathPlanningObjectHandle,simFloat maximumSearchTime,simFloat searchTimeStep);
-simInt simPerformPathSearchStep(simInt temporaryPathSearchObject,simBool abortSearch);
-simInt simLockInterface(simBool locked);
-simInt simCopyPasteSelectedObjects();
-simInt simResetPath(simInt pathHandle);
-simInt simHandlePath(simInt pathHandle,simFloat deltaTime);
-simInt simResetJoint(simInt jointHandle);
-simInt simHandleJoint(simInt jointHandle,simFloat deltaTime);
-simInt simAppendScriptArrayEntry(const simChar* reservedSetToNull,simInt scriptHandleOrType,const simChar* arrayNameAtScriptName,const simChar* keyName,const simChar* data,const simInt* what);
-simInt simClearScriptVariable(const simChar* reservedSetToNull,simInt scriptHandleOrType,const simChar* variableNameAtScriptName);
-simVoid _simGetJointOdeParameters(const simVoid* joint,simFloat* stopERP,simFloat* stopCFM,simFloat* bounce,simFloat* fudge,simFloat* normalCFM);
-simVoid _simGetJointBulletParameters(const simVoid* joint,simFloat* stopERP,simFloat* stopCFM,simFloat* normalCFM);
-simVoid _simGetOdeMaxContactFrictionCFMandERP(const simVoid* geomInfo,simInt* maxContacts,simFloat* friction,simFloat* cfm,simFloat* erp);
-simBool _simGetBulletCollisionMargin(const simVoid* geomInfo,simFloat* margin,simInt* otherProp);
-simBool _simGetBulletStickyContact(const simVoid* geomInfo);
-simFloat _simGetBulletRestitution(const simVoid* geomInfo);
-simVoid _simGetVortexParameters(const simVoid* object,simInt version,simFloat* floatParams,simInt* intParams);
-simVoid _simGetNewtonParameters(const simVoid* object,simInt* version,simFloat* floatParams,simInt* intParams);
-simVoid _simGetDamping(const simVoid* geomInfo,simFloat* linDamping,simFloat* angDamping);
-simFloat _simGetFriction(const simVoid* geomInfo);
-simInt simAddSceneCustomData(simInt header,const simChar* data,simInt dataLength);
-simInt simGetSceneCustomDataLength(simInt header);
-simInt simGetSceneCustomData(simInt header,simChar* data);
-simInt simAddObjectCustomData(simInt objectHandle,simInt header,const simChar* data,simInt dataLength);
-simInt simGetObjectCustomDataLength(simInt objectHandle,simInt header);
-simInt simGetObjectCustomData(simInt objectHandle,simInt header,simChar* data);
-simInt simCreateUI(const simChar* uiName,simInt menuAttributes,const simInt* clientSize,const simInt* cellSize,simInt* buttonHandles);
-simInt simCreateUIButton(simInt uiHandle,const simInt* position,const simInt* size,simInt buttonProperty);
-simInt simGetUIHandle(const simChar* uiName);
-simInt simGetUIProperty(simInt uiHandle);
-simInt simGetUIEventButton(simInt uiHandle,simInt* auxiliaryValues);
-simInt simSetUIProperty(simInt uiHandle,simInt elementProperty);
-simInt simGetUIButtonProperty(simInt uiHandle,simInt buttonHandle);
-simInt simSetUIButtonProperty(simInt uiHandle,simInt buttonHandle,simInt buttonProperty);
-simInt simGetUIButtonSize(simInt uiHandle,simInt buttonHandle,simInt* size);
-simInt simSetUIButtonLabel(simInt uiHandle,simInt buttonHandle,const simChar* upStateLabel,const simChar* downStateLabel);
-simChar* simGetUIButtonLabel(simInt uiHandle,simInt buttonHandle);
-simInt simSetUISlider(simInt uiHandle,simInt buttonHandle,simInt position);
-simInt simGetUISlider(simInt uiHandle,simInt buttonHandle);
-simInt simSetUIButtonColor(simInt uiHandle,simInt buttonHandle,const simFloat* upStateColor,const simFloat* downStateColor,const simFloat* labelColor);
-simInt simSetUIButtonTexture(simInt uiHandle,simInt buttonHandle,const simInt* size,const simChar* textureData);
-simInt simCreateUIButtonArray(simInt uiHandle,simInt buttonHandle);
-simInt simSetUIButtonArrayColor(simInt uiHandle,simInt buttonHandle,const simInt* position,const simFloat* color);
-simInt simDeleteUIButtonArray(simInt uiHandle,simInt buttonHandle);
-simInt simRemoveUI(simInt uiHandle);
-simInt simSetUIPosition(simInt uiHandle,const simInt* position);
-simInt simGetUIPosition(simInt uiHandle,simInt* position);
-simInt simLoadUI(const simChar* filename,simInt maxCount,simInt* uiHandles);
-simInt simSaveUI(simInt count,const simInt* uiHandles,const simChar* filename);
-simInt simHandleGeneralCallbackScript(simInt callbackId,simInt callbackTag,simVoid* additionalData);
-simInt simRegisterCustomLuaFunction(const simChar* funcName,const simChar* callTips,const simInt* inputArgumentTypes,simVoid(*callBack)(struct SLuaCallBack* p));
-simInt simRegisterCustomLuaVariable(const simChar* varName,const simChar* varValue);
-simInt simRegisterContactCallback(simInt(*callBack)(simInt,simInt,simInt,simInt*,simFloat*));
-simInt simRegisterJointCtrlCallback(simInt(*callBack)(simInt,simInt,simInt,const simInt*,const simFloat*,simFloat*));
-simInt simGetMechanismHandle(const simChar* mechanismName);
-simInt simHandleMechanism(simInt mechanismHandle);
-simInt simHandleCustomizationScripts(simInt callType);
-simInt simSetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt options,const simInt* pSizes,const simUChar* bytes,const simInt* ints,const simFloat* floats,const simUChar* custom);
-simInt simGetVisionSensorFilter(simInt visionSensorHandle,simInt filterIndex,simInt* options,simInt* pSizes,simUChar** bytes,simInt** ints,simFloat** floats,simUChar** custom);
-simChar* simGetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,simInt* parameterLength);
-simInt simSetScriptSimulationParameter(simInt scriptHandle,const simChar* parameterName,const simChar* parameterValue,simInt parameterLength);
-simInt simSetJointForce(simInt objectHandle,simFloat forceOrTorque);
-simInt simHandleMill(simInt millHandle,simFloat* removedSurfaceAndVolume);
-simInt simResetMill(simInt millHandle);
-simInt simResetMilling(simInt objectHandle);
-simInt simApplyMilling(simInt objectHandle);
-simBool _simGetParentFollowsDynamic(const simVoid* shape);
-simInt simGetNameSuffix(const simChar* name);
-simInt simSetNameSuffix(simInt nameSuffixNumber);
-simInt simAddStatusbarMessage(const simChar* message);
-simChar* simGetScriptRawBuffer(simInt scriptHandle,simInt bufferHandle);
-simInt simSetScriptRawBuffer(simInt scriptHandle,const simChar* buffer,simInt bufferSize);
-simInt simReleaseScriptRawBuffer(simInt scriptHandle,simInt bufferHandle);
 
 """)
 
@@ -741,7 +630,8 @@ ffibuilder.set_source(
 
 # For some reason, cffi makes it such that it looks for libv_rep.so.1
 # rather than libv_rep.so. So we add a symlink.
-path = os.path.join(os.environ['COPPELIASIM_ROOT'], 'libcoppeliaSim.so')
+# path = os.path.join(os.environ['COPPELIASIM_ROOT'], 'libcoppeliaSim.so')
+path = os.path.join(os.environ['COPPELIASIM_ROOT'], '../MacOS/libcoppeliaSim.dylib')
 if not os.path.exists(path + '.1'):
     print('creating symlink: %s -> %s' % (path + '.1', path))
     os.symlink(path, path + '.1')
@@ -750,8 +640,8 @@ if not os.path.exists(path + '.1'):
 print('copying lua file: %s -> %s' % ('pyrep/backend',
                                       os.environ['COPPELIASIM_ROOT']))
 lua_script_fname = 'simAddOnScript_PyRep.lua'
-copyfile(os.path.join('pyrep/backend', lua_script_fname),
-         os.path.join(os.environ['COPPELIASIM_ROOT'], lua_script_fname))
+# copyfile(os.path.join('pyrep/backend', lua_script_fname),
+#          os.path.join(os.environ['COPPELIASIM_ROOT'], lua_script_fname))
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)

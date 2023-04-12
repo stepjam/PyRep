@@ -508,8 +508,6 @@ simInt simAddLog(const simChar* pluginName,simInt verbosityLevel,const simChar* 
 
 
 
-simInt _simGetContactCallbackCount();
-const void* _simGetContactCallback(simInt index);
 simVoid _simSetDynamicSimulationIconCode(simVoid* object,simInt code);
 simVoid _simSetDynamicObjectFlagForVisualization(simVoid* object,simInt flag);
 simInt _simGetObjectListSize(simInt objType);
@@ -526,12 +524,9 @@ simVoid _simSetObjectCumulativeTransformation(simVoid* object,const simFloat* po
 simVoid _simGetObjectCumulativeTransformation(const simVoid* object,simFloat* pos,simFloat* quat,simBool excludeFirstJointTransformation);
 simBool _simIsShapeDynamicallyStatic(const simVoid* shape);
 simInt _simGetTreeDynamicProperty(const simVoid* object);
-simInt _simGetDummyLinkType(const simVoid* dummy,simInt* linkedDummyID);
 simInt _simGetJointMode(const simVoid* joint);
 simBool _simIsJointInHybridOperation(const simVoid* joint);
-simVoid _simDisableDynamicTreeForManipulation(const simVoid* object,simBool disableFlag);
 simBool _simIsShapeDynamicallyRespondable(const simVoid* shape);
-simInt _simGetDynamicCollisionMask(const simVoid* shape);
 const simVoid* _simGetLastParentForLocalGlobalCollidable(const simVoid* shape);
 simVoid _simSetShapeIsStaticAndNotRespondableButDynamicTag(const simVoid* shape,simBool tag);
 simBool _simGetShapeIsStaticAndNotRespondableButDynamicTag(const simVoid* shape);
@@ -549,24 +544,18 @@ simVoid _simSetDynamicsFullRefreshFlag(const simVoid* object,simBool flag);
 simVoid _simSetGeomProxyDynamicsFullRefreshFlag(simVoid* geomData,simBool flag);
 simBool _simGetGeomProxyDynamicsFullRefreshFlag(const simVoid* geomData);
 simVoid _simSetShapeDynamicVelocity(simVoid* shape,const simFloat* linear,const simFloat* angular);
-simVoid _simGetAdditionalForceAndTorque(const simVoid* shape,simFloat* force,simFloat* torque);
-simVoid _simClearAdditionalForceAndTorque(const simVoid* shape);
 simBool _simGetJointPositionInterval(const simVoid* joint,simFloat* minValue,simFloat* rangeValue);
 simInt _simGetJointType(const simVoid* joint);
 simBool _simIsForceSensorBroken(const simVoid* forceSensor);
-simVoid _simGetDynamicForceSensorLocalTransformationPart2(const simVoid* forceSensor,simFloat* pos,simFloat* quat);
 simBool _simIsDynamicMotorEnabled(const simVoid* joint);
 simBool _simIsDynamicMotorPositionCtrlEnabled(const simVoid* joint);
 simBool _simIsDynamicMotorTorqueModulationEnabled(const simVoid* joint);
 simVoid _simGetMotorPid(const simVoid* joint,simFloat* pParam,simFloat* iParam,simFloat* dParam);
-simFloat _simGetDynamicMotorTargetPosition(const simVoid* joint);
+//simFloat _simGetDynamicMotorTargetPosition(const simVoid* joint);
 simFloat _simGetDynamicMotorTargetVelocity(const simVoid* joint);
-simFloat _simGetDynamicMotorMaxForce(const simVoid* joint);
 simFloat _simGetDynamicMotorUpperLimitVelocity(const simVoid* joint);
 simVoid _simSetDynamicMotorReflectedPositionFromDynamicEngine(simVoid* joint,simFloat pos);
 simVoid _simSetJointSphericalTransformation(simVoid* joint,const simFloat* quat);
-simVoid _simAddForceSensorCumulativeForcesAndTorques(simVoid* forceSensor,const simFloat* force,const simFloat* torque,int totalPassesCount);
-simVoid _simAddJointCumulativeForcesOrTorques(simVoid* joint,simFloat forceOrTorque,int totalPassesCount);
 simVoid _simSetDynamicJointLocalTransformationPart2(simVoid* joint,const simFloat* pos,const simFloat* quat);
 simVoid _simSetDynamicForceSensorLocalTransformationPart2(simVoid* forceSensor,const simFloat* pos,const simFloat* quat);
 simVoid _simSetDynamicJointLocalTransformationPart2IsValid(simVoid* joint,simBool valid);
@@ -577,25 +566,21 @@ simInt _simGetPurePrimitiveType(const simVoid* geomInfo);
 simBool _simIsGeomWrapGeometric(const simVoid* geomInfo);
 simBool _simIsGeomWrapConvex(const simVoid* geomInfo);
 simInt _simGetGeometricCount(const simVoid* geomInfo);
-simVoid _simGetAllGeometrics(const simVoid* geomInfo,simVoid** allGeometrics);
 simVoid _simGetPurePrimitiveSizes(const simVoid* geometric,simFloat* sizes);
 simVoid _simMakeDynamicAnnouncement(int announceType);
 simVoid _simGetVerticesLocalFrame(const simVoid* geometric,simFloat* pos,simFloat* quat);
 const simFloat* _simGetHeightfieldData(const simVoid* geometric,simInt* xCount,simInt* yCount,simFloat* minHeight,simFloat* maxHeight);
-simVoid _simGetCumulativeMeshes(const simVoid* geomInfo,simFloat** vertices,simInt* verticesSize,simInt** indices,simInt* indicesSize);
+
 simFloat _simGetMass(const simVoid* geomInfo);
 simVoid _simGetPrincipalMomentOfInertia(const simVoid* geomInfo,simFloat* inertia);
 simVoid _simGetGravity(simFloat* gravity);
 simInt _simGetTimeDiffInMs(simInt previousTime);
-simBool _simDoEntitiesCollide(simInt entity1ID,simInt entity2ID,simInt* cacheBuffer,simBool overrideCollidableFlagIfShape1,simBool overrideCollidableFlagIfShape2,simBool pathOrMotionPlanningRoutineCalling);
-simBool _simGetDistanceBetweenEntitiesIfSmaller(simInt entity1ID,simInt entity2ID,simFloat* distance,simFloat* ray,simInt* cacheBuffer,simBool overrideMeasurableFlagIfNonCollection1,simBool overrideMeasurableFlagIfNonCollection2,simBool pathPlanningRoutineCalling);
 simInt _simHandleJointControl(const simVoid* joint,simInt auxV,const simInt* inputValuesInt,const simFloat* inputValuesFloat,simFloat* outputValues);
 simInt _simHandleCustomContact(simInt objHandle1,simInt objHandle2,simInt engine,simInt* dataInt,simFloat* dataFloat);
 const simVoid* _simGetIkGroupObject(int ikGroupID);
 simInt _simMpHandleIkGroupObject(const simVoid* ikGroup);
 simFloat _simGetPureHollowScaling(const simVoid* geometric);
 simInt _simGetJointCallbackCallOrder(const simVoid* joint);
-simVoid _simDynCallback(const simInt* intData,const simFloat* floatData);
 
 
 // Following courtesy of Stephen James:
@@ -649,12 +634,8 @@ simInt simClearScriptVariable(const simChar* reservedSetToNull,simInt scriptHand
 simVoid _simGetJointOdeParameters(const simVoid* joint,simFloat* stopERP,simFloat* stopCFM,simFloat* bounce,simFloat* fudge,simFloat* normalCFM);
 simVoid _simGetJointBulletParameters(const simVoid* joint,simFloat* stopERP,simFloat* stopCFM,simFloat* normalCFM);
 simVoid _simGetOdeMaxContactFrictionCFMandERP(const simVoid* geomInfo,simInt* maxContacts,simFloat* friction,simFloat* cfm,simFloat* erp);
-simBool _simGetBulletCollisionMargin(const simVoid* geomInfo,simFloat* margin,simInt* otherProp);
-simBool _simGetBulletStickyContact(const simVoid* geomInfo);
-simFloat _simGetBulletRestitution(const simVoid* geomInfo);
 simVoid _simGetVortexParameters(const simVoid* object,simInt version,simFloat* floatParams,simInt* intParams);
 simVoid _simGetNewtonParameters(const simVoid* object,simInt* version,simFloat* floatParams,simInt* intParams);
-simVoid _simGetDamping(const simVoid* geomInfo,simFloat* linDamping,simFloat* angDamping);
 simFloat _simGetFriction(const simVoid* geomInfo);
 simInt simAddSceneCustomData(simInt header,const simChar* data,simInt dataLength);
 simInt simGetSceneCustomDataLength(simInt header);

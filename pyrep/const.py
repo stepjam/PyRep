@@ -107,4 +107,4 @@ class Verbosity(Enum):
     TYRACE_ALL = 'traceall'
 
 
-PYREP_SCRIPT_TYPE = sim.sim_scripttype_addonscript
+PYREP_SCRIPT_TYPE = 2

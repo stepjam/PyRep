@@ -7,6 +7,7 @@ This script contains examples of:
 """
 from os.path import dirname, join, abspath
 from pyrep import PyRep
+from pyrep.const import Verbosity
 from pyrep.robots.arms.baxter import BaxterLeft, BaxterRight
 from pyrep.robots.end_effectors.baxter_gripper import BaxterGripper
 from pyrep.objects.dummy import Dummy
@@ -15,7 +16,7 @@ from pyrep.objects.shape import Shape
 SCENE_FILE = join(dirname(abspath(__file__)), 'scene_baxter_pick_and_pass.ttt')
 pr = PyRep()
 
-pr.launch(SCENE_FILE, headless=False)
+pr.launch(SCENE_FILE, headless=False, blocking=True, verbosity=Verbosity.LOAD_INFOS)
 pr.start()
 
 baxter_left = BaxterLeft()

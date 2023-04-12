@@ -13,6 +13,7 @@ import time
 import threading
 from typing import Tuple, List
 import warnings
+import platform
 
 
 class PyRep(object):
@@ -48,6 +49,7 @@ class PyRep(object):
     def _run_ui_thread(self, scene_file: str, headless: bool,
                        verbosity: Verbosity) -> None:
         # Need this otherwise extensions will not be loaded
+        sim.simStopSimulation()
         os.chdir(self._vrep_root)
         options = sim.sim_gui_headless if headless else sim.sim_gui_all
         sim.simSetStringParameter(
@@ -91,11 +93,12 @@ class PyRep(object):
         if len(scene_file) > 0 and not os.path.isfile(abs_scene_file):
             raise PyRepError('Scene file does not exist: %s' % scene_file)
         cwd = os.getcwd()
-        self._ui_thread = threading.Thread(
-            target=self._run_ui_thread,
-            args=(abs_scene_file, headless, verbosity))
-        self._ui_thread.daemon = True
-        self._ui_thread.start()
+        self._run_ui_thread(abs_scene_file, headless, verbosity)
+        # self._ui_thread = threading.Thread(
+        #     target=self._run_ui_thread,
+        #     args=(abs_scene_file, headless, verbosity))
+        # self._ui_thread.daemon = True
+        # self._ui_thread.start()
 
         while not sim.simExtCanInitSimThread():
             time.sleep(0.1)
@@ -148,9 +151,9 @@ class PyRep(object):
     def shutdown(self) -> None:
         """Shuts down the CoppeliaSim simulation.
         """
-        if self._ui_thread is None:
-            raise PyRepError(
-                'CoppeliaSim has not been launched. Call launch first.')
+        # if self._ui_thread is None:
+        #     raise PyRepError(
+        #         'CoppeliaSim has not been launched. Call launch first.')
         if self._ui_thread is not None:
             self._shutting_down = True
             self.stop()
@@ -169,9 +172,9 @@ class PyRep(object):
     def start(self) -> None:
         """Starts the physics simulation if it is not already running.
         """
-        if self._ui_thread is None:
-            raise PyRepError(
-                'CoppeliaSim has not been launched. Call launch first.')
+        # if self._ui_thread is None:
+        #     raise PyRepError(
+        #         'CoppeliaSim has not been launched. Call launch first.')
         if not self.running:
             sim.simStartSimulation()
             self.running = True
@@ -179,9 +182,9 @@ class PyRep(object):
     def stop(self) -> None:
         """Stops the physics simulation if it is running.
         """
-        if self._ui_thread is None:
-            raise PyRepError(
-                'CoppeliaSim has not been launched. Call launch first.')
+        # if self._ui_thread is None:
+        #     raise PyRepError(
+        #         'CoppeliaSim has not been launched. Call launch first.')
         if self.running:
             sim.simStopSimulation()
             self.running = False
