@@ -26,10 +26,10 @@ def move(index, delta):
     pr.step()
 
 
-[move(2, -DELTA) for _ in range(20)]
-[move(1, -DELTA) for _ in range(20)]
-[move(2, DELTA) for _ in range(10)]
-[move(1, DELTA) for _ in range(20)]
+[move(2, -DELTA) for _ in range(5)]
+[move(1, -DELTA) for _ in range(5)]
+[move(2, DELTA) for _ in range(5)]
+[move(1, DELTA) for _ in range(5)]
 
 pr.stop()
 pr.shutdown()

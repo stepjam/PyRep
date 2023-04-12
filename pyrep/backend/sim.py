@@ -110,6 +110,8 @@ def simStartSimulation():
 
 def simStopSimulation():
     sim.stopSimulation()
+    while sim.getSimulationState() != sim.simulation_stopped:
+        time.sleep(0.1)
 
 
 def simPauseSimulation():

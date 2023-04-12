@@ -159,18 +159,18 @@ class PyRep(object):
         # if self._ui_thread is None:
         #     raise PyRepError(
         #         'CoppeliaSim has not been launched. Call launch first.')
-        if self._ui_thread is not None:
-            self._shutting_down = True
-            self.stop()
-            self.step_ui()
-            sim.simExtPostExitRequest()
-            sim.simExtSimThreadDestroy()
-            self._ui_thread.join()
-            if self._responsive_ui_thread is not None:
-                self._responsive_ui_thread.join()
-            # CoppeliaSim crashes if new instance opened too quickly after shutdown.
-            # TODO: A small sleep stops this for now.
-            time.sleep(0.1)
+        # if self._ui_thread is not None:
+        #     self._shutting_down = True
+        #     self.stop()
+        #     self.step_ui()
+        #     sim.simExtPostExitRequest()
+        #     sim.simExtSimThreadDestroy()
+        #     self._ui_thread.join()
+        #     if self._responsive_ui_thread is not None:
+        #         self._responsive_ui_thread.join()
+        #     # CoppeliaSim crashes if new instance opened too quickly after shutdown.
+        #     # TODO: A small sleep stops this for now.
+        #     time.sleep(0.1)
         self._ui_thread = None
         self._shutting_down = False
 
@@ -194,7 +194,8 @@ class PyRep(object):
             sim.simStopSimulation()
             self.running = False
             # Need this so the UI updates
-            [self.step() for _ in range(5)]  # type: ignore
+
+            # [self.step() for _ in range(5)]  # type: ignore
 
     def step(self) -> None:
         """Execute the next simulation step.
