@@ -37,9 +37,14 @@ class PyRep(object):
 
         self._handles_to_objects = {}
 
+        os.environ['API_USER'] = 'username'
+
         if 'COPPELIASIM_ROOT' not in os.environ:
-            raise PyRepError(
-                'COPPELIASIM_ROOT not defined. See installation instructions.')
+            root = "C:\Program Files\CoppeliaRobotics\CoppeliaSimPro"
+            os.environ['COPPELIASIM_ROOT'] = root
+            warnings.warn("Coppeliasim root is " + root, UserWarning)
+            # raise PyRepError(
+            #     'COPPELIASIM_ROOT not defined. See installation instructions.')
         self._vrep_root = os.environ['COPPELIASIM_ROOT']
         if not os.path.exists(self._vrep_root):
             raise PyRepError(

@@ -10,9 +10,9 @@ from pyrep.robots.arms.panda import Panda
 
 SCENE_FILE = join(dirname(abspath(__file__)), 'scene_panda_reach_target.ttt')
 DELTA = 0.01
-# pr = PyRep()
-# pr.launch(SCENE_FILE, headless=False)
-# pr.start()
+pr = PyRep()
+pr.launch(SCENE_FILE, headless=False)
+pr.start()
 agent = Panda()
 
 starting_joint_positions = agent.get_joint_positions()

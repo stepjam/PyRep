@@ -872,7 +872,7 @@ def simHandleIkGroup(ikGroupHandle):
 
 
 def simCheckIkGroup(ikGroupHandle, jointHandles):
-    ret,jointValues = lib.simCheckIkGroup(
+    ret,jointValues = sim.checkIkGroup(
         ikGroupHandle , jointHandles)
     _check_return(ret)
     return ret, jointValues
