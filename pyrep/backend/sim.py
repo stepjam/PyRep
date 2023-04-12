@@ -1121,7 +1121,18 @@ def simGetContactInfo(contact_obj_handle, get_contact_normal):
 
 
 def simGetConfigForTipPose(ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs, metric, collisionPairs, jointOptions, lowLimits, ranges):
-    jointPositions = simIK.findConfig(ikEnv,  ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs / 1000, metric)
+   
+    jointPositions = sim.getConfigForTipPose(
+        ikGroupHandle,
+        jointHandles,
+        thresholdDist,
+        maxTimeInMs,
+        [1,1,1,0.1],
+        collisionPairs ,
+        jointOptions ,
+        lowLimits  ,
+        ranges  )
+    #jointPositions = simIK.findConfig(ikEnv,  ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs / 1000, metric)
     # ignoring collisions
     # metric = [1, 1, 1, 0.1]
     return jointPositions
