@@ -62,10 +62,16 @@ def _check_set_object_parameter(ret):
 
 
 def simExtLaunchUIThread(options, scene, pyrep_root):
+    sim.stopSimulation()
+    while sim.getSimulationState() != sim.simulation_stopped:
+        time.sleep(0.1)
     sim.loadScene(scene )
     # lib.simExtLaunchUIThread(
     #     'PyRep'.encode('ascii'), options, scene.encode('ascii'),
     #     pyrep_root.encode('ascii'))
+    client.setStepping(True)
+    sim.startSimulation()
+    client.step()
 
 
 def simExtSimThreadInit():

@@ -54,13 +54,13 @@ class PyRep(object):
     def _run_ui_thread(self, scene_file: str, headless: bool,
                        verbosity: Verbosity) -> None:
         # Need this otherwise extensions will not be loaded
-        sim.simStopSimulation()
         os.chdir(self._vrep_root)
         options = sim.sim_gui_headless if headless else sim.sim_gui_all
         sim.simSetStringParameter(
             sim.sim_stringparam_verbosity, verbosity.value)
         sim.simExtLaunchUIThread(
             options=options, scene=scene_file, pyrep_root=self._vrep_root)
+
 
     def _run_responsive_ui_thread(self) -> None:
         while True:

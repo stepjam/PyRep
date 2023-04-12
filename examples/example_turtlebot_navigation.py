@@ -12,9 +12,9 @@ import numpy as np
 
 LOOPS = 4
 SCENE_FILE = join(dirname(abspath(__file__)), 'scene_turtlebot_navigation.ttt')
-# pr = PyRep()
-# pr.launch(SCENE_FILE, headless=False)
-# pr.start()
+pr = PyRep()
+pr.launch(SCENE_FILE, headless=False)
+pr.start()
 agent = TurtleBot()
 
 # We could have made this target in the scene, but lets create one dynamically
