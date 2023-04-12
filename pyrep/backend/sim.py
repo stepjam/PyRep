@@ -12,6 +12,8 @@ lib = None
 client = RemoteAPIClient()
 try:
     sim =  client.getObject('sim')
+    simIK = client.getObject('simIK')
+    ikEnv = simIK.createEnvironment()
     lib=sim
     client.setStepping(True)
     sim.stopSimulation()
@@ -95,7 +97,7 @@ def simExtPostExitRequest():
 
 
 def simExtGetExitRequest():
-    return bool(lib.simExtGetExitRequest())
+    return bool(sim.extGetExitRequest())
 
 
 def simExtStep(stepIfRunning=True):
@@ -1119,17 +1121,10 @@ def simGetContactInfo(contact_obj_handle, get_contact_normal):
 
 
 def simGetConfigForTipPose(ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs, metric, collisionPairs, jointOptions, lowLimits, ranges):
-    jointCnt = len(jointHandles)
-    collisionPairCnt = len(collisionPairs) // 2
-    collisionPairs = None if len(collisionPairs) == 0 else collisionPairs
-    reserved = None
-    metric = None if metric is None else metric
-    jointOptions = None if jointOptions is None else jointOptions
-    retConfigm = sim.getConfigForTipPose(
-        ikGroupHandle, jointCnt, jointHandles, thresholdDist,
-        maxTimeInMs, metric, collisionPairs,
-        jointOptions, lowLimits, ranges)
-    return retConfigm
+    jointPositions = simIK.findConfig(ikEnv,  ikGroupHandle, jointHandles, thresholdDist, maxTimeInMs / 1000, metric)
+    # ignoring collisions
+    # metric = [1, 1, 1, 0.1]
+    return jointPositions
 
 
 def generateIkPath(ikGroupHandle, jointHandles, ptCnt, collisionPairs, jointOptions):

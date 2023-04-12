@@ -105,29 +105,29 @@ class PyRep(object):
         # self._ui_thread.daemon = True
         # self._ui_thread.start()
 
-        while not sim.simExtCanInitSimThread():
-            time.sleep(0.1)
-
-        sim.simExtSimThreadInit()
-        time.sleep(0.2)  # Stops CoppeliaSim crashing if restarted too quickly.
-
-        if blocking:
-            while not sim.simExtGetExitRequest():
-                sim.simExtStep()
-            self.shutdown()
-        elif responsive_ui:
-            self._responsive_ui_thread = threading.Thread(
-                target=self._run_responsive_ui_thread)
-            self._responsive_ui_thread.daemon = True
-            try:
-                self._responsive_ui_thread.start()
-            except (KeyboardInterrupt, SystemExit):
-                if not self._shutting_down:
-                    self.shutdown()
-                sys.exit()
-            self.step()
-        else:
-            self.step()
+        # while not sim.simExtCanInitSimThread():
+        #     time.sleep(0.1)
+        #
+        # sim.simExtSimThreadInit()
+        # time.sleep(0.2)  # Stops CoppeliaSim crashing if restarted too quickly.
+        #
+        # if blocking:
+        #     while not sim.simExtGetExitRequest():
+        #         sim.simExtStep()
+        #     self.shutdown()
+        # elif responsive_ui:
+        #     self._responsive_ui_thread = threading.Thread(
+        #         target=self._run_responsive_ui_thread)
+        #     self._responsive_ui_thread.daemon = True
+        #     try:
+        #         self._responsive_ui_thread.start()
+        #     except (KeyboardInterrupt, SystemExit):
+        #         if not self._shutting_down:
+        #             self.shutdown()
+        #         sys.exit()
+        #     self.step()
+        # else:
+        #     self.step()
         os.chdir(cwd)  # Go back to the previous cwd
 
     def script_call(self, function_name_at_script_name: str,

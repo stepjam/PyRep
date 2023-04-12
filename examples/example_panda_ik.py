@@ -29,13 +29,14 @@ try:
 except IKError:
     # So let's swap to an alternative IK method...
     # This returns 'max_configs' number of joint positions
-    input('Press key to run solve_ik_via_sampling...')
+    # input('Press key to run solve_ik_via_sampling...')
+    print('solve_ik_via_sampling...')
     new_joint_pos = agent.solve_ik_via_sampling([x, y, z - 0.4], quaternion=q)[0]
 
-# Because the arm is in Forxe/Torque mode, we need to temporarily disable
+# Because the arm is in Force/Torque mode, we need to temporarily disable
 # dynamics in order to instantaneously move joints.
 agent.set_joint_positions(new_joint_pos, disable_dynamics=True)
-input('Press any key to finish...')
+# input('Press any key to finish...')
 
 pr.stop()
 pr.shutdown()
