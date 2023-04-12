@@ -1,2 +1,4 @@
 numpy
 cffi==1.14.2
+cbor
+zmq

@@ -1,7 +1,7 @@
 import time
 
-from func_timeout import func_timeout
-import cffi
+# from func_timeout import func_timeout
+# import cffi
 
 from .simConst import *
 import numpy as np
