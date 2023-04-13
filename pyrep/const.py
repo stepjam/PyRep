@@ -3,10 +3,10 @@ from enum import Enum
 
 
 class PrimitiveShape(Enum):
-    CUBOID = 0
-    SPHERE = 1
-    CYLINDER = 2
-    CONE = 3
+    CUBOID = 3
+    SPHERE = 4
+    CYLINDER = 5
+    CONE = 6
 
 
 class ObjectType(Enum):

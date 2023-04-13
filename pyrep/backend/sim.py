@@ -579,7 +579,7 @@ def simExtCallScriptFunction(functionNameAtScriptName, scriptHandleOrType,
 
 
 def simCreatePureShape(primitiveType, options, sizes):
-    handle = lib.createPrimitiveShape(
+    handle = sim.createPrimitiveShape(
         primitiveType,   sizes, options)
     _check_return(handle)
     return handle
