@@ -19,6 +19,7 @@ from pyrep.robots.arms.ur5 import UR5
 from pyrep.robots.arms.ur10 import UR10
 from pyrep.robots.arms.dobot import Dobot
 from pyrep.robots.arms.xarm7 import XArm7
+from pyrep.robots.arms.z1 import Z1
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
 
@@ -37,6 +38,7 @@ ARMS = [
     ('UR10', UR10),
     ('Dobot', Dobot),
     ('XArm7', XArm7),
+    ('Z1', Z1)
 ]
 
 
