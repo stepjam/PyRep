@@ -143,8 +143,8 @@ def simGetIkAndEnv(ikGroupName):
     # this should be arm specific not in sim
     ik_target_handle = sim.getObject("/"+ikGroupName.replace("_ik","/IK"))
     scriptHandle = sim.getScript(sim.scripttype_childscript, ik_target_handle)
-    ikEnv, ikGroup, ikJoints = sim.callScriptFunction('getEnvAndGroup', scriptHandle)
-    return ikEnv, ikGroup, ikJoints
+    ikEnv, ikGroup, ikJoints,ikBase, ikTip, ikTarget = sim.callScriptFunction('getEnvAndGroup', scriptHandle)
+    return ikEnv, ikGroup, ikJoints, ikBase, ikTip, ikTarget
 
 def simSetIkElementProperties(ikGroupHandle, tipDummyHandle, constraints,
                               precision=None, weight=None):
@@ -732,8 +732,17 @@ def simGetJointType(objectHandle):
 
 def simRMLPos(dofs, smallestTimeStep, flags, currentPosVelAccel,
               maxVelAccelJerk, selection, targetPosVel):
-    handle = lib.simRMLPos(dofs, smallestTimeStep, flags, currentPosVelAccel,
-                           maxVelAccelJerk, selection, targetPosVel)
+
+    handle = sim.ruckigPos(
+        dofs,
+        0.0001,
+        flags,
+        currentPosVelAccel,
+        maxVelAccelJerk,
+        selection,
+        targetPosVel)
+    # handle = sim.simRMLPos(dofs, smallestTimeStep, flags, currentPosVelAccel,
+    #                        maxVelAccelJerk, selection, targetPosVel)
     _check_return(handle)
     return handle
 
@@ -748,14 +757,14 @@ def simRMLVel(dofs, smallestTimeStep, flags, currentPosVelAccel, maxAccelJerk,
 
 def simRMLStep(handle, timeStep, dofs):
     # timeStep = ffi.cast('double', timeStep)
-    state , newPosVelAccel,_ = lib.simRMLStep(handle, timeStep)
-    _check_return(state)
-    return state, newPosVelAccel
+    result, newPosVelAccel, synchronizationTime = sim.ruckigStep(handle, timeStep)
+    # state , newPosVelAccel,_ = sim.simRMLStep(handle, timeStep)
+    # _check_return(state)
+    return result, newPosVelAccel
 
 
 def simRMLRemove(handle):
-    ret = lib.simRMLRemove(handle)
-    _check_return(ret)
+    sim.ruckigRemove(handle)
 
 
 def simImportMesh(fileformat, pathAndFilename, options,
@@ -1145,16 +1154,11 @@ def simGetConfigForTipPose(ikEnv, ikGroupHandle, jointHandles, thresholdDist, ma
     return jointPositions
 
 
-def generateIkPath(ikGroupHandle, jointHandles, ptCnt, collisionPairs, jointOptions):
-    jointCnt = len(jointHandles)
-    collisionPairCnt = len(collisionPairs) // 2
+def generateIkPath(ikEnv, ikGroupHandle, jointHandles, ptCnt, collisionPairs, jointOptions, tip):
     collisionPairs = None if len(collisionPairs) == 0 else collisionPairs
-    reserved = None
-    jointOptions = None if jointOptions is None else jointOptions
-    ret = lib.simGenerateIkPath(
-        ikGroupHandle, jointCnt, jointHandles, ptCnt, collisionPairCnt,
-        collisionPairs, jointOptions, reserved)
-    return [] if ret == None else [ret[i] for i in range(ptCnt * jointCnt)]
+    joints = simIK.generatePath(ikEnv,
+        ikGroupHandle, jointHandles, tip, ptCnt)
+    return joints
 
 
 def simGetDecimatedMesh(inVertices, inIndices, decimationPercent):

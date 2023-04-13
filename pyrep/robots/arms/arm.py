@@ -34,7 +34,8 @@ class Arm(RobotComponent):
         self._ik_target = Dummy('%s_target%s' % (name, suffix))
         self._ik_tip = Dummy('%s_tip%s' % (name, suffix))
         # self._ik_group = sim.simGetIkGroupHandle('%s_ik%s' % (name, suffix))
-        self._ik_env, self._ik_group, self._ik_joints = sim.simGetIkAndEnv('%s_ik%s' % (name, suffix))
+        #need to somehow name simik id-s different from sim handle ids
+        self._ik_env, self._ik_group, self._ik_joints, self._ik_base2, self._ik_tip2, self._ik_target2 = sim.simGetIkAndEnv('%s_ik%s' % (name, suffix))
 
         self._collision_collection = sim.simGetCollectionHandle(
             '%s_arm%s' % (name, suffix))
@@ -325,8 +326,8 @@ class Arm(RobotComponent):
         if not ignore_collisions:
             collision_pairs = [self._collision_collection, sim.sim_handle_all]
         joint_options = None
-        ret_floats = sim.generateIkPath(
-            self._ik_group, handles, steps, collision_pairs, joint_options)
+        ret_floats = sim.generateIkPath(self._ik_env,
+            self._ik_group, self._ik_joints, steps, collision_pairs, joint_options, self._ik_tip2)
         self._ik_target.set_pose(prev_pose)
         if len(ret_floats) == 0:
             raise ConfigurationPathError('Could not create path.')
