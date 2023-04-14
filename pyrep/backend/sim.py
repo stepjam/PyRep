@@ -1,4 +1,5 @@
 import time
+import warnings
 
 # from func_timeout import func_timeout
 # import cffi
@@ -241,23 +242,25 @@ def simBreakForceSensor(forceSensorHandle):
     sim.breakForceSensor(forceSensorHandle)
 
 def simReadForceSensor(forceSensorHandle):
-    state, forceVector, torqueVector = lib.simReadForceSensor(forceSensorHandle)
+    state, forceVector, torqueVector = sim.readForceSensor(forceSensorHandle)
     return state, forceVector ,  torqueVector
 
 
 def simReleaseBuffer(pointer):
-    lib.simReleaseBuffer(pointer)
+    warnings.warn('no buffers')
+    pass
+    # lib.simReleaseBuffer(pointer)
 
 
 def simCreateVisionSensor(options, intParams, floatParams, color):
 
-    ret = lib.simCreateVisionSensor(options, intParams, floatParams, color)
+    ret = sim.createVisionSensor(options, intParams, floatParams, color)
     _check_return(ret)
     return ret
 
 
 def simHandleVisionSensor(sensorHandle):
-    count,auxValues,_ = lib.simHandleVisionSensor(
+    count,auxValues,_ = sim.handleVisionSensor(
         sensorHandle )
     return 1, auxValues
 
@@ -327,19 +330,19 @@ def simLoadModel(modelPathAndName):
 
 
 def simLoadScene(scenePathAndName):
-    val = lib.simLoadScene(scenePathAndName.encode('ascii'))
+    val = sim.loadScene(scenePathAndName.encode('ascii'))
     _check_return(val)
     return val
 
 
 def simSaveModel(modelHandle, modelPathAndName):
-    val = lib.simSaveModel(modelHandle, modelPathAndName.encode('ascii'))
+    val = sim.saveModel(modelHandle, modelPathAndName.encode('ascii'))
     _check_return(val)
     return val
 
 
 def simSaveScene(filename):
-    val = lib.simSaveScene(filename.encode('ascii'))
+    val = sim.saveScene(filename.encode('ascii'))
     _check_return(val)
     return val
 
@@ -355,7 +358,7 @@ def simSetObjectName(objectHandle, name):
 
 
 def simAddStatusbarMessage(message):
-    return lib.simAddStatusbarMessage(message.encode('ascii'))
+    return sim.addStatusbarMessage(message.encode('ascii'))
 
 
 def simGetObjectOrientation(objectHandle, relativeToObjectHandle):
@@ -473,7 +476,7 @@ def simGetDistanceHandle(distanceObjectName):
 
 
 def simReadCollision(collisionObjectHandle):
-    ret = lib.simReadCollision(collisionObjectHandle)
+    ret = sim.readCollision(collisionObjectHandle)
     _check_return(ret)
     return ret
 
@@ -489,17 +492,17 @@ def simHandleDistance(distanceObjectHandle):
 
 
 def simRemoveObject(objectHandle):
-    ret = lib.simRemoveObject(objectHandle)
+    ret = sim.removeObject(objectHandle)
     _check_return(ret)
 
 
 def simRemoveModel(objectHandle):
-    ret = lib.simRemoveModel(objectHandle)
+    ret = sim.removeModel(objectHandle)
     _check_return(ret)
 
 
 def simCloseScene():
-    ret = lib.simCloseScene()
+    ret = sim.closeScene()
     _check_return(ret)
 
 
@@ -557,7 +560,7 @@ def simSetObjectSpecialProperty(objectHandle, prop):
 
 
 def simCreateDummy(size, color):
-    ret = lib.simCreateDummy(size, color)
+    ret = sim.createDummy(size, color)
     _check_return(ret)
     return ret
 
@@ -587,7 +590,7 @@ def simCreatePureShape(primitiveType, options, sizes):
 
 def simGroupShapes(shapeHandles, merge=False):
     l = len(shapeHandles)
-    handle = lib.simGroupShapes(shapeHandles, -l if merge else l)
+    handle = sim.groupShapes(shapeHandles, -l if merge else l)
     _check_return(handle)
     return handle
 
@@ -606,7 +609,7 @@ def simSetShapeColor(shapeHandle, colorName, colorComponent, rgbData):
 
 
 def simReorientShapeBoundingBox(shapeHandle, relativeToHandle):
-    ret = lib.simReorientShapeBoundingBox(shapeHandle, relativeToHandle, 0)
+    ret = sim.reorientShapeBoundingBox(shapeHandle, relativeToHandle, 0)
     _check_return(ret)
 
 
@@ -646,7 +649,7 @@ def simSetConfigurationTree(data):
 
 
 def simRotateAroundAxis(matrix, axis, axisPos, angle):
-    return lib.simRotateAroundAxis(matrix, axis, axisPos, angle)
+    return sim.rotateAroundAxis(matrix, axis, axisPos, angle)
 
 def simSetObjectMatrix(objectHandle, relativeToObjectHandle, matrix):
     ret = sim.setObjectMatrix(objectHandle, relativeToObjectHandle, matrix)
@@ -654,7 +657,7 @@ def simSetObjectMatrix(objectHandle, relativeToObjectHandle, matrix):
 
 
 def simCheckCollision(entity1Handle, entity2Handle):
-    state = lib.simCheckCollision(entity1Handle, entity2Handle)
+    state = sim.checkCollision(entity1Handle, entity2Handle)
     _check_return(state)
     return state
 
@@ -685,7 +688,7 @@ def simAddDrawingObject(objectType, size, duplicateTolerance,
     :param emission: Default emissive color.
     :return: Handle of the drawing object.
     """
-    handle = lib.simAddDrawingObject(
+    handle = sim.addDrawingObject(
         objectType, size, duplicateTolerance, parentObjectHandle, maxItemCount,
         ambient_diffuse, None, specular, emission)
     _check_return(handle)
@@ -693,7 +696,7 @@ def simAddDrawingObject(objectType, size, duplicateTolerance,
 
 
 def simRemoveDrawingObject(objectHandle):
-    ret = lib.simRemoveDrawingObject(objectHandle)
+    ret = sim.removeDrawingObject(objectHandle)
     _check_return(ret)
 
 
@@ -709,7 +712,7 @@ def simAddDrawingObjectItem(objectHandle, itemData):
     """
     if itemData is None:
         itemData = None
-    ret = lib.simAddDrawingObjectItem(objectHandle, itemData)
+    ret = sim.addDrawingObjectItem(objectHandle, itemData)
     _check_return(ret)
 
 
@@ -732,7 +735,6 @@ def simGetJointType(objectHandle):
 
 def simRMLPos(dofs, smallestTimeStep, flags, currentPosVelAccel,
               maxVelAccelJerk, selection, targetPosVel):
-
     handle = sim.ruckigPos(
         dofs,
         0.0001,
@@ -749,8 +751,17 @@ def simRMLPos(dofs, smallestTimeStep, flags, currentPosVelAccel,
 
 def simRMLVel(dofs, smallestTimeStep, flags, currentPosVelAccel, maxAccelJerk,
               selection, targetVel):
-    handle = lib.simRMLVel(dofs, smallestTimeStep, flags, currentPosVelAccel,
-                           maxAccelJerk, selection, targetVel)
+
+    handle = sim.ruckigVel(
+        dofs,
+        smallestTimeStep,
+        flags,
+        currentPosVelAccel,
+        maxAccelJerk,
+        selection,
+        targetVel)
+    # handle = lib.simRMLVel(dofs, smallestTimeStep, flags, currentPosVelAccel,
+    #                        maxAccelJerk, selection, targetVel)
     _check_return(handle)
     return handle
 
@@ -778,7 +789,7 @@ def simImportMesh(fileformat, pathAndFilename, options,
 
 def simImportShape(fileformat, pathAndFilename, options,
                    identicalVerticeTolerance, scalingFactor):
-    handle = lib.simImportShape(
+    handle = sim.importShape(
         fileformat, pathAndFilename.encode('ascii'), options,
         identicalVerticeTolerance, scalingFactor)
     _check_return(handle)
@@ -786,7 +797,7 @@ def simImportShape(fileformat, pathAndFilename, options,
 
 
 def simCreateMeshShape(options, shadingAngle, vertices, indices):
-    ret = lib.simCreateMeshShape(options, shadingAngle, vertices, len(vertices),
+    ret = sim.createMeshShape(options, shadingAngle, vertices, len(vertices),
                                  indices, len(indices), None)
     return ret
 
@@ -804,7 +815,7 @@ def simGetShapeViz(shapeHandle, index):
 
 
 def simConvexDecompose(shapeHandle, options, intParams, floatParams):
-    return lib.simConvexDecompose(shapeHandle, options, intParams, floatParams)
+    return sim.convexDecompose(shapeHandle, options, intParams, floatParams)
 
 
 def simGetJointMode(shapeHandle):
@@ -820,19 +831,19 @@ def simSetJointMode(shapeHandle, mode):
 
 
 def simCreatePath(attributes, intParams, floatParams, color):
-    handle = lib.simCreatePath(attributes, intParams, floatParams, color + [0.]*3 + [0.25]*3 + [0.]*3)
+    handle = sim.createPath(attributes, intParams, floatParams, color + [0.]*3 + [0.25]*3 + [0.]*3)
     _check_return(handle)
     return handle
 
 
 def simAddScript(type):
-    handle = lib.simAddScript(type)
+    handle = sim.addScript(type)
     _check_return(handle)
     return handle
 
 
 def simAssociateScriptWithObject(scriptHandle, objectHandle):
-    ret = lib.simAssociateScriptWithObject(scriptHandle, objectHandle)
+    ret = sim.associateScriptWithObject(scriptHandle, objectHandle)
     _check_return(ret)
 
 
@@ -853,7 +864,7 @@ def simGetScriptAssociatedWithObject(objectHandle):
 
 def simApplyTexture(shapeHandle, textureCoordinates, textCoordSize,
                     texture, textureResolution, options):
-    ret = lib.simApplyTexture(shapeHandle, textureCoordinates, textCoordSize,
+    ret = sim.applyTexture(shapeHandle, textureCoordinates, textCoordSize,
                               texture, textureResolution, options)
     _check_return(ret)
     return ret
@@ -863,7 +874,7 @@ def simCreateTexture(fileName, options):
     # The textureID param that is returned from simCreateTexture seems
     # to be incorrect (in regards to calling simGetShapeTextureId on the
     # generated plane).
-    handle = lib.simCreateTexture(fileName.encode('ascii'), options, None,
+    handle = sim.createTexture(fileName.encode('ascii'), options, None,
                                   None, None, 0, None, None,
                                   None)
     _check_return(handle)
@@ -886,12 +897,16 @@ def simGetShapeTextureId(objectHandle):
 
 
 def simCopyPasteObjects(objectHandles, options):
-    handles = lib.simCopyPasteObjects( objectHandles )
+    handles = sim.copyPasteObjects( objectHandles )
     return handles
 
 
-def simHandleIkGroup(ikGroupHandle):
-    ret = lib.simHandleIkGroup(ikGroupHandle)
+def simHandleIkGroup(environmentHandle, ikGroupHandle):
+
+    ret,  flags, precision = simIK.handleGroup(
+        environmentHandle,
+        ikGroupHandle )
+    # ret = lib.simHandleIkGroup(ikGroupHandle)
     _check_return(ret)
     return ret
 
@@ -904,10 +919,13 @@ def simCheckIkGroup(environmentHandle, ikGroupHandle, jointHandles):
     return 1, jointPositions
 
 
-def simComputeJacobian(ikGroupHandle, options):
+def simComputeJacobian(environmentHandle, ikGroupHandle, options):
     # Only works when joints that are in IK or hybrid mode
-    ret = lib.simComputeJacobian(ikGroupHandle, options, None)
-    _check_return(ret)
+    jacobian, errorVector = simIK.computeGroupJacobian(environmentHandle,
+                                 ikGroupHandle)
+    # _check_return(ret)
+    return jacobian, errorVector
+
 
 
 def simGetIkGroupMatrix(ikGroupHandle, options):
@@ -919,7 +937,7 @@ def simGetIkGroupMatrix(ikGroupHandle, options):
 
 
 def simCheckDistance(entity1Handle, entity2Handle, threshold):
-    return lib.simCheckDistance(
+    return sim.checkDistance(
         entity1Handle, entity2Handle, threshold)
 
 
@@ -936,7 +954,7 @@ def simGetExplicitHandling(generalObjectHandle):
 
 
 def simUngroupShape(shapeHandle):
-    return  lib.simUngroupShape(shapeHandle)
+    return  sim.ungroupShape(shapeHandle)
 
 
 
@@ -946,7 +964,7 @@ def simInvertMatrix(matrix):
 
 
 def simMultiplyMatrices(inMatrix1, inMatrix2):
-    return lib.simMultiplyMatrices(inMatrix1, inMatrix2)
+    return sim.multiplyMatrices(inMatrix1, inMatrix2)
 
 
 def simGetEulerAnglesFromMatrix(rotationMatrix):
@@ -971,7 +989,7 @@ def simGetIntegerSignal(signalName):
 
 
 def simClearIntegerSignal(signalName):
-    ret = lib.simClearIntegerSignal(signalName.encode('ascii'))
+    ret = sim.clearInt32Signal(signalName.encode('ascii'))
     _check_return(ret)
     return ret
 
@@ -987,7 +1005,7 @@ def simGetFloatSignal(signalName):
 
 
 def simClearFloatSignal(signalName):
-    ret = lib.simClearFloatSignal(signalName.encode('ascii'))
+    ret = sim.clearFloatSignal(signalName.encode('ascii'))
     _check_return(ret)
     return ret
 
@@ -1003,7 +1021,7 @@ def simGetDoubleSignal(signalName):
 
 
 def simClearDoubleSignal(signalName):
-    ret = lib.simClearDoubleSignal(signalName.encode('ascii'))
+    ret = sim.clearDoubleSignal(signalName.encode('ascii'))
     _check_return(ret)
     return ret
 
@@ -1024,7 +1042,7 @@ def simGetStringSignal(signalName):
 
 
 def simClearStringSignal(signalName):
-    ret = lib.simClearStringSignal(signalName.encode('ascii'))
+    ret = sim.clearStringSignal(signalName.encode('ascii'))
     _check_return(ret)
     return ret
 
@@ -1049,7 +1067,7 @@ def simGetUserParameter(objectHandle, parameterName):
 
 
 def simCreateOctree(voxelSize, options, pointSize):
-    ret = lib.simCreateOctree(voxelSize, options, pointSize, None)
+    ret = sim.createOctree(voxelSize, options, pointSize, None)
     _check_return(ret)
     return ret
 
@@ -1059,7 +1077,7 @@ def simInsertVoxelsIntoOctree(octreeHandle, options, points, color, tag):
         color = None
     if tag is None:
         tag = None
-    ret = lib.simInsertVoxelsIntoOctree(octreeHandle, options, points,
+    ret = sim.insertVoxelsIntoOctree(octreeHandle, options, points,
                                         len(points)//3, color, tag, None)
     _check_return(ret)
     return ret
@@ -1072,7 +1090,7 @@ def simRemoveVoxelsFromOctree(octreeHandle, options, points):
         pointCount = 0
     else:
         pointCount = len(points)//3
-    ret = lib.simRemoveVoxelsFromOctree(octreeHandle, options, points,
+    ret = sim.removeVoxelsFromOctree(octreeHandle, options, points,
                                         pointCount, None)
     _check_return(ret)
     return ret
@@ -1087,21 +1105,21 @@ def simInsertObjectIntoOctree(octreeHandle, objectHandle, options,
                               color, tag):
     if color is None:
         color = None
-    ret = lib.simInsertObjectIntoOctree(octreeHandle, objectHandle, options,
+    ret = sim.insertObjectIntoOctree(octreeHandle, objectHandle, options,
                                         color, tag, None)
     _check_return(ret)
     return ret
 
 
 def simSubtractObjectFromOctree(octreeHandle, objectHandle, options):
-    ret = lib.simSubtractObjectFromOctree(octreeHandle, objectHandle, options,
+    ret = sim.subtractObjectFromOctree(octreeHandle, objectHandle, options,
                                         None)
     _check_return(ret)
     return ret
 
 
 def simCheckOctreePointOccupancy(octreeHandle, options, points):
-    ret = lib.simCheckOctreePointOccupancy(octreeHandle, options, points,
+    ret = sim.checkOctreePointOccupancy(octreeHandle, options, points,
                                            len(points)//3, None, None,
                                            None)
     _check_return(ret)
@@ -1177,18 +1195,18 @@ def simGetDecimatedMesh(inVertices, inIndices, decimationPercent):
 
 
 def simComputeMassAndInertia(shapeHandle, density):
-    ret = lib.simComputeMassAndInertia(shapeHandle, density)
+    ret = sim.computeMassAndInertia(shapeHandle, density)
     _check_return(ret)
     return ret
 
 
 def simAddForce(shapeHandle, position, force):
-    ret = lib.simAddForce(shapeHandle, position, force)
+    ret = sim.addForce(shapeHandle, position, force)
     _check_return(ret)
 
 
 def simAddForceAndTorque(shapeHandle, force, torque):
-    ret = lib.simAddForceAndTorque(shapeHandle,
+    ret = sim.addForceAndTorque(shapeHandle,
                                    None if force is None else force,
                                    None if torque is None else torque)
     _check_return(ret)
