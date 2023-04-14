@@ -348,7 +348,12 @@ def simSaveScene(filename):
 
 
 def simGetObjectName(objectHandle):
-    name = sim.getObjectName(objectHandle)
+    try:
+        name = sim.getObjectName(objectHandle)
+    except Exception as e:
+        warnings.warn("object doesnt exist " + str(objectHandle))
+        name = ''
+    #     raise Exception("object doesnt exist " + str(objectHandle)).with_traceback(e.__traceback__)
     return name
 
 
@@ -573,8 +578,8 @@ def simGetObjectVelocity(objectHandle):
 
 def simExtCallScriptFunction(functionNameAtScriptName, scriptHandleOrType,
                              inputInts, inputFloats, inputStrings, inputBuffer):
-    ret_ints,ret_floats,ret_strings,ret_buffer,_ = \
-        lib.callScriptFunction(functionNameAtScriptName.encode('ascii'),
+    ret_ints,ret_floats,ret_strings,ret_buffer = \
+        sim.callScriptFunction(functionNameAtScriptName.encode('ascii'),
                                scriptHandleOrType, inputInts,
                                inputFloats, inputStrings)
 
@@ -625,6 +630,8 @@ def simGetObjectsInTree(treeBaseHandle, objectType, options):
 
 def simGetExtensionString(objectHandle, index, key):
     ext = sim.getExtensionString(objectHandle, index, key.encode('ascii'))
+    if ext is None:
+        ext = ''
     return ext
 
 
