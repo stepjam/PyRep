@@ -355,7 +355,9 @@ def simGetObjectName(objectHandle):
         name = ''
     #     raise Exception("object doesnt exist " + str(objectHandle)).with_traceback(e.__traceback__)
     return name
-
+def simGetObjectSizeFactor(objectHandle):
+    sizeFactor = sim.getObjectSizeFactor(objectHandle)
+    return sizeFactor
 
 def simSetObjectName(objectHandle, name):
     ret = sim.setObjectName(objectHandle, name.encode('ascii'))
