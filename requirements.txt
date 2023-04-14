@@ -2,3 +2,4 @@ numpy
 # cffi==1.14.2
 cbor
 zmq
+coppeliasim_zmqremoteapi_client
