@@ -359,6 +359,12 @@ def simGetObjectSizeFactor(objectHandle):
     sizeFactor = sim.getObjectSizeFactor(objectHandle)
     return sizeFactor
 
+def simScaleObjects(objectHandles, scalingFactor,scalePositionsToo ):
+    sim.scaleObjects(
+        objectHandles,
+        scalingFactor,
+        scalePositionsToo)
+
 def simSetObjectName(objectHandle, name):
     ret = sim.setObjectName(objectHandle, name.encode('ascii'))
     _check_return(ret)
