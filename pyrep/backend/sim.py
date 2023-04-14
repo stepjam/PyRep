@@ -266,7 +266,7 @@ def simHandleVisionSensor(sensorHandle):
 
 
 def simReadVisionSensor(sensorHandle):
-    res, auxValues,_ = lib.simReadVisionSensor(sensorHandle)
+    res, auxValues,_ = sim.readVisionSensor(sensorHandle)
     return res, auxValues
 
 
@@ -324,7 +324,7 @@ def simCheckProximitySensor(sensorHandle, entityHandle):
 
 
 def simLoadModel(modelPathAndName):
-    val = lib.simLoadModel(modelPathAndName.encode('ascii'))
+    val = sim.loadModel(modelPathAndName.encode('ascii'))
     _check_return(val)
     return val
 
@@ -781,7 +781,7 @@ def simRMLRemove(handle):
 def simImportMesh(fileformat, pathAndFilename, options,
                   identicalVerticeTolerance, scalingFactor):
 
-    outVerticies,outIndices,outNames  = lib.simImportMesh(
+    outVerticies,outIndices,outNames  = sim.importMesh(
         fileformat, pathAndFilename.encode('ascii'), options,
         identicalVerticeTolerance, scalingFactor)
     return outVerticies,outIndices,outNames
