@@ -416,7 +416,9 @@ def simSetArrayParameter(paramIdentifier, paramValues):
     ret = sim.setArrayParam(paramIdentifier, paramValues)
     _check_return(ret)
 
-
+def simCreateJoint(jointType, jointMode, options, sizes):
+    jointHandle=sim.createJoint(jointType, jointMode, options, sizes)
+    return jointHandle
 def simGetBoolParameter(parameter):
     ret = sim.getBoolParam(parameter)
     _check_return(ret)
