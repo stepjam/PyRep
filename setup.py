@@ -5,7 +5,6 @@ from os.path import join
 
 from setuptools import setup
 
-import cffi_build.cffi_build as cffi_build
 
 
 def read(rel_path):
