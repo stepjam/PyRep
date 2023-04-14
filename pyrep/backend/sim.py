@@ -7,7 +7,7 @@ import warnings
 from .simConst import *
 import numpy as np
 import collections
-from zmqRemoteApi import RemoteAPIClient
+from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
 lib = None
 client = RemoteAPIClient()
