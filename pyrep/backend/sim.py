@@ -657,7 +657,7 @@ def simSetObjectMatrix(objectHandle, relativeToObjectHandle, matrix):
 
 
 def simCheckCollision(entity1Handle, entity2Handle):
-    state = sim.checkCollision(entity1Handle, entity2Handle)
+    state, collidingObjectHandles = sim.checkCollision(entity1Handle, entity2Handle)
     _check_return(state)
     return state
 
