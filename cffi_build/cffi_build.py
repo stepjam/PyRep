@@ -630,11 +630,11 @@ ffibuilder.set_source(
 
 # For some reason, cffi makes it such that it looks for libv_rep.so.1
 # rather than libv_rep.so. So we add a symlink.
-# path = os.path.join(os.environ['COPPELIASIM_ROOT'], 'libcoppeliaSim.so')
-path = os.path.join(os.environ['COPPELIASIM_ROOT'], '../MacOS/libcoppeliaSim.dylib')
-if not os.path.exists(path + '.1'):
-    print('creating symlink: %s -> %s' % (path + '.1', path))
-    os.symlink(path, path + '.1')
+path = os.path.join(os.environ['COPPELIASIM_ROOT'], 'libcoppeliaSim.so')
+# path = os.path.join(os.environ['COPPELIASIM_ROOT'], '../MacOS/libcoppeliaSim.dylib')
+# if not os.path.exists(path + '.1'):
+#     print('creating symlink: %s -> %s' % (path + '.1', path))
+#     os.symlink(path, path + '.1')
 
 # Copy lua functions to the VREP_ROOT
 print('copying lua file: %s -> %s' % ('pyrep/backend',
