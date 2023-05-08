@@ -282,3 +282,8 @@ PyRep is fully compatible with both V-REP and CoppeliaSim.
   year={2019}
 }
 ```
+
+if see error on ```Installing collected packages: cffi   Running setup.py install for cffi ... error   error: subprocess-exited-with-error```
+
+Installing collected packages: cffi   Running setup.py install for cffi ... error   error: subprocess-exited-with-error
+https://stackoverflow.com/questions/68094955/building-wheel-for-cffi-setup-py-error-while-installing-the-packages-from
