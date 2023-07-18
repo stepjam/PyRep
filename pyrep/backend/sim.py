@@ -745,6 +745,15 @@ def simSetShapeColor(shapeHandle, colorName, colorComponent, rgbData):
     _check_return(res)
 
 
+def simScaleObject(shapeHandle, scale_x, scale_y, scale_z):
+    ret = lib.simScaleObject(shapeHandle, scale_x, scale_y, scale_z, 0)
+    _check_return(ret)
+
+
+def simGetObjectSizeFactor(shapeHandle):
+    return lib.simGetObjectSizeFactor(shapeHandle)
+
+
 def simReorientShapeBoundingBox(shapeHandle, relativeToHandle):
     ret = lib.simReorientShapeBoundingBox(shapeHandle, relativeToHandle, 0)
     _check_return(ret)
