@@ -120,6 +120,27 @@ class Object(object):
         """
         sim.simSetObjectName(self._handle, name)
 
+    def scale_object(self, scale_x: float, scale_y: float, scale_z: float) -> None:
+        """Scales the object by the given amounts in the x, y, z axes
+
+        Note that this function apply the given scale to the object, it doesn't
+        set the scale factors. This means that if you apply two calls to this
+        function with factors of 2.0, this results in the object being scaled
+        by a factor of 4 in total (it doesn't set an internal scale factor!)
+
+        :param scale_x: The scaling factor along the object's x axis
+        :param scale_y: The scaling factor along the object's y axis
+        :param scale_z: The scaling factor along the object's z axis
+        """
+        sim.simScaleObject(self._handle, scale_x, scale_y, scale_z)
+
+    def get_size_factor(self) -> float:
+        """Gets the object size factor (for scaling purposes)
+
+        :return: The object's size factor
+        """
+        return sim.simGetObjectSizeFactor(self._handle)
+
     def get_position(self, relative_to=None) -> np.ndarray:
         """Gets the position of this object.
 
