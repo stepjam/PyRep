@@ -25,6 +25,7 @@ class ArmConfigurationPath(ConfigurationPath):
         self._drawing_handle = None
         self._path_done = False
         self._num_joints = arm.get_joint_count()
+        self._joint_position_action = None
 
     def __len__(self):
         return len(self._path_points) // self._num_joints
@@ -102,6 +103,9 @@ class ArmConfigurationPath(ConfigurationPath):
         if self._drawing_handle is not None:
             sim.simAddDrawingObjectItem(self._drawing_handle, None)
 
+    def get_executed_joint_position_action(self) -> np.ndarray:
+        return self._joint_position_action
+
     def _get_rml_handle(self) -> int:
         dt = sim.simGetSimulationTimeStep()
         limits = np.array(self._arm.get_joint_upper_velocity_limits())
@@ -156,6 +160,7 @@ class ArmConfigurationPath(ConfigurationPath):
         return rml_handle
 
     def _step_motion(self) -> int:
+        self._joint_position_action = None
         dt = sim.simGetSimulationTimeStep()
         lengths = self._get_path_point_lengths()
         state, posVelAccel = sim.simRMLStep(self._rml_handle, dt, 1)
@@ -173,6 +178,7 @@ class ArmConfigurationPath(ConfigurationPath):
                          offset:offset + len(self._arm.joints)]
                     dx = p2 - p1
                     qs = p1 + dx * t
+                    self._joint_position_action = qs
                     self._arm.set_joint_target_positions(qs)
                     break
         if state == 1:
