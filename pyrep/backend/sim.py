@@ -750,6 +750,13 @@ def simScaleObject(shapeHandle, scale_x, scale_y, scale_z):
     _check_return(ret)
 
 
+def simScaleObjects(objectHandles, scale, scalePositionsToo=False):
+    handles = ffi.new("int[]", objectHandles)
+    ret = lib.simScaleObjects(handles, len(objectHandles), scale,
+                              scalePositionsToo)
+    _check_return(ret)
+
+
 def simGetObjectSizeFactor(shapeHandle):
     return lib.simGetObjectSizeFactor(shapeHandle)
 
