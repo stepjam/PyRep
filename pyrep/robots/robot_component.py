@@ -1,8 +1,7 @@
 from typing import List, Tuple
-
-from pyrep.objects.shape import Shape
-
-from pyrep.backend import sim, utils
+from pyrep.backend import sim_const as simc
+from pyrep.backend import utils
+from pyrep.backend.sim import SimBackend
 from pyrep.const import JointType
 from pyrep.objects.object import Object
 from pyrep.objects.joint import Joint
@@ -25,6 +24,13 @@ class RobotComponent(Object):
                        for jname in joint_names]
         self._joint_handles = [j.get_handle() for j in self.joints]
 
+        # self._sim_ik_api = SimBackend().sim_ik_api
+        # ik_env = self._sim_ik_api.createEnvironment()
+        # ik_group = self._sim_ik_api.createGroup(ik_env)
+        # sim_base = self.get_handle()
+        # ikElement, simToIkMap, ikToSimMap = self._sim_ik_api.addElementFromScene(
+        #     ik_env, ik_group, simBase, simTip, simTarget, desiredConstraints
+
     def copy(self) -> 'RobotComponent':
         """Copy and pastes the arm in the scene.
 
@@ -34,8 +40,8 @@ class RobotComponent(Object):
         :return: The new pasted arm.
         """
         # Copy whole model
-        handle = sim.simCopyPasteObjects([self._handle], 1)[0]
-        name = sim.simGetObjectName(handle)
+        handle = self._sim_api.copyPasteObjects([self._handle], 1)[0]
+        name = self._sim_api.getObjectName(handle)
         # Find the number of this arm
         num = name[name.rfind('#') + 1:]
         if len(num) > 0:
@@ -50,7 +56,7 @@ class RobotComponent(Object):
 
         :return: Type of the object.
         """
-        return ObjectType(sim.simGetObjectType(self.get_handle()))
+        return ObjectType(self._sim_api.getObjectType(self.get_handle()))
 
     def get_joint_count(self) -> int:
         """Gets the number of joints in this component.
@@ -90,7 +96,7 @@ class RobotComponent(Object):
         """
         self._assert_len(positions)
         if not disable_dynamics:
-            [sim.simSetJointPosition(jh, p)  # type: ignore
+            [self._sim_api.setJointPosition(jh, p)  # type: ignore
              for jh, p in zip(self._joint_handles, positions)]
             return
 
@@ -98,21 +104,21 @@ class RobotComponent(Object):
         if not is_model:
             self.set_model(True)
 
-        prior = sim.simGetModelProperty(self.get_handle())
-        p = prior | sim.sim_modelproperty_not_dynamic
+        prior = self._sim_api.getModelProperty(self.get_handle())
+        p = prior | simc.sim_modelproperty_not_dynamic
         # Disable the dynamics
-        sim.simSetModelProperty(self._handle, p)
+        self._sim_api.setModelProperty(self._handle, p)
+        sim_instance = SimBackend()
         with utils.step_lock:
-            sim.simExtStep(True)  # Have to step for changes to take effect
-
-        [sim.simSetJointPosition(jh, p)  # type: ignore
+            sim_instance.simLoop()  # Have to step for changes to take effect
+        [self._sim_api.setJointPosition(jh, p)  # type: ignore
          for jh, p in zip(self._joint_handles, positions)]
         [j.set_joint_target_position(p)  # type: ignore
          for j, p in zip(self.joints, positions)]
         with utils.step_lock:
-            sim.simExtStep(True)  # Have to step for changes to take effect
+            sim_instance.simLoop()  # Have to step for changes to take effect
         # Re-enable the dynamics
-        sim.simSetModelProperty(self._handle, prior)
+        self._sim_api.setModelProperty(self._handle, prior)
         self.set_model(is_model)
 
     def get_joint_target_positions(self) -> List[float]:

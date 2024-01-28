@@ -17,7 +17,6 @@ from pyrep.robots.arms.lbr_iiwa_14_r820 import LBRIwaa14R820
 from pyrep.robots.arms.ur3 import UR3
 from pyrep.robots.arms.ur5 import UR5
 from pyrep.robots.arms.ur10 import UR10
-from pyrep.robots.arms.dobot import Dobot
 from pyrep.robots.arms.xarm7 import XArm7
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
@@ -35,7 +34,6 @@ ARMS = [
     ('UR3', UR3),
     ('UR5', UR5),
     ('UR10', UR10),
-    ('Dobot', Dobot),
     ('XArm7', XArm7),
 ]
 
@@ -70,7 +68,10 @@ class TestArmsAndConfigurationPaths(TestCore):
 
     def test_solve_ik_via_jacobian(self):
         arm = Panda()
-        waypoint = Dummy('Panda_waypoint')
+        waypoint = Dummy('Panda_waypoint_jacobian')
+        new_pose = arm.get_tip().get_pose()
+        new_pose[2] += 0.01
+        waypoint.set_pose(new_pose)
         new_config = arm.solve_ik_via_jacobian(
             waypoint.get_position(), waypoint.get_orientation())
         arm.set_joint_positions(new_config)

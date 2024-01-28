@@ -1,9 +1,5 @@
-import unittest
-
-from pyrep.const import ObjectType
 
 from tests.core import TestCore
-from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
 from pyrep.objects.octree import Octree
 

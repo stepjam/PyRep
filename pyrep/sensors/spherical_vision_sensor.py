@@ -91,7 +91,7 @@ class SphericalVisionSensor(Object):
             assert sensor.get_far_clipping_plane() == front_sensor_far
 
     def _get_requested_type(self) -> ObjectType:
-        return ObjectType(sim.simGetObjectType(self.get_handle()))
+        return ObjectType(self._sim_api.getObjectType(self.get_handle()))
 
     @staticmethod
     def _create_uniform_pixel_coords_image(image_dims):

@@ -1,5 +1,6 @@
 from typing import Tuple, List
 from pyrep.backend import sim
+from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 
@@ -16,7 +17,8 @@ class ForceSensor(Object):
         options = 0  # force and torque threshold are disabled
         intParams = [0, 0, 0, 0, 0]
         floatParams = [sensor_size, 0, 0, 0, 0]
-        handle = sim.simCreateForceSensor(options=0, intParams=intParams,
+        sim_api = SimBackend().sim_api
+        handle = sim_api.createForceSensor(options=0, intParams=intParams,
                                           floatParams=floatParams, color=None)
         return cls(handle)
 
@@ -27,7 +29,7 @@ class ForceSensor(Object):
             sensor's x, y and z-axes, and the torques along the
             sensor's x, y and z-axes.
         """
-        _, forces, torques = sim.simReadForceSensor(self._handle)
+        _, forces, torques = self._sim_api.readForceSensor(self._handle)
         return forces, torques
 
 

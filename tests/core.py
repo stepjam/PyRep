@@ -1,3 +1,4 @@
+import time
 import unittest
 import pyrep
 from pyrep import PyRep
@@ -19,3 +20,4 @@ class TestCore(unittest.TestCase):
         self.pyrep.stop()
         self.pyrep.step_ui()
         self.pyrep.shutdown()
+        time.sleep(1)

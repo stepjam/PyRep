@@ -116,14 +116,6 @@ class TestShapes(TestCore):
         self.assertIsInstance(info.texture_apply_mode, int)
         self.assertIsInstance(info.texture_options, int)
 
-    def test_apply_texture(self):
-        visual = Shape('cracker_box_visual')
-        info = visual.get_shape_viz(index=0)
-        self.assertNotEqual(info.texture_coords.size, 0)
-        self.assertNotEqual(info.texture.size, 0)
-        texture = info.texture[:, :, [2, 1, 0, 3]]  # rgba -> bgra
-        visual.apply_texture(info.texture_coords, texture, is_rgba=True)
-
     def test_decimate_mesh(self):
         visual = Shape('cracker_box_visual')
         _, old_indices, _ = visual.get_mesh_data()

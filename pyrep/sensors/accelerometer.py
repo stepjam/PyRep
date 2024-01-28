@@ -17,7 +17,7 @@ class Accelerometer(Object):
         self._sensor = ForceSensor('%s_force_sensor' % (self.get_name()))
 
     def _get_requested_type(self) -> ObjectType:
-        return ObjectType(sim.simGetObjectType(self.get_handle()))
+        return ObjectType(self._sim_api.getObjectType(self.get_handle()))
 
     def read(self) -> List[float]:
         """Reads the acceleration applied to accelerometer.

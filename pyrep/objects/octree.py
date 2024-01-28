@@ -1,7 +1,9 @@
-from pyrep.backend import sim
 from typing import List, Optional, Union
+
+from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
+
 
 class Octree(Object):
     """An octree object."""
@@ -21,13 +23,14 @@ class Octree(Object):
         """
         if point_size is None:
             point_size = voxel_size
-        handle = sim.simCreateOctree(voxel_size, options, point_size)
+        sim_api = SimBackend().sim_api
+        handle = sim_api.createOctree(voxel_size, options, point_size)
         return Octree(handle)
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.OCTREE
 
-    def insert_voxels(self, points: List[float], color: Optional[float] = None,
+    def insert_voxels(self, points: List[float], color: Optional[list[float]] = None,
                       options: int = 0) -> None:
         """Inserts voxels into the octree.
         
@@ -49,7 +52,7 @@ class Octree(Object):
             elif len(color) != 3:
                 raise ValueError(
                     'Octree.insert_voxels: color parameter not an RGB list.')
-        sim.simInsertVoxelsIntoOctree(self._handle, options, points, color,None) 
+        self._sim_api.insertVoxelsIntoOctree(self._handle, options, points, color,None) 
         return
 
     def remove_voxels(self, points : Optional[List[float]],
@@ -67,16 +70,16 @@ class Octree(Object):
                 raise ValueError(
                     'Octree.insert_voxels: points parameter length '
                     'not a multiple of 3.')
-        sim.simRemoveVoxelsFromOctree(self._handle, options, points)
+        self._sim_api.removeVoxelsFromOctree(self._handle, options, points)
 
     def get_voxels(self) -> list:
         """Returns voxels from the octree.
         
         :return: List of voxel x,y,z coordinates.
         """
-        return sim.simGetOctreeVoxels(self._handle)
+        return self._sim_api.getOctreeVoxels(self._handle)
 
-    def insert_object(self, obj: Object, color: Optional[float] = None,
+    def insert_object(self, obj: Object, color: Optional[list[float]] = None,
                       options: int = 0) -> None:
         """Inserts object into the octree.
         
@@ -91,7 +94,7 @@ class Octree(Object):
             elif len(color) != 3:
                 raise ValueError(
                     'Octree.insert_object: color parameter not an RGB list.')
-        sim.simInsertObjectIntoOctree(self._handle, obj.get_handle(), options,
+        self._sim_api.insertObjectIntoOctree(self._handle, obj.get_handle(), options,
             color, 0)
         return
 
@@ -101,7 +104,7 @@ class Octree(Object):
         :param obj: Object to subtract.
         :param options: Object subtraction options.
         """
-        sim.simSubtractObjectFromOctree(self._handle, obj.get_handle(), options)
+        self._sim_api.subtractObjectFromOctree(self._handle, obj.get_handle(), options)
         return
 
     def check_point_occupancy(self, points: List[float],
@@ -113,11 +116,12 @@ class Octree(Object):
             raise ValueError(
                 'Octree._check_point_occupancy: points parameter length '
                 'not a multiple of 3.')
-        return sim.simCheckOctreePointOccupancy(self._handle, options, points)
+        return self._sim_api.checkOctreePointOccupancy(self._handle, options, points)
 
     def clear_voxels(self) -> None:
         """Clears all voxels from the octree.
         """
-        sim.simRemoveVoxelsFromOctree(self._handle, 0, None)
+        self._sim_api.removeVoxelsFromOctree(self._handle, 0, None)
+
 
 object_type_to_class[ObjectType.OCTREE] = Octree

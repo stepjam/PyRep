@@ -1,10 +1,11 @@
 import warnings
 
-from pyrep.backend import sim
-from pyrep.errors import *
+from pyrep.backend import sim_const as simc
+from pyrep.backend.sim import SimBackend
 from pyrep.const import ObjectType
-from pyrep.errors import WrongObjectTypeError
-from typing import Any, Dict, List, Tuple, Union
+from pyrep.errors import WrongObjectTypeError, CoppeliaSimError, ObjectIsNotModelError, \
+    ObjectAlreadyRemovedError
+from typing import Any, Dict, List, Tuple, Union, Optional
 import numpy as np
 
 
@@ -18,12 +19,16 @@ class Object(object):
     """
 
     def __init__(self, name_or_handle: Union[str, int]):
+        self._sim_api = SimBackend().sim_api
         if isinstance(name_or_handle, int):
             self._handle = name_or_handle
         else:
-            self._handle = sim.simGetObjectHandle(name_or_handle)
+            try:
+                self._handle = self._sim_api.getObjectHandle(name_or_handle)
+            except CoppeliaSimError as e:
+                raise ValueError(f"Object with name '{name_or_handle}' not found!")
         assert_type = self._get_requested_type()
-        actual = ObjectType(sim.simGetObjectType(self._handle))
+        actual = ObjectType(self._sim_api.getObjectType(self._handle))
         if actual != assert_type:
             raise WrongObjectTypeError(
                 'You requested object of type %s, but the actual type was '
@@ -43,8 +48,9 @@ class Object(object):
             name will be retrieved.
         :return: True of the object exists.
         """
+        sim_api = SimBackend().sim_api
         try:
-            sim.simGetObjectHandle(name)
+            sim_api.getObjectHandle(name)
         except:
             return False
         return True
@@ -55,7 +61,8 @@ class Object(object):
 
         :return: Type of the object.
         """
-        return ObjectType(sim.simGetObjectType(sim.simGetObjectHandle(name)))
+        sim_api = SimBackend().sim_api
+        return ObjectType(sim_api.getObjectType(sim_api.getObjectHandle(name)))
 
     @staticmethod
     def get_object_name(name_or_handle: Union[str, int]) -> str:
@@ -63,8 +70,9 @@ class Object(object):
 
         :return: Object name.
         """
+        sim_api = SimBackend().sim_api
         if isinstance(name_or_handle, int):
-            name = sim.simGetObjectName(name_or_handle)
+            name = sim_api.getObjectName(name_or_handle)
         else:
             name = name_or_handle
         return name
@@ -92,7 +100,7 @@ class Object(object):
 
         :return: Type of the object.
         """
-        return ObjectType(sim.simGetObjectType(self._handle))
+        return ObjectType(self._sim_api.getObjectType(self._handle))
 
     def get_handle(self) -> int:
         """Gets the internal handle of this object.
@@ -106,19 +114,19 @@ class Object(object):
 
         :return: Whether the object exists or not.
         """
-        return sim.simGetObjectName(self._handle) != ''
+        return self._sim_api.getObjectName(self._handle) != ''
 
     def get_name(self) -> str:
         """Gets the objects name in the scene.
 
         :return: The objects name.
         """
-        return sim.simGetObjectName(self._handle)
+        return self._sim_api.getObjectName(self._handle)
 
     def set_name(self, name: str) -> None:
         """Sets the objects name in the scene.
         """
-        sim.simSetObjectName(self._handle, name)
+        self._sim_api.setObjectName(self._handle, name)
 
     def scale_object(self, scale_x: float, scale_y: float, scale_z: float) -> None:
         """Scales the object by the given amounts in the x, y, z axes
@@ -132,14 +140,14 @@ class Object(object):
         :param scale_y: The scaling factor along the object's y axis
         :param scale_z: The scaling factor along the object's z axis
         """
-        sim.simScaleObject(self._handle, scale_x, scale_y, scale_z)
+        self._sim_api.scaleObject(self._handle, scale_x, scale_y, scale_z)
 
     def get_size_factor(self) -> float:
         """Gets the object size factor (for scaling purposes)
 
         :return: The object's size factor
         """
-        return sim.simGetObjectSizeFactor(self._handle)
+        return self._sim_api.getObjectSizeFactor(self._handle)
 
     def get_position(self, relative_to=None) -> np.ndarray:
         """Gets the position of this object.
@@ -150,7 +158,7 @@ class Object(object):
         :return: An array containing the x, y, z position of the object.
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        position = sim.simGetObjectPosition(self._handle, relto)
+        position = self._sim_api.getObjectPosition(self._handle, relto)
         return np.array(position, dtype=np.float64)
 
     def set_position(self, position: Union[list, np.ndarray], relative_to=None,
@@ -170,7 +178,7 @@ class Object(object):
             for ob in self.get_objects_in_tree(exclude_base=False):
                 ob.reset_dynamic_object()
 
-        sim.simSetObjectPosition(self._handle, relto, list(position))
+        self._sim_api.setObjectPosition(self._handle, relto, list(position))
 
     def get_orientation(self, relative_to=None) -> np.ndarray:
         """Gets the orientation of this object.
@@ -183,7 +191,7 @@ class Object(object):
             object (in radians).
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        orientation = sim.simGetObjectOrientation(self._handle, relto)
+        orientation = self._sim_api.getObjectOrientation(self._handle, relto)
         return np.array(orientation, dtype=np.float64)
 
     def set_orientation(self, orientation: Union[list, np.ndarray],
@@ -203,7 +211,7 @@ class Object(object):
         if reset_dynamics:
             for ob in self.get_objects_in_tree(exclude_base=False):
                 ob.reset_dynamic_object()
-        sim.simSetObjectOrientation(self._handle, relto, list(orientation))
+        self._sim_api.setObjectOrientation(self._handle, relto, list(orientation))
 
     def get_quaternion(self, relative_to=None) -> np.ndarray:
         """Retrieves the quaternion (x,y,z,w) of an object.
@@ -215,7 +223,7 @@ class Object(object):
         :return: A list containing the quaternion (x,y,z,w).
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        quaternion = sim.simGetObjectQuaternion(self._handle, relto)
+        quaternion = self._sim_api.getObjectQuaternion(self._handle, relto)
         return np.array(quaternion, dtype=np.float64)
 
     def set_quaternion(self, quaternion: Union[list, np.ndarray],
@@ -241,7 +249,7 @@ class Object(object):
         if reset_dynamics:
             for ob in self.get_objects_in_tree(exclude_base=False):
                 ob.reset_dynamic_object()
-        sim.simSetObjectQuaternion(self._handle, relto, list(quaternion))
+        self._sim_api.setObjectQuaternion(self._handle, relto, list(quaternion))
 
     def get_pose(self, relative_to=None) -> np.ndarray:
         """Retrieves the position and quaternion of an object
@@ -277,7 +285,7 @@ class Object(object):
 
         :return: A pair of linear and angular velocity.
         """
-        linear_vel, angular_vel = sim.simGetObjectVelocity(self._handle)
+        linear_vel, angular_vel = self._sim_api.getObjectVelocity(self._handle)
         linear_vel = np.array(linear_vel, dtype=np.float64)
         angular_vel = np.array(angular_vel, dtype=np.float64)
         return linear_vel, angular_vel
@@ -288,11 +296,11 @@ class Object(object):
         :return: The parent of this object, or None if it doesn't have a parent.
         """
         try:
-            handle = sim.simGetObjectParent(self._handle)
+            handle = self._sim_api.getObjectParent(self._handle)
         except RuntimeError:
             # Most probably no parent.
             return None
-        object_type = ObjectType(sim.simGetObjectType(handle))
+        object_type = ObjectType(self._sim_api.getObjectType(handle))
         cls = object_type_to_class.get(object_type, Object)
         return cls(handle)
 
@@ -306,7 +314,7 @@ class Object(object):
             and orientation should stay same
         """
         parent = -1 if parent_object is None else parent_object.get_handle()
-        sim.simSetObjectParent(self._handle, parent, keep_in_place)
+        self._sim_api.setObjectParent(self._handle, parent, keep_in_place)
 
     def get_matrix(self, relative_to=None) -> np.ndarray:
         """Retrieves the transformation matrix of this object.
@@ -318,7 +326,7 @@ class Object(object):
         :return: A 4x4 transformation matrix.
         """
         relto = -1 if relative_to is None else relative_to.get_handle()
-        m = sim.simGetObjectMatrix(self._handle, relto)
+        m = self._sim_api.getObjectMatrix(self._handle, relto)
         m_np = np.array(m).reshape((3, 4))
         return np.concatenate([m_np, [np.array([0, 0, 0, 1])]])
 
@@ -334,7 +342,7 @@ class Object(object):
         if not isinstance(matrix, np.ndarray):
             raise ValueError('Expected Numpy 4x4 array.')
         relto = -1 if relative_to is None else relative_to.get_handle()
-        sim.simSetObjectMatrix(
+        self._sim_api.setObjectMatrix(
             self._handle, relto, matrix[:3, :4].reshape((12)).tolist())
 
     def is_collidable(self) -> bool:
@@ -342,93 +350,106 @@ class Object(object):
 
         :return: If the object is collidable.
         """
-        return self._get_property(sim.sim_objectspecialproperty_collidable)
+        return self._get_property(simc.sim_objectspecialproperty_collidable)
 
     def set_collidable(self, value: bool) -> None:
         """Set whether the object is collidable or not.
 
         :param value: The new value of the collidable state.
         """
-        self._set_property(sim.sim_objectspecialproperty_collidable, value)
+        self._set_property(simc.sim_objectspecialproperty_collidable, value)
 
-    def get_contact(self, contact_obj=None, get_contact_normal: bool = True) -> List:
+    def get_contact(self, contact_obj: Optional['Object']) -> Union[tuple[list, list, list], None]:
         """Get the contact point and force with other object
 
-        :param contact_obj: The object want to check contact info with, set to None to get contact with all objects
-        :param get_contact_normal: Weather get the force and direction
-        :return: a list of all the contact info
+        :param contact_obj: The object want to check contact info with.
+        :return: a tuple containing contact point, force, and normal.
         """
-        contact_info = sim.simGetContactInfo(self.get_handle(), get_contact_normal)
-        if contact_obj is None:
-            return contact_info
-        else:
-            result = []
-            check_handle = contact_obj.get_handle()
-            for contact in contact_info:
-                if check_handle in contact['contact_handles']:
-                    result.append(contact)
-            return result
+        contact_index = 0
+        contact_obj_handle = None if contact_obj is None else contact_obj.get_handle()
+        while True:
+            handles, point, force, norm_contact_point = self._sim_api.getContactInfo(simc.sim_handle_all, self.get_handle(), contact_index)
+            if len(handles) == 0:
+                return None
+            contact_index += 1
+            if contact_obj_handle is not None and contact_obj_handle in handles:
+                return point, force, norm_contact_point
+
+    def get_contacts(self) -> list[tuple[list, list, list]]:
+        """Get the contact point and force with all objects
+
+        :return: A list of tuples containing contact point, force, and normal.
+        """
+        contact_index = 0
+        contact_info = []
+        while True:
+            handles, point, force, norm_contact_point = self._sim_api.getContactInfo(simc.sim_handle_all, self.get_handle(), contact_index)
+            if len(handles) == 0:
+                break
+            contact_index += 1
+            contact_info.append((point, force, norm_contact_point))
+        return contact_info
 
     def is_measurable(self) -> bool:
         """Whether the object is measurable or not.
 
         :return: If the object is measurable.
         """
-        return self._get_property(sim.sim_objectspecialproperty_measurable)
+        return self._get_property(simc.sim_objectspecialproperty_measurable)
 
     def set_measurable(self, value: bool):
         """Set whether the object is measurable or not.
 
         :param value: The new value of the measurable state.
         """
-        self._set_property(sim.sim_objectspecialproperty_measurable, value)
+        self._set_property(simc.sim_objectspecialproperty_measurable, value)
 
     def is_detectable(self) -> bool:
         """Whether the object is detectable or not.
 
         :return: If the object is detectable.
         """
-        return self._get_property(sim.sim_objectspecialproperty_detectable_all)
+        return self._get_property(simc.sim_objectspecialproperty_detectable_all)
 
     def set_detectable(self, value: bool):
         """Set whether the object is detectable or not.
 
         :param value: The new value of the detectable state.
         """
-        self._set_property(sim.sim_objectspecialproperty_detectable_all, value)
+        self._set_property(simc.sim_objectspecialproperty_detectable_all, value)
 
     def is_renderable(self) -> bool:
         """Whether the object is renderable or not.
 
         :return: If the object is renderable.
         """
-        return self._get_property(sim.sim_objectspecialproperty_renderable)
+        return self._get_property(simc.sim_objectspecialproperty_renderable)
 
     def set_renderable(self, value: bool):
         """Set whether the object is renderable or not.
 
         :param value: The new value of the renderable state.
         """
-        self._set_property(sim.sim_objectspecialproperty_renderable, value)
+        self._set_property(simc.sim_objectspecialproperty_renderable, value)
 
     def is_model(self) -> bool:
         """Whether the object is a model or not.
 
         :return: If the object is a model.
         """
-        prop = sim.simGetModelProperty(self._handle)
-        return not (prop & sim.sim_modelproperty_not_model)
+        prop = self._sim_api.getModelProperty(self._handle)
+        return not (prop & simc.sim_modelproperty_not_model)
 
     def set_model(self, value: bool):
         """Set whether the object is a model or not.
 
         :param value: True to set as a model.
         """
-        current = sim.simGetModelProperty(self._handle)
-        current |= sim.sim_modelproperty_not_model
+        current = self._sim_api.getModelProperty(self._handle)
+        current |= simc.sim_modelproperty_not_model
         if value:
-            current -= sim.sim_modelproperty_not_model
-        sim.simSetModelProperty(self._handle, current)
+            current -= simc.sim_modelproperty_not_model
+        self._sim_api.setModelProperty(self._handle, current)
 
     def remove(self) -> None:
         """Removes this object/model from the scene.
@@ -437,9 +458,9 @@ class Object(object):
         """
         try:
             if self.is_model():
-                sim.simRemoveModel(self._handle)
+                self._sim_api.removeModel(self._handle)
             else:
-                sim.simRemoveObject(self._handle)
+                self._sim_api.removeObject(self._handle)
         except RuntimeError as e:
             raise ObjectAlreadyRemovedError(
                 'The object/model was already deleted.') from e
@@ -457,7 +478,7 @@ class Object(object):
         current position/orientation), so the user is in charge of rectifying
         for that.
         """
-        sim.simResetDynamicObject(self._handle)
+        self._sim_api.resetDynamicObject(self._handle)
 
     def get_bounding_box(self) -> List[float]:
         """Gets the bounding box (relative to the object reference frame).
@@ -465,13 +486,13 @@ class Object(object):
         :return: A list containing the min x, max x, min y, max y, min z, max z
             positions.
         """
-        params = [sim.sim_objfloatparam_objbbox_min_x,
-                  sim.sim_objfloatparam_objbbox_max_x,
-                  sim.sim_objfloatparam_objbbox_min_y,
-                  sim.sim_objfloatparam_objbbox_max_y,
-                  sim.sim_objfloatparam_objbbox_min_z,
-                  sim.sim_objfloatparam_objbbox_max_z]
-        return [sim.simGetObjectFloatParameter(
+        params = [simc.sim_objfloatparam_objbbox_min_x,
+                  simc.sim_objfloatparam_objbbox_max_x,
+                  simc.sim_objfloatparam_objbbox_min_y,
+                  simc.sim_objfloatparam_objbbox_max_y,
+                  simc.sim_objfloatparam_objbbox_min_z,
+                  simc.sim_objfloatparam_objbbox_max_z]
+        return [self._sim_api.getObjectFloatParam(
             self._handle, p) for p in params]
 
     def get_extension_string(self) -> str:
@@ -479,7 +500,7 @@ class Object(object):
 
         :return: The extension string.
         """
-        return sim.simGetExtensionString(self._handle, -1, '')
+        return self._sim_api.getExtensionString(self._handle, -1, '')
 
     def get_configuration_tree(self) -> bytes:
         """Retrieves configuration information for a hierarchy tree.
@@ -492,22 +513,22 @@ class Object(object):
 
         :return: The configuration tree.
         """
-        return sim.simGetConfigurationTree(self._handle)
+        return self._sim_api.getConfigurationTree(self._handle)
 
     def rotate(self, rotation: List[float]) -> None:
         """Rotates a transformation matrix.
 
         :param rotation: The x, y, z rotation to perform (in radians).
         """
-        m = sim.simGetObjectMatrix(self._handle, -1)
+        m = self._sim_api.getObjectMatrix(self._handle, -1)
         x_axis = [m[0], m[4], m[8]]
         y_axis = [m[1], m[5], m[9]]
         z_axis = [m[2], m[6], m[10]]
-        axis_pos = sim.simGetObjectPosition(self._handle, -1)
-        m = sim.simRotateAroundAxis(m, z_axis, axis_pos, rotation[2])
-        m = sim.simRotateAroundAxis(m, y_axis, axis_pos, rotation[1])
-        m = sim.simRotateAroundAxis(m, x_axis, axis_pos, rotation[0])
-        sim.simSetObjectMatrix(self._handle, -1, m)
+        axis_pos = self._sim_api.getObjectPosition(self._handle, -1)
+        m = self._sim_api.rotateAroundAxis(m, z_axis, axis_pos, rotation[2])
+        m = self._sim_api.rotateAroundAxis(m, y_axis, axis_pos, rotation[1])
+        m = self._sim_api.rotateAroundAxis(m, x_axis, axis_pos, rotation[0])
+        self._sim_api.setObjectMatrix(self._handle, -1, m)
 
     def check_collision(self, obj: 'Object' = None) -> bool:
         """Checks whether two entities are colliding.
@@ -517,8 +538,8 @@ class Object(object):
             must be marked as collidable!
         :return: If the object is colliding.
         """
-        handle = sim.sim_handle_all if obj is None else obj.get_handle()
-        return sim.simCheckCollision(self._handle, handle) == 1
+        handle = simc.sim_handle_all if obj is None else obj.get_handle()
+        return self._sim_api.checkCollision(self._handle, handle) == 1
 
     # === Model specific methods ===
 
@@ -529,7 +550,7 @@ class Object(object):
         :return: If the model is collidable.
         """
         return self._get_model_property(
-            sim.sim_modelproperty_not_collidable)
+            simc.sim_modelproperty_not_collidable)
 
     def set_model_collidable(self, value: bool):
         """Set whether the model is collidable or not.
@@ -538,7 +559,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            sim.sim_modelproperty_not_collidable, value)
+            simc.sim_modelproperty_not_collidable, value)
 
     def is_model_measurable(self) -> bool:
         """Whether the model is measurable or not.
@@ -547,7 +568,7 @@ class Object(object):
         :return: If the model is measurable.
         """
         return self._get_model_property(
-            sim.sim_modelproperty_not_measurable)
+            simc.sim_modelproperty_not_measurable)
 
     def set_model_measurable(self, value: bool):
         """Set whether the model is measurable or not.
@@ -556,7 +577,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            sim.sim_modelproperty_not_measurable, value)
+            simc.sim_modelproperty_not_measurable, value)
 
     def is_model_detectable(self) -> bool:
         """Whether the model is detectable or not.
@@ -565,7 +586,7 @@ class Object(object):
         :return: If the model is detectable.
         """
         return self._get_model_property(
-            sim.sim_modelproperty_not_detectable)
+            simc.sim_modelproperty_not_detectable)
 
     def set_model_detectable(self, value: bool):
         """Set whether the model is detectable or not.
@@ -574,7 +595,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            sim.sim_modelproperty_not_detectable, value)
+            simc.sim_modelproperty_not_detectable, value)
 
     def is_model_renderable(self) -> bool:
         """Whether the model is renderable or not.
@@ -583,7 +604,7 @@ class Object(object):
         :return: If the model is renderable.
         """
         return self._get_model_property(
-            sim.sim_modelproperty_not_renderable)
+            simc.sim_modelproperty_not_renderable)
 
     def set_model_renderable(self, value: bool):
         """Set whether the model is renderable or not.
@@ -592,7 +613,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            sim.sim_modelproperty_not_renderable, value)
+            simc.sim_modelproperty_not_renderable, value)
 
     def is_model_dynamic(self) -> bool:
         """Whether the model is dynamic or not.
@@ -601,7 +622,7 @@ class Object(object):
         :return: If the model is dynamic.
         """
         return self._get_model_property(
-            sim.sim_modelproperty_not_dynamic)
+            simc.sim_modelproperty_not_dynamic)
 
     def set_model_dynamic(self, value: bool):
         """Set whether the model is dynamic or not.
@@ -610,7 +631,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            sim.sim_modelproperty_not_dynamic, value)
+            simc.sim_modelproperty_not_dynamic, value)
 
     def is_model_respondable(self) -> bool:
         """Whether the model is respondable or not.
@@ -619,7 +640,7 @@ class Object(object):
         :return: If the model is respondable.
         """
         return self._get_model_property(
-            sim.sim_modelproperty_not_respondable)
+            simc.sim_modelproperty_not_respondable)
 
     def set_model_respondable(self, value: bool):
         """Set whether the model is respondable or not.
@@ -628,7 +649,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._set_model_property(
-            sim.sim_modelproperty_not_respondable, value)
+            simc.sim_modelproperty_not_respondable, value)
 
     def save_model(self, path: str) -> None:
         """Saves a model.
@@ -640,7 +661,7 @@ class Object(object):
         :raises: ObjectIsNotModel if the object is not a model.
         """
         self._check_model()
-        sim.simSaveModel(self._handle, path)
+        self._sim_api.saveModel(self._handle, path)
 
     def get_model_bounding_box(self) -> List[float]:
         """Gets the models bounding box (relative to models reference frame).
@@ -650,21 +671,22 @@ class Object(object):
             positions.
         """
         self._check_model()
-        params = [sim.sim_objfloatparam_modelbbox_min_x,
-                  sim.sim_objfloatparam_modelbbox_max_x,
-                  sim.sim_objfloatparam_modelbbox_min_y,
-                  sim.sim_objfloatparam_modelbbox_max_y,
-                  sim.sim_objfloatparam_modelbbox_min_z,
-                  sim.sim_objfloatparam_modelbbox_max_z]
-        return [sim.simGetObjectFloatParameter(
+        params = [simc.sim_objfloatparam_modelbbox_min_x,
+                  simc.sim_objfloatparam_modelbbox_max_x,
+                  simc.sim_objfloatparam_modelbbox_min_y,
+                  simc.sim_objfloatparam_modelbbox_max_y,
+                  simc.sim_objfloatparam_modelbbox_min_z,
+                  simc.sim_objfloatparam_modelbbox_max_z]
+        return [self._sim_api.getObjectFloatParam(
             self._handle, p) for p in params]
 
     @staticmethod
     def _get_objects_in_tree(root_object=None, object_type=ObjectType.ALL,
                              exclude_base=True, first_generation_only=False
                              ) -> List['Object']:
+        sim_api = SimBackend().sim_api
         if root_object is None:
-            root_object = sim.sim_handle_scene
+            root_object = simc.sim_handle_scene
         elif isinstance(root_object, Object):
             root_object = root_object.get_handle()
         elif not isinstance(root_object, int):
@@ -675,7 +697,7 @@ class Object(object):
             options |= 1
         if first_generation_only:
             options |= 2
-        handles = sim.simGetObjectsInTree(
+        handles = sim_api.getObjectsInTree(
             root_object, object_type.value, options)
         objects = []
         for handle in handles:
@@ -709,7 +731,7 @@ class Object(object):
 
         :return: The new pasted object.
         """
-        return self.__class__((sim.simCopyPasteObjects([self._handle], 0)[0]))
+        return self.__class__((self._sim_api.copyPasteObjects([self._handle], 0)[0]))
 
     def check_distance(self, other: 'Object') -> float:
         """Checks the minimum distance between two objects.
@@ -717,15 +739,17 @@ class Object(object):
         :param other: The other object to check distance against.
         :return: The distance between the objects.
         """
-        return sim.simCheckDistance(
+        result, distance_data, object_handle_pair = self._sim_api.checkDistance(
             self.get_handle(), other.get_handle(), -1)[6]
+        obj1x, obj1y, obj1z, obj2x, obj2y, obj2z = distance_data
+        return np.linalg.norm(np.array([obj1x, obj1y, obj1z]) - np.array([obj2x, obj2y, obj2z]))
 
     def get_bullet_friction(self) -> float:
         """Get bullet friction parameter.
 
         :return: The friction.
         """
-        return sim.simGetEngineFloatParameter(sim.sim_bullet_body_friction,
+        return self._sim_api.getEngineFloatParameter(simc.sim_bullet_body_friction,
                                               self._handle)
 
     def set_bullet_friction(self, friction) -> None:
@@ -733,22 +757,21 @@ class Object(object):
 
         :param friction: The friction to set.
         """
-        sim.simSetEngineFloatParameter(sim.sim_bullet_body_friction,
-                                       self._handle, friction)
+        self._sim_api.setEngineFloatParameter(simc.sim_bullet_body_friction, self._handle, friction)
 
     def get_explicit_handling(self) -> int:
         """Get explicit handling flags.
 
         :return: The flag: enabled(1) or disabled(0).
         """
-        return sim.simGetExplicitHandling(self._handle)
+        return self._sim_api.getExplicitHandling(self._handle)
 
     def set_explicit_handling(self, value: int) -> None:
         """Set explicit handling flags.
 
         :param value: A flag to enable(1) or disable(0) explicit handling.
         """
-        sim.simSetExplicitHandling(self._handle, value)
+        self._sim_api.setExplicitHandling(self._handle, value)
 
     # === Private methods ===
 
@@ -758,23 +781,23 @@ class Object(object):
                 "Object '%s' is not a model. Use 'set_model(True)' to convert.")
 
     def _get_model_property(self, prop_type: int) -> bool:
-        current = sim.simGetModelProperty(self._handle)
+        current = self._sim_api.getModelProperty(self._handle)
         return (current & prop_type) == 0
 
     def _set_model_property(self, prop_type: int, value: bool) -> None:
-        current = sim.simGetModelProperty(self._handle)
+        current = self._sim_api.getModelProperty(self._handle)
         current |= prop_type  # Makes is not X
         if value:
             current -= prop_type
-        sim.simSetModelProperty(self._handle, current)
+        self._sim_api.setModelProperty(self._handle, current)
 
     def _get_property(self, prop_type: int) -> bool:
-        current = sim.simGetObjectSpecialProperty(self._handle)
+        current = self._sim_api.getObjectSpecialProperty(self._handle)
         return current & prop_type
 
     def _set_property(self, prop_type: int, value: bool) -> None:
-        current = sim.simGetObjectSpecialProperty(self._handle)
+        current = self._sim_api.getObjectSpecialProperty(self._handle)
         current |= prop_type
         if not value:
             current -= prop_type
-        sim.simSetObjectSpecialProperty(self._handle, current)
+        self._sim_api.setObjectSpecialProperty(self._handle, current)

@@ -1,6 +1,7 @@
 import math
 from typing import List, Union, Sequence
 from pyrep.backend import sim
+from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object, object_type_to_class
 import numpy as np
 from pyrep.const import ObjectType, PerspectiveMode, RenderMode
@@ -94,8 +95,9 @@ class VisionSensor(Object):
             0.0,                    # 10
         ]
 
+        sim_api = SimBackend().sim_api
         vs = VisionSensor(
-            sim.simCreateVisionSensor(options, int_params, float_params, None)
+            sim_api.createVisionSensor(options, int_params, float_params, None)
         )
         vs.set_render_mode(render_mode)
         if position is not None:

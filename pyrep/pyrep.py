@@ -1,12 +1,16 @@
 import numpy as np
 from contextlib import contextmanager
-from pyrep.backend import sim, utils
+
+from pyrep.backend import utils
+from pyrep.backend.sim import SimBackend
+from pyrep.backend.sim_const import sim_floatparam_simulation_time_step
+# from pyrep.backend import sim, utils
 from pyrep.const import Verbosity
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
 from pyrep.textures.texture import Texture
 from pyrep.errors import PyRepError
-from pyrep.backend import sim
+# from pyrep.backend import sim
 import os
 import sys
 import time
@@ -24,44 +28,27 @@ class PyRep(object):
 
     def __init__(self):
         self.running = False
-        self._process = None
-        self._robot_to_count = {}
-        self.connected = False
-
         self._ui_thread = None
-        self._responsive_ui_thread = None
-
-        self._init_thread_id = None
-        self._shutting_down = False
-
         self._handles_to_objects = {}
+        self._step_lock = utils.step_lock
+        self._sim_api = None  # check later
+        self._shutting_down = False
 
         if 'COPPELIASIM_ROOT' not in os.environ:
             raise PyRepError(
                 'COPPELIASIM_ROOT not defined. See installation instructions.')
-        self._vrep_root = os.environ['COPPELIASIM_ROOT']
-        if not os.path.exists(self._vrep_root):
+        self._coppeliasim_root = os.environ['COPPELIASIM_ROOT']
+        if not os.path.exists(self._coppeliasim_root):
             raise PyRepError(
                 'COPPELIASIM_ROOT was not a correct path. '
                 'See installation instructions')
 
-    def _run_ui_thread(self, scene_file: str, headless: bool,
-                       verbosity: Verbosity) -> None:
-        # Need this otherwise extensions will not be loaded
-        os.chdir(self._vrep_root)
-        options = sim.sim_gui_headless if headless else sim.sim_gui_all
-        sim.simSetStringParameter(
-            sim.sim_stringparam_verbosity, verbosity.value)
-        sim.simExtLaunchUIThread(
-            options=options, scene=scene_file, pyrep_root=self._vrep_root)
-
     def _run_responsive_ui_thread(self) -> None:
         while True:
-            if not self.running:
-                with utils.step_lock:
-                    if self._shutting_down or sim.simExtGetExitRequest():
-                        break
-                    sim.simExtStep(False)
+            with utils.step_lock:
+                if self._shutting_down or self._sim_backend.simGetExitRequest():
+                    break
+                self._sim_backend.simLoop()
             time.sleep(0.01)
         # If the exit request was from the UI, then call shutdown, otherwise
         # shutdown caused this thread to terminate.
@@ -90,22 +77,16 @@ class PyRep(object):
         abs_scene_file = os.path.abspath(scene_file)
         if len(scene_file) > 0 and not os.path.isfile(abs_scene_file):
             raise PyRepError('Scene file does not exist: %s' % scene_file)
-        cwd = os.getcwd()
-        self._ui_thread = threading.Thread(
-            target=self._run_ui_thread,
-            args=(abs_scene_file, headless, verbosity))
-        self._ui_thread.daemon = True
+        self._sim_backend = SimBackend()
+        self._ui_thread = self._sim_backend.create_ui_thread(headless)
         self._ui_thread.start()
-
-        while not sim.simExtCanInitSimThread():
-            time.sleep(0.1)
-
-        sim.simExtSimThreadInit()
-        time.sleep(0.2)  # Stops CoppeliaSim crashing if restarted too quickly.
+        self._sim_api = self._sim_backend.simInitialize(self._coppeliasim_root, verbosity.value)
+        if len(scene_file) > 0:
+            self._sim_api.loadScene(abs_scene_file)
 
         if blocking:
-            while not sim.simExtGetExitRequest():
-                sim.simExtStep()
+            while not self._sim_backend.simGetExitRequest():
+                self._sim_backend.simLoop(True)
             self.shutdown()
         elif responsive_ui:
             self._responsive_ui_thread = threading.Thread(
@@ -120,30 +101,6 @@ class PyRep(object):
             self.step()
         else:
             self.step()
-        os.chdir(cwd)  # Go back to the previous cwd
-
-    def script_call(self, function_name_at_script_name: str,
-                    script_handle_or_type: int,
-                    ints=(), floats=(), strings=(), bytes='') -> (
-            Tuple[List[int], List[float], List[str], str]):
-        """Calls a script function (from a plugin, the main client application,
-        or from another script). This represents a callback inside of a script.
-
-        :param function_name_at_script_name: A string representing the function
-            name and script name, e.g. myFunctionName@theScriptName. When the
-            script is not associated with an object, then just specify the
-            function name.
-        :param script_handle_or_type: The handle of the script, otherwise the
-            type of the script.
-        :param ints: The input ints to the script.
-        :param floats: The input floats to the script.
-        :param strings: The input strings to the script.
-        :param bytes: The input bytes to the script (as a string).
-        :return: Any number of return values from the called Lua function.
-        """
-        return utils.script_call(
-            function_name_at_script_name, script_handle_or_type, ints, floats,
-            strings, bytes)
 
     def shutdown(self) -> None:
         """Shuts down the CoppeliaSim simulation.
@@ -152,19 +109,20 @@ class PyRep(object):
             raise PyRepError(
                 'CoppeliaSim has not been launched. Call launch first.')
         if self._ui_thread is not None:
-            self._shutting_down = True
+            # self._shutting_down = True
             self.stop()
             self.step_ui()
-            sim.simExtPostExitRequest()
-            sim.simExtSimThreadDestroy()
-            self._ui_thread.join()
-            if self._responsive_ui_thread is not None:
-                self._responsive_ui_thread.join()
-            # CoppeliaSim crashes if new instance opened too quickly after shutdown.
-            # TODO: A small sleep stops this for now.
-            time.sleep(0.1)
+            self._sim_backend.simDeinitialize()
+            # sim.simExtPostExitRequest()
+            # sim.simExtSimThreadDestroy()
+            # self._ui_thread.join()
+            # if self._responsive_ui_thread is not None:
+            #     self._responsive_ui_thread.join()
+            # # CoppeliaSim crashes if new instance opened too quickly after shutdown.
+            # # TODO: A small sleep stops this for now.
+            # time.sleep(0.1)
         self._ui_thread = None
-        self._shutting_down = False
+        # self._shutting_down = False
 
     def start(self) -> None:
         """Starts the physics simulation if it is not already running.
@@ -173,7 +131,7 @@ class PyRep(object):
             raise PyRepError(
                 'CoppeliaSim has not been launched. Call launch first.')
         if not self.running:
-            sim.simStartSimulation()
+            self._sim_backend.simStartSimulation()
             self.running = True
 
     def stop(self) -> None:
@@ -183,10 +141,11 @@ class PyRep(object):
             raise PyRepError(
                 'CoppeliaSim has not been launched. Call launch first.')
         if self.running:
-            sim.simStopSimulation()
+            self._sim_backend.simStopSimulation()
             self.running = False
-            # Need this so the UI updates
-            [self.step() for _ in range(5)]  # type: ignore
+
+            # # Need this so the UI updates
+            # [self.step() for _ in range(5)]  # type: ignore
 
     def step(self) -> None:
         """Execute the next simulation step.
@@ -194,8 +153,8 @@ class PyRep(object):
         If the physics simulation is not running, then this will only update
         the UI.
         """
-        with utils.step_lock:
-            sim.simExtStep()
+        with self._step_lock:
+            self._sim_backend.simStep()
 
     def step_ui(self) -> None:
         """Update the UI.
@@ -204,15 +163,15 @@ class PyRep(object):
         simulation is running.
         This is only applicable when PyRep was launched without a responsive UI.
         """
-        with utils.step_lock:
-            sim.simExtStep(False)
+        with self._step_lock:
+            self._sim_backend.simLoop()
 
     def set_simulation_timestep(self, dt: float) -> None:
         """Sets the simulation time step. Default is 0.05.
 
         :param dt: The time step value in seconds.
         """
-        sim.simSetFloatParameter(sim.sim_floatparam_simulation_time_step, dt)
+        self._sim_api.setFloatParameter(sim_floatparam_simulation_time_step, dt)
         if not np.allclose(self.get_simulation_timestep(), dt):
             warnings.warn('Could not change simulation timestep. You may need '
                           'to change it to "custom dt" using simulation '
@@ -223,7 +182,7 @@ class PyRep(object):
 
         :return: The time step value in seconds.
         """
-        return sim.simGetSimulationTimeStep()
+        return self._sim_api.getSimulationTimeStep()
 
     def set_configuration_tree(self, config_tree: bytes) -> None:
         """Restores configuration information previously retrieved.
@@ -237,7 +196,7 @@ class PyRep(object):
 
         :param config_tree: The configuration tree to restore.
         """
-        sim.simSetConfigurationTree(config_tree)
+        self._sim_api.setConfigurationTree(config_tree)
 
     def group_objects(self, objects: List[Shape]) -> Shape:
         """Groups several shapes into a compound shape (or simple shape).
@@ -246,7 +205,7 @@ class PyRep(object):
         :return: A single grouped shape.
         """
         handles = [o.get_handle() for o in objects]
-        handle = sim.simGroupShapes(handles)
+        handle = self._sim_api.groupShapes(handles)
         return Shape(handle)
 
     def merge_objects(self, objects: List[Shape]) -> Shape:
@@ -256,10 +215,10 @@ class PyRep(object):
         :return: A single merged shape.
         """
         handles = [o.get_handle() for o in objects]
-        # FIXME: sim.simGroupShapes(merge=True) won't return correct handle,
+        # FIXME: self._sim_api.groupShapes(merge=True) won't return correct handle,
         # so we use name to find correct handle of the merged shape.
         name = objects[-1].get_name()
-        sim.simGroupShapes(handles, merge=True)
+        self._sim_api.groupShapes(handles, merge=True)
         return Shape(name)
 
     def export_scene(self, filename: str) -> None:
@@ -268,7 +227,7 @@ class PyRep(object):
         :param filename: scene filename. The filename extension is required
             ("ttt").
         """
-        sim.simSaveScene(filename)
+        self._sim_api.saveScene(filename)
 
     def import_model(self, filename: str) -> Object:
         """	Loads a previously saved model.
@@ -279,7 +238,7 @@ class PyRep(object):
             associated script was attached to the model.
         :return: The imported model.
         """
-        handle = sim.simLoadModel(filename)
+        handle = self._sim_api.loadModel(filename)
         return utils.to_type(handle)
 
     def create_texture(self, filename: str, interpolate=True, decal_mode=False,
@@ -304,7 +263,7 @@ class PyRep(object):
             options |= 3
         if repeat_along_v:
             options |= 4
-        handle = sim.simCreateTexture(filename, options)
+        handle, texid, res = self._sim_api.createTexture(filename, options)
         s = Shape(handle)
         return s, s.get_texture()
 
@@ -329,4 +288,4 @@ class PyRep(object):
         :param collection_name: Name of the collection to retrieve the integer handle for
         :return: An integer handle for the collection
         """
-        return sim.simGetCollectionHandle(collection_name)
+        return self._sim_api.getCollectionHandle(collection_name)

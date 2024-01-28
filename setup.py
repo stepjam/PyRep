@@ -1,11 +1,6 @@
 import codecs
 import os
-import os.path
-from os.path import join
-
-from setuptools import setup
-
-import cffi_build.cffi_build as cffi_build
+import setuptools
 
 
 def read(rel_path):
@@ -38,27 +33,28 @@ if 'allowOldEduRelease' not in usrset:
         f.write('\nallowOldEduRelease=7501\n')
 
 
-setup(name='PyRep',
-      # Version A.B.C.D.
-      # A.B.C info corresponds to the CoppeliaSim version needed.
-      # D info corresponds to the PyRep version.
-      version=get_version("pyrep/__init__.py"),
-      description='Python CoppeliaSim wrapper',
-      author='Stephen James',
-      author_email='slj12@ic.ac.uk',
-      url='https://www.doc.ic.ac.uk/~slj12',
-      packages=['pyrep',
-                'pyrep.backend',
-                'pyrep.objects',
-                'pyrep.sensors',
-                'pyrep.robots',
-                'pyrep.robots.arms',
-                'pyrep.robots.end_effectors',
-                'pyrep.robots.mobiles',
-                'pyrep.robots.configuration_paths',
-                'pyrep.textures',
-                'pyrep.misc',
-                ],
-      ext_modules=[cffi_build.ffibuilder.distutils_extension(
-          join('build', 'pyrep', 'backend'))],
-      )
+core_requirements = [
+    "numpy",
+    "cbor",
+    "zmq"  # Not used, but installed to stop coppeliasim complaining about module
+]
+
+setuptools.setup(
+    name='PyRep',
+    # Version A.B.C.
+    # A.B info corresponds to the CoppeliaSim version needed.
+    # C info corresponds to the PyRep patch version.
+    version=get_version("pyrep/__init__.py"),
+    description='Python CoppeliaSim wrapper',
+    author='Stephen James',
+    author_email='stepjamuk@gmail.com',
+    url='https://stepjam.github.io/',
+    packages=setuptools.find_packages(),
+    python_requires=">=3.10",
+    install_requires=core_requirements,
+    extras_require={
+        "dev": [
+            "pre-commit"
+        ],
+    },
+)

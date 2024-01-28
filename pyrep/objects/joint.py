@@ -1,5 +1,6 @@
 from typing import Tuple, List, Union
-from pyrep.backend import sim, utils
+from pyrep.backend import sim_const as sim, utils
+from pyrep.backend.sim import SimBackend
 from pyrep.const import JointType, JointMode
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
@@ -23,7 +24,7 @@ class Joint(Object):
 
         :return: The type of the joint.
         """
-        return JointType(sim.simGetJointType(self._handle))
+        return JointType(self._sim_api.getJointType(self._handle))
 
     def get_joint_position(self) -> float:
         """Retrieves the intrinsic position of a joint.
@@ -34,7 +35,7 @@ class Joint(Object):
             value: if the joint is revolute, the rotation angle is returned,
             if the joint is prismatic, the translation amount is returned, etc.
         """
-        return sim.simGetJointPosition(self._handle)
+        return self._sim_api.getJointPosition(self._handle)
 
     def set_joint_position(self, position: float,
                            disable_dynamics: bool = False) -> None:
@@ -48,27 +49,28 @@ class Joint(Object):
             values depending on the joint type).
         """
         if not disable_dynamics:
-            sim.simSetJointPosition(self._handle, position)
+            self._sim_api.setJointPosition(self._handle, position)
             return
 
         is_model = self.is_model()
         if not is_model:
             self.set_model(True)
 
-        prior = sim.simGetModelProperty(self.get_handle())
+        prior = self._sim_api.getModelProperty(self.get_handle())
         p = prior | sim.sim_modelproperty_not_dynamic
         # Disable the dynamics
-        sim.simSetModelProperty(self._handle, p)
+        self._sim_api.setModelProperty(self._handle, p)
+        sim_instance = SimBackend()
         with utils.step_lock:
-            sim.simExtStep(True)  # Have to step for changes to take effect
+            sim_instance.simLoop()  # Have to step for changes to take effect
 
-        sim.simSetJointPosition(self._handle, position)
+        self._sim_api.setJointPosition(self._handle, position)
         self.set_joint_target_position(position)
 
         with utils.step_lock:
-            sim.simExtStep(True)  # Have to step for changes to take effect
+            sim_instance.simLoop()  # Have to step for changes to take effect
         # Re-enable the dynamics
-        sim.simSetModelProperty(self._handle, prior)
+        self._sim_api.setModelProperty(self._handle, prior)
         self.set_model(is_model)
 
     def get_joint_target_position(self) -> float:
@@ -77,7 +79,7 @@ class Joint(Object):
         :return: Target position of the joint (angular or linear value
             depending on the joint type).
         """
-        return sim.simGetJointTargetPosition(self._handle)
+        return self._sim_api.getJointTargetPosition(self._handle)
 
     def set_joint_target_position(self, position: float) -> None:
         """Sets the target position of a joint.
@@ -89,7 +91,7 @@ class Joint(Object):
         :param position: Target position of the joint (angular or linear
             value depending on the joint type).
         """
-        sim.simSetJointTargetPosition(self._handle, position)
+        self._sim_api.setJointTargetPosition(self._handle, position)
 
     def get_joint_target_velocity(self) -> float:
         """Retrieves the intrinsic target velocity of a non-spherical joint.
@@ -97,7 +99,7 @@ class Joint(Object):
         :return: Target velocity of the joint (linear or angular velocity
             depending on the joint-type).
         """
-        return sim.simGetJointTargetVelocity(self._handle)
+        return self._sim_api.getJointTargetVelocity(self._handle)
 
     def set_joint_target_velocity(self, velocity: float) -> None:
         """Sets the intrinsic target velocity of a non-spherical joint.
@@ -109,7 +111,7 @@ class Joint(Object):
         :param velocity: Target velocity of the joint (linear or angular
             velocity depending on the joint-type).
         """
-        sim.simSetJointTargetVelocity(self._handle, velocity)
+        self._sim_api.setJointTargetVelocity(self._handle, velocity)
 
     def get_joint_force(self) -> float:
         """Retrieves the force or torque applied along/about its active axis.
@@ -124,7 +126,7 @@ class Joint(Object):
         :return: The force or the torque applied to the joint along/about
             its z-axis.
         """
-        return sim.simGetJointForce(self._handle)
+        return self._sim_api.getJointForce(self._handle)
 
     def set_joint_force(self, force: float) -> None:
         """Sets the maximum force or torque that a joint can exert.
@@ -137,7 +139,7 @@ class Joint(Object):
         :param force: The maximum force or torque that the joint can exert.
             This cannot be a negative value.
         """
-        sim.simSetJointMaxForce(self._handle, force)
+        self._sim_api.setJointMaxForce(self._handle, force)
 
     def get_joint_velocity(self) -> float:
         """Get the current joint velocity.
@@ -145,7 +147,7 @@ class Joint(Object):
         :return: Velocity of the joint (linear or angular velocity depending
             on the joint-type).
         """
-        return sim.simGetObjectFloatParameter(
+        return self._sim_api.getObjectFloatParameter(
             self._handle, sim.sim_jointfloatparam_velocity)
 
     def get_joint_interval(self) -> Tuple[bool, List[float]]:
@@ -158,7 +160,7 @@ class Joint(Object):
             allowed value is interval[0]+interval[1]). When the joint is
             "cyclic", then the interval parameters don't have any meaning.
         """
-        cyclic, interval = sim.simGetJointInterval(self._handle)
+        cyclic, interval = self._sim_api.getJointInterval(self._handle)
         return cyclic, interval
 
     def set_joint_interval(self, cyclic: bool, interval: List[float]) -> None:
@@ -173,14 +175,14 @@ class Joint(Object):
             allowed value, interval[1] is the joint range (i.e. the maximum
             allowed value is interval[0]+interval[1]).
         """
-        sim.simSetJointInterval(self._handle, cyclic, interval)
+        self._sim_api.setJointInterval(self._handle, cyclic, interval)
 
     def get_joint_upper_velocity_limit(self) -> float:
         """Gets the joints upper velocity limit.
 
         :return: The upper velocity limit.
         """
-        return sim.simGetObjectFloatParameter(
+        return self._sim_api.getObjectFloatParam(
             self._handle, sim.sim_jointfloatparam_upper_limit)
 
     def is_control_loop_enabled(self) -> bool:
@@ -188,7 +190,7 @@ class Joint(Object):
 
         :return: True if the control loop is enabled.
         """
-        return sim.simGetObjectInt32Parameter(
+        return self._sim_api.getObjectInt32Param(
             self._handle, sim.sim_jointintparam_ctrl_enabled)
 
     def set_control_loop_enabled(self, value: bool) -> None:
@@ -196,7 +198,7 @@ class Joint(Object):
 
         :param value: The new value for the control loop state.
         """
-        sim.simSetObjectInt32Parameter(
+        self._sim_api.setObjectInt32Param(
             self._handle, sim.sim_jointintparam_ctrl_enabled, value)
 
     def is_motor_enabled(self) -> bool:
@@ -204,7 +206,7 @@ class Joint(Object):
 
         :return: True if the motor is enabled.
         """
-        return sim.simGetObjectInt32Parameter(
+        return self._sim_api.getObjectInt32Param(
             self._handle, sim.sim_jointintparam_motor_enabled)
 
     def set_motor_enabled(self, value: bool) -> None:
@@ -212,7 +214,7 @@ class Joint(Object):
 
         :param value: The new value for the motor state.
         """
-        sim.simSetObjectInt32Parameter(
+        self._sim_api.setObjectInt32Param(
             self._handle, sim.sim_jointintparam_motor_enabled, value)
 
     def is_motor_locked_at_zero_velocity(self) -> bool:
@@ -223,7 +225,7 @@ class Joint(Object):
 
         :return: If the motor will be locked at zero velocity.
         """
-        return sim.simGetObjectInt32Parameter(
+        return self._sim_api.getObjectInt32Param(
             self._handle, sim.sim_jointintparam_velocity_lock)
 
     def set_motor_locked_at_zero_velocity(self, value: bool) -> None:
@@ -234,7 +236,7 @@ class Joint(Object):
 
         :param value: If the motor should be locked at zero velocity.
         """
-        sim.simSetObjectInt32Parameter(
+        self._sim_api.setObjectInt32Param(
             self._handle, sim.sim_jointintparam_velocity_lock, value)
 
     def get_joint_mode(self) -> JointMode:
@@ -242,14 +244,14 @@ class Joint(Object):
 
         :return: The joint mode.
         """
-        return JointMode(sim.simGetJointMode(self._handle))
+        return JointMode(self._sim_api.getJointMode(self._handle))
 
     def set_joint_mode(self, value: JointMode) -> None:
         """Sets the operation mode of the joint.
 
         :param value: The new joint mode value.
         """
-        sim.simSetJointMode(self._handle, value.value)
+        self._sim_api.setJointMode(self._handle, value.value)
 
 
 object_type_to_class[ObjectType.JOINT] = Joint

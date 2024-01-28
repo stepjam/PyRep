@@ -1,4 +1,5 @@
-from pyrep.backend import sim
+from pyrep.backend import sim_const as simc
+from pyrep.backend.sim import SimBackend
 from pyrep.robots.configuration_paths.configuration_path import (
     ConfigurationPath)
 import numpy as np
@@ -26,6 +27,7 @@ class ArmConfigurationPath(ConfigurationPath):
         self._path_done = False
         self._num_joints = arm.get_joint_count()
         self._joint_position_action = None
+        self._sim_api = SimBackend().sim_api
 
     def __len__(self):
         return len(self._path_points) // self._num_joints
@@ -74,13 +76,10 @@ class ArmConfigurationPath(ConfigurationPath):
         """
         if len(self._path_points) <= 0:
             raise RuntimeError("Can't visualise a path with no points.")
-
         tip = self._arm.get_tip()
-        self._drawing_handle = sim.simAddDrawingObject(
-            objectType=sim.sim_drawing_lines, size=3, duplicateTolerance=0,
-            parentObjectHandle=-1, maxItemCount=99999,
-            ambient_diffuse=[1, 0, 1])
-        sim.simAddDrawingObjectItem(self._drawing_handle, None)
+        self._drawing_handle = self._sim_api.addDrawingObject(
+            simc.sim_drawing_lines, 3, 0, -1, 99999, [1, 0, 1])
+        self._sim_api.addDrawingObjectItem(self._drawing_handle, None)
         init_angles = self._arm.get_joint_positions()
         self._arm.set_joint_positions(
             self._path_points[0: len(self._arm.joints)])
@@ -91,7 +90,7 @@ class ArmConfigurationPath(ConfigurationPath):
             points = self._path_points[i:i + len(self._arm.joints)]
             self._arm.set_joint_positions(points)
             p = list(tip.get_position())
-            sim.simAddDrawingObjectItem(self._drawing_handle, prev_point + p)
+            self._sim_api.addDrawingObjectItem(self._drawing_handle, prev_point + p)
             prev_point = p
 
         # Set the arm back to the initial config
@@ -101,13 +100,13 @@ class ArmConfigurationPath(ConfigurationPath):
         """Clears/removes a visualization of the path in the scene.
         """
         if self._drawing_handle is not None:
-            sim.simAddDrawingObjectItem(self._drawing_handle, None)
+            self._sim_api.addDrawingObjectItem(self._drawing_handle, None)
 
     def get_executed_joint_position_action(self) -> np.ndarray:
         return self._joint_position_action
 
     def _get_rml_handle(self) -> int:
-        dt = sim.simGetSimulationTimeStep()
+        dt = self._sim_api.getSimulationTimeStep()
         limits = np.array(self._arm.get_joint_upper_velocity_limits())
         vel_correction = 1.0
         max_vel = self._arm.max_velocity
@@ -117,16 +116,20 @@ class ArmConfigurationPath(ConfigurationPath):
         target_pos_vel = [lengths[-1],0]
         previous_q = self._path_points[0:len(self._arm.joints)]
 
+        # TODO sim.ruckigPos
         while True:
             pos_vel_accel = [0, 0, 0]
             rMax = 0
-            rml_handle = sim.simRMLPos(
+            rml_handle = self._sim_api.ruckigPos(
                 1, 0.0001, -1, pos_vel_accel,
                 [max_vel * vel_correction, max_accel, max_jerk],
                 [1], target_pos_vel)
             state = 0
             while state == 0:
-                state, pos_vel_accel = sim.simRMLStep(rml_handle, dt, 1)
+                state, pos_vel_accel, synchronization_time = self._sim_api.ruckigStep(rml_handle, dt)
+                if state < 0:
+                    raise RuntimeError("Issue with stepping along path,")
+                # state, pos_vel_accel = sim.simRMLStep(rml_handle, dt)
                 if state >= 0:
                     pos = pos_vel_accel[0]
                     for i in range(len(lengths)-1):
@@ -148,24 +151,26 @@ class ArmConfigurationPath(ConfigurationPath):
                             if m > rMax:
                                 rMax = m
                             break
-            sim.simRMLRemove(rml_handle)
+            self._sim_api.ruckigRemove(rml_handle)
             if rMax > 1.001:
                 vel_correction = vel_correction / rMax
             else:
                 break
         pos_vel_accel = [0, 0, 0]
-        rml_handle = sim.simRMLPos(
+        rml_handle = self._sim_api.ruckigPos(
             1, 0.0001, -1, pos_vel_accel,
-            [max_vel*vel_correction, max_accel, max_jerk], [1], target_pos_vel)
+            [max_vel * vel_correction, max_accel, max_jerk],
+            [1], target_pos_vel)
         return rml_handle
 
     def _step_motion(self) -> int:
         self._joint_position_action = None
-        dt = sim.simGetSimulationTimeStep()
+        dt = self._sim_api.getSimulationTimeStep()
         lengths = self._get_path_point_lengths()
-        state, posVelAccel = sim.simRMLStep(self._rml_handle, dt, 1)
+        state, pos_vel_accel, synchronization_time = self._sim_api.ruckigStep(
+            self._rml_handle, dt)
         if state >= 0:
-            pos = posVelAccel[0]
+            pos = pos_vel_accel[0]
             for i in range(len(lengths) - 1):
                 if lengths[i] <= pos <= lengths[i + 1]:
                     t = (pos - lengths[i]) / (lengths[i + 1] - lengths[i])
@@ -182,7 +187,7 @@ class ArmConfigurationPath(ConfigurationPath):
                     self._arm.set_joint_target_positions(qs)
                     break
         if state == 1:
-            sim.simRMLRemove(self._rml_handle)
+            self._sim_api.ruckigRemove(self._rml_handle)
         return state
 
     def _get_path_point_lengths(self) -> List[float]:

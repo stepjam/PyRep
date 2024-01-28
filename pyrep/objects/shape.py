@@ -1,11 +1,13 @@
 from typing import List, Tuple
 import numpy as np
 from pyrep.backend import sim
+from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType, PrimitiveShape, TextureMappingMode
 from pyrep.textures.texture import Texture
 import os
 import collections
+from pyrep.backend import sim_const as simc
 
 
 SShapeVizInfo = collections.namedtuple(
@@ -66,8 +68,8 @@ class Shape(Object):
             options |= 8
         if static:
             options |= 16
-
-        handle = sim.simCreatePureShape(type.value, options, size, mass, None)
+        sim_api = SimBackend().sim_api
+        handle = sim_api.createPureShape(type.value, options, size, mass, None)
         ob = Shape(handle)
         ob.set_renderable(renderable)
         if position is not None:
@@ -109,8 +111,8 @@ class Shape(Object):
             options |= 32
         if ignore_up_vector:
             options |= 128
-
-        handle = sim.simImportShape(0, filename, options, 0, scaling_factor)
+        sim_api = SimBackend().sim_api
+        handle = sim_api.importShape(0, filename, options, 0, scaling_factor)
         return cls(handle)
 
     @staticmethod
@@ -137,16 +139,17 @@ class Shape(Object):
 
         # fileformat is 0 as it is automatically detected.
         # identicalVerticeTolerance has no effect. Setting to zero.
-        verticies, indices, names = sim.simImportMesh(
+        sim_api = SimBackend().sim_api
+        verticies, indices = sim_api.importMesh(
             0, filename, options, 0, scaling_factor)
         mesh_objects = []
-        for v, i, n in zip(verticies, indices, names):
+        for v, i in zip(verticies, indices):
             mesh_ob = Shape.create_mesh(v, i)
             mesh_objects.append(mesh_ob)
         grouped = mesh_objects[0]
         if len(mesh_objects) > 1:
             handles = [o.get_handle() for o in mesh_objects]
-            handle = sim.simGroupShapes(handles)
+            handle = sim_api.groupShapes(handles)
             grouped = Shape(handle)
         return grouped
 
@@ -170,7 +173,8 @@ class Shape(Object):
             options |= 2
         if shading_angle is None:
             shading_angle = 20.0 * 3.1415 / 180.0
-        handle = sim.simCreateMeshShape(
+        sim_api = SimBackend().sim_api
+        handle = sim_api.createMeshShape(
             options, shading_angle, vertices, indices)
         return Shape(handle)
 
@@ -182,16 +186,16 @@ class Shape(Object):
 
         :return: If the shape is respondable.
         """
-        return sim.simGetObjectInt32Parameter(
-            self._handle, sim.sim_shapeintparam_respondable)
+        return self._sim_api.getObjectInt32Param(
+            self._handle, simc.sim_shapeintparam_respondable)
 
     def set_respondable(self, value: bool) -> None:
         """Set whether the shape is respondable or not.
 
         :param value: The new value of the respondable state of the shape.
         """
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_shapeintparam_respondable, value)
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_shapeintparam_respondable, int(value))
         self.reset_dynamic_object()
 
     def is_dynamic(self) -> bool:
@@ -199,16 +203,16 @@ class Shape(Object):
 
         :return: If the shape is dynamic.
         """
-        return not sim.simGetObjectInt32Parameter(
-            self._handle, sim.sim_shapeintparam_static)
+        return not self._sim_api.getObjectInt32Param(
+            self._handle, simc.sim_shapeintparam_static)
 
     def set_dynamic(self, value: bool) -> None:
         """Set whether the shape is dynamic or not.
 
         :param value: The new value of the dynamic state of the shape.
         """
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_shapeintparam_static, not value)
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_shapeintparam_static, int(not value))
         self.reset_dynamic_object()
 
     def get_color(self) -> List[float]:
@@ -216,24 +220,28 @@ class Shape(Object):
 
         :return: The r, g, b values of the shape.
         """
-        return sim.simGetShapeColor(
-            self._handle, None, sim.sim_colorcomponent_ambient_diffuse)
+        result, data = self._sim_api.getShapeColor(
+            self._handle, "", simc.sim_colorcomponent_ambient_diffuse)
+        assert result == 1
+        return data
 
     def set_color(self, color: List[float]) -> None:
         """Sets the color of the shape.
 
         :param color: The r, g, b values of the shape.
         """
-        sim.simSetShapeColor(
-            self._handle, None, sim.sim_colorcomponent_ambient_diffuse, color)
+        self._sim_api.setShapeColor(
+            self._handle, "", simc.sim_colorcomponent_ambient_diffuse, color)
 
     def get_transparency(self) -> float:
         """Sets the transparency of the shape.
 
         :return: The transparency values of the shape.
         """
-        return sim.simGetShapeColor(
-            self._handle, None, sim.sim_colorcomponent_transparency)[0]
+        result, data = self._sim_api.getShapeColor(
+            self._handle, "", simc.sim_colorcomponent_transparency)
+        assert result == 1
+        return data[0]
 
     def set_transparency(self, value: float) -> None:
         """Sets the transparency of the shape.
@@ -242,24 +250,24 @@ class Shape(Object):
         """
         if 0 > value > 1:
             raise ValueError('Value must be between 0 and 1.')
-        sim.simSetShapeColor(
-            self._handle, None, sim.sim_colorcomponent_transparency, [value])
+        self._sim_api.setShapeColor(
+            self._handle, "", simc.sim_colorcomponent_transparency, [value])
 
     def get_mass(self) -> float:
         """Gets the mass of the shape.
 
         :return: A float representing the mass.
         """
-        return sim.simGetObjectFloatParameter(self._handle,
-                                              sim.sim_shapefloatparam_mass)
+        return self._sim_api.getObjectFloatParam(self._handle,
+                                              simc.sim_shapefloatparam_mass)
 
     def set_mass(self, mass: float) -> None:
         """Sets the mass of the shape.
 
         :param mass: The new mass value.
         """
-        sim.simSetObjectFloatParameter(
-            self._handle, sim.sim_shapefloatparam_mass, mass)
+        self._sim_api.setObjectFloatParam(
+            self._handle, simc.sim_shapefloatparam_mass, mass)
 
     def compute_mass_and_inertia(self, density: float) -> None:
         """Computes and applies the mass and inertia properties for a
@@ -267,7 +275,7 @@ class Shape(Object):
 
         :param density: The density expressed in kg/m^3
         """
-        ret = sim.simComputeMassAndInertia(self._handle, density)
+        ret = self._sim_api.computeMassAndInertia(self._handle, density)
         if ret == 0:
             raise ValueError(
                 'The shape must be a convex shape (or convex compound shape)')
@@ -276,10 +284,9 @@ class Shape(Object):
     def get_mesh_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Retrieves a shape's mesh information.
 
-        :param asnumpy: A flag to cast vertices as numpy array with reshape.
         :return: A tuple containing a list of vertices, indices, and normals.
         """
-        vertices, indices, normals = sim.simGetShapeMesh(self._handle)
+        vertices, indices, normals = self._sim_api.getShapeMesh(self._handle)
         vertices = np.array(vertices, dtype=np.float64).reshape(-1, 3)
         indices = np.array(indices, dtype=np.int64).reshape(-1, 3)
         normals = np.array(normals, dtype=np.float64).reshape(-1, 3)
@@ -294,8 +301,8 @@ class Shape(Object):
         if percentage < 0.1 or percentage > 0.9:
             raise ValueError('percentage param must be between 0.1 and 0.9.')
         # verts, inds, _ = self.get_mesh_data()
-        verts, inds, _ = sim.simGetShapeMesh(self._handle)
-        new_verts, new_inds = sim.simGetDecimatedMesh(
+        verts, inds, _ = self._sim_api.getShapeMesh(self._handle)
+        new_verts, new_inds = self._sim_api.getDecimatedMesh(
             # verts.reshape(-1).tolist(), inds.reshape(-1).tolist(), percentage)
             verts, inds, percentage)
         s = Shape.create_mesh(new_verts, new_inds)
@@ -402,19 +409,19 @@ class Shape(Object):
             vhacd_min_vol               # [9]
         ]
 
-        return Shape(sim.simConvexDecompose(self.get_handle(), options,
+        return Shape(self._sim_api.convexDecompose(self.get_handle(), options,
                                             int_params, float_params))
 
     def get_texture(self):
         """Retrieves the texture from the shape.
         :return: The texture associated with this object.
         """
-        return Texture(sim.simGetShapeTextureId(self.get_handle()))
+        return Texture(self._sim_api.getShapeTextureId(self.get_handle()))
 
     def remove_texture(self):
         """Removes the texture from the shape.
         """
-        sim.simSetShapeTexture(self.get_handle(), -1, 0, 0, [1, 1], None, None)
+        self._sim_api.setShapeTexture(self.get_handle(), -1, 0, 0, [1, 1], None, None)
 
     def set_texture(self, texture: Texture, mapping_mode: TextureMappingMode,
                     interpolate=True, decal_mode=False, repeat_along_u=False,
@@ -450,7 +457,7 @@ class Shape(Object):
             options |= 4
         if repeat_along_v:
             options |= 8
-        sim.simSetShapeTexture(
+        self._sim_api.setShapeTexture(
             self.get_handle(), texture.get_texture_id(), mapping_mode.value,
             options, list(uv_scaling), position, orientation)
 
@@ -459,53 +466,8 @@ class Shape(Object):
 
         :return: A list of shapes.
         """
-        handles = sim.simUngroupShape(self.get_handle())
+        handles = self._sim_api.ungroupShape(self.get_handle())
         return [Shape(handle) for handle in handles]
-
-    def apply_texture(self, texture_coords: np.ndarray, texture: np.ndarray,
-                      interpolate: bool = True, decal_mode: bool = False,
-                      is_rgba: bool = False, fliph: bool = False,
-                      flipv: bool = False) -> None:
-        """Apply texture to the shape.
-
-        :param texture_coords: A list of (u, v) values that indicate the
-            vertex position on the shape. For each of the shape's triangle,
-            there should be exactly 3 UV texture coordinate pairs
-        :param texture: The RGB or RGBA texture.
-        :param interpolate: A flag to interpolate adjacent texture pixels.
-        :param decal_mode: Texture is applied as a decal (its appearance
-            won't be influenced by light conditions).
-        :param is_rgba: A flag to use RGBA texture.
-        :param fliph: A flag to flip texture horizontally.
-        :param flipv: A flag to flip texture vertically. Note that CoppeliaSim
-            texture coordinates are flipped vertically compared with Pillow
-            and OpenCV and this flag must be true in general.
-        """
-        texture_coords = np.asarray(texture_coords)
-        if not isinstance(texture, np.ndarray):
-            raise TypeError('texture must be np.ndarray type')
-        height, width = texture.shape[:2]
-
-        options = 0
-        if not interpolate:
-            options |= 1
-        if decal_mode:
-            options |= 2
-        if is_rgba:
-            options |= 16
-        if fliph:
-            options |= 32
-        if flipv:
-            options |= 64
-
-        sim.simApplyTexture(
-            self._handle,
-            textureCoordinates=texture_coords.flatten().tolist(),
-            textCoordSize=texture_coords.size,
-            texture=texture.flatten().tolist(),
-            textureResolution=(width, height),
-            options=options,
-        )
 
     def get_shape_viz(self, index):
         """Retrieves a shape's visual information.
@@ -515,34 +477,33 @@ class Shape(Object):
 
         :return: SShapeVizInfo.
         """
-        info = sim.simGetShapeViz(shapeHandle=self._handle, index=index)
-
-        vertices = np.array(info.vertices, dtype=float).reshape(-1, 3)
-        indices = np.array(info.indices, dtype=float).reshape(-1, 3)
-        normals = np.array(info.normals, dtype=float).reshape(-1, 3)
-        colors = np.array(info.colors, dtype=float)
-        texture = np.array(info.texture, dtype=np.uint8).reshape(
-            info.textureRes[1], info.textureRes[0], 4)
-        textureCoords = np.array(info.textureCoords, dtype=float).reshape(
+        info = self._sim_api.getShapeViz(self._handle, index)
+        vertices = np.array(info["vertices"], dtype=float).reshape(-1, 3)
+        indices = np.array(info["indices"], dtype=float).reshape(-1, 3)
+        normals = np.array(info["normals"], dtype=float).reshape(-1, 3)
+        colors = np.array(info["colors"], dtype=float)
+        texture = np.frombuffer(info["texture"]["texture"], dtype=np.uint8).reshape(
+            info["texture"]["resolution"][1], info["texture"]["resolution"][0], 4)
+        textureCoords = np.array(info["texture"]["coordinates"], dtype=float).reshape(
             -1, 2)
 
         res = SShapeVizInfo(
             vertices=vertices,
             indices=indices,
             normals=normals,
-            shading_angle=info.shadingAngle,
+            shading_angle=info["shadingAngle"],
             colors=colors,
             texture=texture,
-            texture_id=info.textureId,
+            texture_id=info["texture"]["id"],
             texture_coords=textureCoords,
-            texture_apply_mode=info.textureApplyMode,
-            texture_options=info.textureOptions,
+            texture_apply_mode=info["texture"]["applyMode"],
+            texture_options=info["texture"]["options"],
         )
         return res
 
     def reorient_bounding_box(self, relative_to=None) -> None:
         relto = -1 if relative_to is None else relative_to.get_handle()
-        sim.simReorientShapeBoundingBox(self._handle, relto)
+        self._sim_api.reorientShapeBoundingBox(self._handle, relto)
 
     def add_force(self, position: np.ndarray, force: np.ndarray,
                   reset_force_torque: bool = False) -> None:
@@ -554,9 +515,9 @@ class Shape(Object):
         :param force: The force (in relative coordinates) to add.
         :param reset_force_torque: Clears the accumulated force and torque.
         """
-        h = (self._handle | sim.sim_handleflag_resetforcetorque
+        h = (self._handle | simc.sim_handleflag_resetforcetorque
              if reset_force_torque else self._handle)
-        sim.simAddForce(h, list(position), list(force))
+        self._sim_api.addForce(h, list(position), list(force))
 
     def add_force_and_torque(self, force: np.ndarray, torque: np.ndarray,
                              reset_force: bool = False,
@@ -573,10 +534,10 @@ class Shape(Object):
         """
         h = self._handle
         if reset_force:
-            h |= sim.sim_handleflag_resetforce
+            h |= simc.sim_handleflag_resetforce
         if reset_torque:
-            h |= sim.sim_handleflag_resettorque
-        sim.simAddForceAndTorque(h,
+            h |= simc.sim_handleflag_resettorque
+        self._sim_api.addForceAndTorque(h,
                                  None if force is None else list(force),
                                  None if torque is None else list(torque))
 

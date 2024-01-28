@@ -19,9 +19,6 @@ starting_joint_positions = agent.get_joint_positions()
 
 # Try solving via linearisation
 new_joint_pos = agent.solve_ik_via_jacobian([x, y, z - 0.01], quaternion=q)
-new_joint_pos = agent.solve_ik_via_jacobian([x, y, z - 0.05], quaternion=q)
-new_joint_pos = agent.solve_ik_via_jacobian([x, y, z - 0.1], quaternion=q)
-new_joint_pos = agent.solve_ik_via_jacobian([x, y, z - 0.2], quaternion=q)
 
 # This will fail because the distance between start and goal is too far
 try:
@@ -30,7 +27,7 @@ except IKError:
     # So let's swap to an alternative IK method...
     # This returns 'max_configs' number of joint positions
     input('Press key to run solve_ik_via_sampling...')
-    new_joint_pos = agent.solve_ik_via_sampling([x, y, z - 0.4], quaternion=q)[0]
+    new_joint_pos = agent.solve_ik_via_sampling([x, y, z - 0.4], quaternion=q, max_time_ms=2000)[0]
 
 # Because the arm is in Forxe/Torque mode, we need to temporarily disable
 # dynamics in order to instantaneously move joints.

@@ -1,5 +1,9 @@
 from typing import Tuple, List
-from pyrep.backend import sim
+
+import numpy as np
+
+from pyrep.backend import sim_const as simc
+from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 
@@ -13,9 +17,9 @@ class CartesianPath(Object):
                show_position: bool = True, closed_path: bool = False,
                automatic_orientation: bool = True, flat_path: bool = False,
                keep_x_up: bool = False, line_size: int = 1,
-               length_calculation_method: int = sim.sim_distcalcmethod_dl_if_nonzero, control_point_size: float = 0.01,
+               length_calculation_method: int = simc.sim_distcalcmethod_dl_if_nonzero, control_point_size: float = 0.01,
                ang_to_lin_conv_coeff: float = 1., virt_dist_scale_factor: float = 1.,
-               path_color: tuple = (0.1, 0.75, 1.)) -> 'CartesianPath':
+               path_color: tuple = (0.1, 0.75, 1.), paths_points: list = []) -> 'CartesianPath':
         """Creates a cartesian path and inserts in the scene.
 
         :param show_line: Shows line in UI.
@@ -49,25 +53,23 @@ class CartesianPath(Object):
 
         :return: The newly created cartesian path.
         """
-        attributes = 0
-        if show_line:
-            attributes |= sim.sim_pathproperty_show_line
-        if show_orientation:
-            attributes |= sim.sim_pathproperty_show_orientation
+        attributes = 16  #  the path points' orientation is computed according to the orientationMode below
         if closed_path:
-            attributes |= sim.sim_pathproperty_closed_path
+            attributes |= 2
+        orientation_mode = 0
         if automatic_orientation:
-            attributes |= sim.sim_pathproperty_automatic_orientation
-        if flat_path:
-            attributes |= sim.sim_pathproperty_flat_path
-        if show_position:
-            attributes |= sim.sim_pathproperty_show_position
-        if keep_x_up:
-            attributes |= sim.sim_pathproperty_keep_x_up
-
-        handle = sim.simCreatePath(attributes, [line_size, length_calculation_method, 0],
-                                   [control_point_size, ang_to_lin_conv_coeff, virt_dist_scale_factor],
-                                   list(path_color))
+            if keep_x_up:
+                orientation_mode |= 4
+            else:
+                orientation_mode |= 5
+        sim_api = SimBackend().sim_api
+        subdiv = 100
+        smoothness = 1.0
+        up_vector = [0, 0, 1]
+        if len(paths_points) == 0:
+            #  Path must have at least 2 points
+            paths_points = np.zeros((14,)).tolist()
+        handle = sim_api.createPath(paths_points, attributes, subdiv, smoothness, orientation_mode, up_vector)
         return CartesianPath(handle)
 
     def _get_requested_type(self) -> ObjectType:
@@ -82,26 +84,24 @@ class CartesianPath(Object):
         :return: A tuple containing the x, y, z position, and the x, y, z
             orientation of the point on the path (in radians).
         """
-        pos = sim.simGetPositionOnPath(self._handle, relative_distance)
-        ori = sim.simGetOrientationOnPath(self._handle, relative_distance)
+        sim_api = SimBackend().sim_api
+        path_data = sim_api.unpackDoubleTable(sim_api.readCustomDataBlock(self.get_handle(), 'PATH'))
+        m = np.array(path_data).reshape(len(path_data) // 7, 7)
+        path_positions = m[:, :3].flatten().tolist()
+        path_quaternions = m[:, 3:].flatten().tolist()
+        path_lengths, total_length = sim_api.getPathLengths(path_positions, 3)
+        pos = sim_api.getPathInterpolatedConfig(path_positions, path_lengths, total_length * relative_distance)
+        quat = sim_api.getPathInterpolatedConfig(path_quaternions, path_lengths, total_length * relative_distance, None, [2, 2, 2, 2])
+        # TODO: Hack for now; convert quat -> euler using library
+        from pyrep.objects import Dummy
+        d = Dummy.create()
+        d.set_position(pos, self)
+        d.set_quaternion(quat, self)
+        # To word coords
+        pos = d.get_position()
+        ori = d.get_orientation()
+        d.remove()
         return pos, ori
-
-    def insert_control_points(self, poses: List[List[float]]) -> None:
-        """Inserts one or several control points into the path.
-
-        :param poses: A list of lists containing 6 values representing the pose
-            of each of the new control points. Orientation in radians.
-        """
-        data = []
-        for p in poses:
-            data.extend(p)
-        self._script_call('insertPathControlPoint@PyRep',
-                          ints=[self._handle, len(poses)], floats=data)
-
-    def _script_call(self, func: str, ints=(), floats=(), strings=(), bytes=''):
-        return sim.simExtCallScriptFunction(
-            func, sim.sim_scripttype_addonscript,
-            list(ints), list(floats), list(strings), bytes)
 
 
 object_type_to_class[ObjectType.PATH] = CartesianPath

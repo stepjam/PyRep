@@ -1,6 +1,6 @@
 from threading import Lock
 from typing import List, Tuple
-from pyrep.backend import sim
+from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
 from pyrep.objects.dummy import Dummy
@@ -11,6 +11,7 @@ from pyrep.objects.force_sensor import ForceSensor
 from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.objects.camera import Camera
 from pyrep.objects.octree import Octree
+from pyrep.backend import sim_const as simc
 
 step_lock = Lock()
 
@@ -21,24 +22,25 @@ def to_type(handle: int) -> Object:
     :param handle: The internal handle of an object.
     :return: The sub-type of this object.
     """
-    t = sim.simGetObjectType(handle)
-    if t == sim.sim_object_shape_type:
+    sim_api = SimBackend().sim_api
+    t = sim_api.getObjectType(handle)
+    if t == simc.sim_object_shape_type:
         return Shape(handle)
-    elif t == sim.sim_object_dummy_type:
+    elif t == simc.sim_object_dummy_type:
         return Dummy(handle)
-    elif t == sim.sim_object_path_type:
+    elif t == simc.sim_object_path_type:
         return CartesianPath(handle)
-    elif t == sim.sim_object_joint_type:
+    elif t == simc.sim_object_joint_type:
         return Joint(handle)
-    elif t == sim.sim_object_visionsensor_type:
+    elif t == simc.sim_object_visionsensor_type:
         return VisionSensor(handle)
-    elif t == sim.sim_object_forcesensor_type:
+    elif t == simc.sim_object_forcesensor_type:
         return ForceSensor(handle)
-    elif t == sim.sim_object_proximitysensor_type:
+    elif t == simc.sim_object_proximitysensor_type:
         return ProximitySensor(handle)
-    elif t == sim.sim_object_camera_type:
+    elif t == simc.sim_object_camera_type:
         return Camera(handle)
-    elif t == sim.sim_object_octree_type:
+    elif t == simc.sim_object_octree_type:
         return Octree(handle)
     raise ValueError
 
@@ -62,15 +64,16 @@ def script_call(function_name_at_script_name: str,
     :param bytes: The input bytes to the script (as a string).
     :return: Any number of return values from the called Lua function.
     """
-    return sim.simExtCallScriptFunction(
+    sim_api = SimBackend().sim_api
+    return sim_api.extCallScriptFunction(
         function_name_at_script_name, script_handle_or_type, list(ints),
         list(floats), list(strings), bytes)
 
 
 def _is_in_ipython():
+    import builtins
     try:
-        __IPYTHON__
-        return True
+        return getattr(builtins, "__IPYTHON__", False)
     except NameError:
         pass
     return False

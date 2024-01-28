@@ -3,6 +3,9 @@
 
 __PyRep is a toolkit for robot learning research, built on top of [CoppeliaSim](http://www.coppeliarobotics.com/) (previously called V-REP).__
 
+__Announcement!__
+PyRep has undergone a __MAJOR__ update, and is now compatible with the most recent version of CoppeliaSim. Most importantly, it now has Mac and Windows support!
+
 
 - [Install](#install)
 - [Running Headless](#running-headless)
@@ -18,7 +21,7 @@ __PyRep is a toolkit for robot learning research, built on top of [CoppeliaSim](
 
 ## Install
 
-PyRep requires version **4.1** of CoppeliaSim. Download: 
+PyRep requires version **4.6.0** of CoppeliaSim. Download: 
 - [Ubuntu 16.04](https://www.coppeliarobotics.com/files/V4_1_0/CoppeliaSim_Edu_V4_1_0_Ubuntu16_04.tar.xz)
 - [Ubuntu 18.04](https://www.coppeliarobotics.com/files/V4_1_0/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04.tar.xz)
 - [Ubuntu 20.04](https://www.coppeliarobotics.com/files/V4_1_0/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz)
@@ -268,8 +271,6 @@ If you use PyRep in your work, then get in contact and we can add you to the lis
 Coppelia Robotics discontinued development of __V-REP__. Instead, they now focus
 their efforts on __CoppeliaSim__. CoppeliaSim is 100% compatible with V-REP.
 See more information [here](http://coppeliarobotics.com/helpFiles/en/versionInfo.htm#coppeliaSim4.0.0).
-
-PyRep is fully compatible with both V-REP and CoppeliaSim.
 
 
 ## Citation

@@ -1,4 +1,4 @@
-from pyrep.backend import sim
+from pyrep.backend import sim_const as sim
 from enum import Enum
 
 
@@ -17,7 +17,7 @@ class ObjectType(Enum):
     PROXIMITY_SENSOR = sim.sim_object_proximitysensor_type
     GRAPH = sim.sim_object_graph_type
     CAMERA = sim.sim_object_camera_type
-    PATH = sim.sim_object_path_type
+    PATH = sim.sim_object_dummy_type
     VISION_SENSOR = sim.sim_object_visionsensor_type
     VOLUME = sim.sim_object_volume_type
     MILl = sim.sim_object_mill_type

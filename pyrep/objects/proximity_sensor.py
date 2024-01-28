@@ -22,7 +22,7 @@ class ProximitySensor(Object):
 
         :return: Float distance to the first detected object
         """
-        state, _, points, _ = sim.simReadProximitySensor(self._handle)
+        state, _, points, _ = self._sim_api.readProximitySensor(self._handle)
         if state:
             return sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
         return -1.0
@@ -33,9 +33,9 @@ class ProximitySensor(Object):
         :param obj: The object to detect.
         :return: Bool indicating if the object was detected.
         """
-        state, point = sim.simCheckProximitySensor(
+        res, dist, point, obj, norm_vec = self._sim_api.checkProximitySensor(
             self._handle, obj.get_handle())
-        return state == 1
+        return res == 1
 
 
 object_type_to_class[ObjectType.PROXIMITY_SENSOR] = ProximitySensor

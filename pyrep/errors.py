@@ -28,3 +28,6 @@ class GripperError(Exception):
 
 class IKError(Exception):
     pass
+
+class CoppeliaSimError(Exception):
+    pass

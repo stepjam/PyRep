@@ -1,3 +1,4 @@
+from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 from pyrep.backend import sim
@@ -16,7 +17,8 @@ class Dummy(Object):
         :param size: The size of the dummy object.
         :return: The newly created Dummy.
         """
-        handle = sim.simCreateDummy(size, None)
+        sim_api = SimBackend().sim_api
+        handle = sim_api.createDummy(size)
         return Dummy(handle)
 
     def _get_requested_type(self) -> ObjectType:
