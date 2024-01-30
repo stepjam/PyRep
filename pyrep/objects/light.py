@@ -21,12 +21,12 @@ class Light(Object):
     def turn_on(self):
         """ Turn the light on.
         """
-        self._sim_api.setLightParameters(self._handle, True)
+        self._sim_api.setLightParameters(self._handle, 1, None, None, None)
 
     def turn_off(self):
         """ Turn the light off.
         """
-        self._sim_api.setLightParameters(self._handle, False)
+        self._sim_api.setLightParameters(self._handle, 0, None, None, None)
 
     def is_on(self):
         """ Determines whether the light is on.
@@ -46,23 +46,23 @@ class Light(Object):
         """ Get the diffuse colors of the light.
         return: 3-vector np.array of diffuse colors
         """
-        return np.asarray(self._sim_api.getLightParameters(self._handle)[1])
+        return np.asarray(self._sim_api.getLightParameters(self._handle)[2])
 
     def set_diffuse(self, diffuse):
         """ Set the diffuse colors of the light.
         """
-        self._sim_api.setLightParameters(self._handle, self.is_on(), list(diffuse))
+        self._sim_api.setLightParameters(self._handle, self.is_on(), None, list(diffuse), None)
 
     def get_specular(self):
         """ Get the specular colors of the light.
         return: 3-vector np.array of specular colors
         """
-        return np.asarray(self._sim_api.getLightParameters(self._handle)[2])
+        return np.asarray(self._sim_api.getLightParameters(self._handle)[3])
 
     def set_specular(self, specular):
         """ Set the specular colors of the light.
         """
-        self._sim_api.setLightParameters(self._handle, self.is_on(), specularPart=list(specular))
+        self._sim_api.setLightParameters(self._handle, self.is_on(), None, list(self.get_diffuse()), list(specular))
 
     # Intensity Properties
 

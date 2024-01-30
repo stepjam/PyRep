@@ -2,6 +2,7 @@ import math
 from typing import List, Union, Sequence
 from pyrep.backend import sim
 from pyrep.backend.sim import SimBackend
+from pyrep.backend import sim_const as simc
 from pyrep.objects.object import Object, object_type_to_class
 import numpy as np
 from pyrep.const import ObjectType, PerspectiveMode, RenderMode
@@ -13,7 +14,7 @@ class VisionSensor(Object):
 
     def __init__(self, name_or_handle: Union[str, int]):
         super().__init__(name_or_handle)
-        self.resolution = sim.simGetVisionSensorResolution(self._handle)
+        self.resolution = self._sim_api.getVisionSensorRes(self._handle)
 
     @staticmethod
     def create(resolution: List[int], explicit_handling=False,
@@ -22,7 +23,7 @@ class VisionSensor(Object):
                use_local_lights=False, show_fog=True,
                near_clipping_plane=1e-2, far_clipping_plane=10.0,
                view_angle=60.0, ortho_size=1.0, sensor_size=None,
-               render_mode=RenderMode.OPENGL3,
+               render_mode=RenderMode.OPENGL,
                position=None, orientation=None) -> 'VisionSensor':
         """ Create a Vision Sensor
 
@@ -118,14 +119,17 @@ class VisionSensor(Object):
         if not self.get_explicit_handling():
             raise RuntimeError('The explicit_handling is disabled. '
                                'Call set_explicit_handling(value=1) to enable explicit_handling first.')
-        sim.simHandleVisionSensor(self._handle)
+        self._sim_api.handleVisionSensor(self._handle)
 
     def capture_rgb(self) -> np.ndarray:
         """Retrieves the rgb-image of a vision sensor.
 
         :return: A numpy array of size (width, height, 3)
         """
-        return sim.simGetVisionSensorImage(self._handle, self.resolution)
+        enc_img, resolution = self._sim_api.getVisionSensorImg(self._handle)
+        img = np.frombuffer(enc_img, dtype=np.uint8).reshape(resolution[1], resolution[0], 3)
+        img = np.flip(img, 0).copy()
+        return img
 
     def capture_depth(self, in_meters=False) -> np.ndarray:
         """Retrieves the depth-image of a vision sensor.
@@ -133,8 +137,10 @@ class VisionSensor(Object):
         :param in_meters: Whether the depth should be returned in meters.
         :return: A numpy array of size (width, height)
         """
-        return sim.simGetVisionSensorDepthBuffer(
-            self._handle, self.resolution, in_meters)
+        enc_img, resolution = self._sim_api.getVisionSensorDepth(self._handle, int(in_meters))
+        img = np.frombuffer(enc_img, dtype=np.float32).reshape(resolution[1], resolution[0])
+        img = np.flip(img, 0).copy()
+        return img
 
     def capture_pointcloud(self) -> np.ndarray:
         """Retrieves point cloud in word frame.
@@ -192,23 +198,23 @@ class VisionSensor(Object):
              [0.,               focal_lengths[1], pp_offsets[1]],
              [0.,               0.,               1.]])
 
-    def get_resolution(self) -> List[int]:
+    def get_resolution(self) -> np.ndarray:
         """ Return the Sensor's resolution.
 
         :return: Resolution [x, y]
         """
-        return sim.simGetVisionSensorResolution(self._handle)
+        return np.array(self._sim_api.getVisionSensorRes(self._handle))
 
-    def set_resolution(self, resolution: List[int]) -> None:
+    def set_resolution(self, resolution: np.ndarray) -> None:
         """ Set the Sensor's resolution.
 
         :param resolution: New resolution [x, y]
         """
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_resolution_x, resolution[0]
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_visionintparam_resolution_x, resolution[0]
         )
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_resolution_y, resolution[1]
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_visionintparam_resolution_y, resolution[1]
         )
         self.resolution = resolution
 
@@ -217,8 +223,8 @@ class VisionSensor(Object):
 
         :return: The current PerspectiveMode.
         """
-        perspective_mode = sim.simGetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_perspective_operation,
+        perspective_mode = self._sim_api.getObjectInt32Param(
+            self._handle, simc.sim_visionintparam_perspective_operation,
         )
         return PerspectiveMode(perspective_mode)
 
@@ -229,8 +235,8 @@ class VisionSensor(Object):
             PerspectiveMode.ORTHOGRAPHIC
             PerspectiveMode.PERSPECTIVE
         """
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_perspective_operation,
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_visionintparam_perspective_operation,
             perspective_mode.value
         )
 
@@ -239,8 +245,8 @@ class VisionSensor(Object):
 
         :return: RenderMode for the current rendering mode.
         """
-        render_mode = sim.simGetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_render_mode
+        render_mode = self._sim_api.getObjectInt32Param(
+            self._handle, simc.sim_visionintparam_render_mode
         )
         return RenderMode(render_mode)
 
@@ -257,8 +263,8 @@ class VisionSensor(Object):
             RenderMode.OPENGL3
             RenderMode.OPENGL3_WINDOWED
         """
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_render_mode,
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_visionintparam_render_mode,
             render_mode.value
         )
 
@@ -267,10 +273,10 @@ class VisionSensor(Object):
 
         :return: The (x, y) resolution of the window. 0 for full-screen.
         """
-        size_x = sim.simGetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_windowed_size_x)
-        size_y = sim.simGetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_windowed_size_y)
+        size_x = self._sim_api.getObjectInt32Param(
+            self._handle, simc.sim_visionintparam_windowed_size_x)
+        size_y = self._sim_api.getObjectInt32Param(
+            self._handle, simc.sim_visionintparam_windowed_size_y)
         return size_x, size_y
 
     def set_windowed_size(self, resolution: Sequence[int] = (0, 0)) -> None:
@@ -279,11 +285,11 @@ class VisionSensor(Object):
         :param resolution: The (x, y) resolution of the window.
             0 for full-screen.
         """
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_windowed_size_x,
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_visionintparam_windowed_size_x,
             resolution[0])
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_windowed_size_y,
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_visionintparam_windowed_size_y,
             resolution[1])
 
     def get_perspective_angle(self) -> float:
@@ -291,8 +297,8 @@ class VisionSensor(Object):
 
         :return: The sensor's perspective angle (in degrees).
         """
-        return math.degrees(sim.simGetObjectFloatParameter(
-            self._handle, sim.sim_visionfloatparam_perspective_angle
+        return math.degrees(self._sim_api.getObjectFloatParam(
+            self._handle, simc.sim_visionfloatparam_perspective_angle
         ))
 
     def set_perspective_angle(self, angle: float) -> None:
@@ -300,8 +306,8 @@ class VisionSensor(Object):
 
         :param angle: New perspective angle (in degrees)
         """
-        sim.simSetObjectFloatParameter(
-            self._handle, sim.sim_visionfloatparam_perspective_angle,
+        self._sim_api.setObjectFloatParam(
+            self._handle, simc.sim_visionfloatparam_perspective_angle,
             math.radians(angle)
         )
 
@@ -310,8 +316,8 @@ class VisionSensor(Object):
 
         :return: The sensor's orthographic size (in metres).
         """
-        return sim.simGetObjectFloatParameter(
-            self._handle, sim.sim_visionfloatparam_ortho_size
+        return self._sim_api.getObjectFloatParam(
+            self._handle, simc.sim_visionfloatparam_ortho_size
         )
 
     def set_orthographic_size(self, ortho_size: float) -> None:
@@ -319,8 +325,8 @@ class VisionSensor(Object):
 
         :param angle: New orthographic size (in metres)
         """
-        sim.simSetObjectFloatParameter(
-            self._handle, sim.sim_visionfloatparam_ortho_size, ortho_size
+        self._sim_api.setObjectFloatParam(
+            self._handle, simc.sim_visionfloatparam_ortho_size, ortho_size
         )
 
     def get_near_clipping_plane(self) -> float:
@@ -328,8 +334,8 @@ class VisionSensor(Object):
 
         :return: Near clipping plane (metres)
         """
-        return sim.simGetObjectFloatParameter(
-            self._handle, sim.sim_visionfloatparam_near_clipping
+        return self._sim_api.getObjectFloatParam(
+            self._handle, simc.sim_visionfloatparam_near_clipping
         )
 
     def set_near_clipping_plane(self, near_clipping: float) -> None:
@@ -337,8 +343,8 @@ class VisionSensor(Object):
 
         :param near_clipping: New near clipping plane (in metres)
         """
-        sim.simSetObjectFloatParameter(
-            self._handle, sim.sim_visionfloatparam_near_clipping, near_clipping
+        self._sim_api.setObjectFloatParam(
+            self._handle, simc.sim_visionfloatparam_near_clipping, near_clipping
         )
 
     def get_far_clipping_plane(self) -> float:
@@ -346,8 +352,8 @@ class VisionSensor(Object):
 
         :return: Near clipping plane (metres)
         """
-        return sim.simGetObjectFloatParameter(
-            self._handle, sim.sim_visionfloatparam_far_clipping
+        return self._sim_api.getObjectFloatParam(
+            self._handle, simc.sim_visionfloatparam_far_clipping
         )
 
     def set_far_clipping_plane(self, far_clipping: float) -> None:
@@ -355,8 +361,8 @@ class VisionSensor(Object):
 
         :param far_clipping: New far clipping plane (in metres)
         """
-        sim.simSetObjectFloatParameter(
-            self._handle, sim.sim_visionfloatparam_far_clipping, far_clipping
+        self._sim_api.setObjectFloatParam(
+            self._handle, simc.sim_visionfloatparam_far_clipping, far_clipping
         )
 
     def set_entity_to_render(self, entity_to_render: int) -> None:
@@ -365,18 +371,18 @@ class VisionSensor(Object):
 
         :param entity_to_render: Handle of the entity to render
         """
-        sim.simSetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_entity_to_render, entity_to_render
+        self._sim_api.setObjectInt32Param(
+            self._handle, simc.sim_visionintparam_entity_to_render, entity_to_render
         )
 
-    def get_entity_to_render(self) -> None:
+    def get_entity_to_render(self) -> int:
         """ Get the entity to render to the Sensor, this can be an object or more usefully a collection.
-        -1 if all objects in scene are rendered.
+        None if all objects in scene are rendered.
 
         :return: Handle of the entity to render
         """
-        return sim.simGetObjectInt32Parameter(
-            self._handle, sim.sim_visionintparam_entity_to_render
+        self._sim_api.getObjectInt32Param(
+            self._handle, simc.sim_visionintparam_entity_to_render
         )
 
 

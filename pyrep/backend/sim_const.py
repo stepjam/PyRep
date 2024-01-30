@@ -714,11 +714,14 @@ sim_autostart = 131072
 sim_autoquit = 262144
 
 sim_jointmode_passive = 0
+sim_jointmode_kinematic = 0
 sim_jointmode_motion_deprecated = 1
 sim_jointmode_ik = 2
 sim_jointmode_reserved_previously_ikdependent = 3
 sim_jointmode_dependent = 4
 sim_jointmode_force = 5
+sim_jointmode_dynamic = 5
+
 
 sim_verbosity_useglobal = -1
 sim_verbosity_none = 100

@@ -1,4 +1,7 @@
 import unittest
+
+import numpy as np
+
 from tests.core import TestCore
 from pyrep.const import RenderMode
 from pyrep.sensors.spherical_vision_sensor import SphericalVisionSensor
@@ -31,7 +34,7 @@ class TestSphericalVisionSensors(TestCore):
 
     def test_get_set_resolution(self):
         self.spherical_vision_sensor.set_resolution([480, 240])
-        self.assertEqual(self.spherical_vision_sensor.get_resolution(), [480, 240])
+        self.assertTrue(np.array_equal(self.spherical_vision_sensor.get_resolution(), [480, 240]))
         self.assertEqual(self.spherical_vision_sensor.capture_rgb().shape, (240, 480, 3))
 
     def test_get_set_render_mode(self):
@@ -53,7 +56,7 @@ class TestSphericalVisionSensors(TestCore):
 
     def test_get_set_entity_to_render(self):
         self.spherical_vision_sensor.set_entity_to_render(-1)
-        self.assertEqual(self.spherical_vision_sensor.get_entity_to_render(), -1)
+        self.assertIsNone(self.spherical_vision_sensor.get_entity_to_render())
 
 
 if __name__ == '__main__':

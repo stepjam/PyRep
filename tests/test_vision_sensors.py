@@ -12,9 +12,13 @@ class TestVisionSensors(TestCore):
         self.cam = VisionSensor('cam0')
 
     def test_handle_explicitly(self):
-        cam = VisionSensor.create((640, 480))
+        cam = VisionSensor.create((640, 480), explicit_handling=True)
+        # Point camera towards ground
+        cam.set_position([0, 0, 1])
+        cam.rotate([3.14, 0, 0])
 
-        # blank image
+        #  blank image
+        self.pyrep.step()
         rgb = cam.capture_rgb()
         self.assertEqual(rgb.sum(), 0)
 
@@ -60,7 +64,7 @@ class TestVisionSensors(TestCore):
 
     def test_get_set_resolution(self):
         self.cam.set_resolution([320, 240])
-        self.assertEqual(self.cam.get_resolution(), [320, 240])
+        self.assertListEqual(list(self.cam.get_resolution()), [320, 240])
         self.assertEqual(self.cam.capture_rgb().shape, (240, 320, 3))
 
     def test_get_set_perspective_mode(self):
@@ -98,7 +102,7 @@ class TestVisionSensors(TestCore):
 
     def test_get_set_entity_to_render(self):
         self.cam.set_entity_to_render(-1)
-        self.assertEqual(self.cam.get_entity_to_render(), -1)
+        self.assertIsNone(self.cam.get_entity_to_render())
 
     def test_get_intrinsic_matrix(self):
         i = self.cam.get_intrinsic_matrix()

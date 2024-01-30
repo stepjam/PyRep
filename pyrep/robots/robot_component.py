@@ -24,13 +24,6 @@ class RobotComponent(Object):
                        for jname in joint_names]
         self._joint_handles = [j.get_handle() for j in self.joints]
 
-        # self._sim_ik_api = SimBackend().sim_ik_api
-        # ik_env = self._sim_ik_api.createEnvironment()
-        # ik_group = self._sim_ik_api.createGroup(ik_env)
-        # sim_base = self.get_handle()
-        # ikElement, simToIkMap, ikToSimMap = self._sim_ik_api.addElementFromScene(
-        #     ik_env, ik_group, simBase, simTip, simTarget, desiredConstraints
-
     def copy(self) -> 'RobotComponent':
         """Copy and pastes the arm in the scene.
 

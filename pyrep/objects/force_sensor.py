@@ -18,8 +18,7 @@ class ForceSensor(Object):
         intParams = [0, 0, 0, 0, 0]
         floatParams = [sensor_size, 0, 0, 0, 0]
         sim_api = SimBackend().sim_api
-        handle = sim_api.createForceSensor(options=0, intParams=intParams,
-                                          floatParams=floatParams, color=None)
+        handle = sim_api.createForceSensor(0, intParams, floatParams)
         return cls(handle)
 
     def read(self) -> Tuple[List[float], List[float]]:

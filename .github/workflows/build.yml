@@ -32,15 +32,10 @@ jobs:
           # start xvfb in the background
           sudo /usr/bin/Xvfb $DISPLAY -screen 0 1280x1024x24 &
           cur=`pwd`
-          wget http://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz
-          tar -xf CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz
-          export COPPELIASIM_ROOT="$cur/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04"
+          wget https://downloads.coppeliarobotics.com/V4_6_0_rev16/CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04.tar.xz
+          tar -xf CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04.tar.xz
+          export COPPELIASIM_ROOT="$cur/CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04"
           echo $COPPELIASIM_ROOT
-          ls -al
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COPPELIASIM_ROOT:$COPPELIASIM_ROOT/platforms
-          export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
-          pip3 install -r requirements.txt
-          pip3 install setuptools
           pip3 install .
           mv pyrep _pyrep
           python3 -m unittest discover tests

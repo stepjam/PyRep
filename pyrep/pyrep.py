@@ -205,7 +205,7 @@ class PyRep(object):
         :return: A single grouped shape.
         """
         handles = [o.get_handle() for o in objects]
-        handle = self._sim_api.groupShapes(handles)
+        handle = self._sim_api.groupShapes(handles, False)
         return Shape(handle)
 
     def merge_objects(self, objects: List[Shape]) -> Shape:
@@ -218,7 +218,7 @@ class PyRep(object):
         # FIXME: self._sim_api.groupShapes(merge=True) won't return correct handle,
         # so we use name to find correct handle of the merged shape.
         name = objects[-1].get_name()
-        self._sim_api.groupShapes(handles, merge=True)
+        self._sim_api.groupShapes(handles, True)
         return Shape(name)
 
     def export_scene(self, filename: str) -> None:

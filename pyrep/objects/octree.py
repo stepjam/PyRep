@@ -116,12 +116,14 @@ class Octree(Object):
             raise ValueError(
                 'Octree._check_point_occupancy: points parameter length '
                 'not a multiple of 3.')
-        return self._sim_api.checkOctreePointOccupancy(self._handle, options, points)
+        res, tag,  loc_low, loc_high = self._sim_api.checkOctreePointOccupancy(self._handle, options, points)
+        return bool(res)
 
     def clear_voxels(self) -> None:
         """Clears all voxels from the octree.
         """
-        self._sim_api.removeVoxelsFromOctree(self._handle, 0, None)
+        # self._sim_api.removeVoxelsFromOctree(self._handle, 0, None)
+        raise NotImplementedError("removeVoxelsFromOctree seems to have bug on coppeliasim side.")
 
 
 object_type_to_class[ObjectType.OCTREE] = Octree

@@ -1,3 +1,4 @@
+from pyrep.backend.sim import SimBackend
 from pyrep.errors import PyRepError
 from pyrep.backend import sim
 from typing import Any
@@ -13,6 +14,7 @@ class Signal(object):
 
     def __init__(self, name):
         self._name = name
+        self._sim_api = SimBackend().sim_api
 
     def set(self, value) -> None:
         """Sets the value of this signal.
@@ -46,57 +48,36 @@ class IntegerSignal(Signal):
     """An integer-type signal."""
 
     def set(self, value) -> None:
-        sim.simSetIntegerSignal(self._name, value)
+        self._sim_api.setInt32Signal(self._name, value)
 
     def get(self) -> int:
-        ret, value = sim.simGetIntegerSignal(self._name)
-        self._check_signal(ret, 'int')
-        return value
+        return self._sim_api.getInt32Signal(self._name)
 
-    def clear(self) -> int:
-        return sim.simClearIntegerSignal(self._name)
+    def clear(self) -> None:
+        self._sim_api.clearInt32Signal(self._name)
 
 
 class FloatSignal(Signal):
-    """An float-type signal."""
+    """A float-type signal."""
 
     def set(self, value) -> None:
-        sim.simSetFloatSignal(self._name, value)
+        self._sim_api.setFloatSignal(self._name, value)
 
     def get(self) -> float:
-        ret, value = sim.simGetFloatSignal(self._name)
-        self._check_signal(ret, 'float')
-        return value
+        return self._sim_api.getFloatSignal(self._name)
 
-    def clear(self) -> int:
-        return sim.simClearFloatSignal(self._name)
-
-
-class DoubleSignal(Signal):
-    """An double-type signal."""
-
-    def set(self, value) -> None:
-        sim.simSetDoubleSignal(self._name, value)
-
-    def get(self) -> float:
-        ret, value = sim.simGetDoubleSignal(self._name)
-        self._check_signal(ret, 'double')
-        return value
-
-    def clear(self) -> int:
-        return sim.simClearDoubleSignal(self._name)
+    def clear(self) -> None:
+        self._sim_api.clearFloatSignal(self._name)
 
 
 class StringSignal(Signal):
-    """An string-type signal."""
+    """A string-type signal."""
 
     def set(self, value) -> None:
-        sim.simSetStringSignal(self._name, value)
+        self._sim_api.setStringSignal(self._name, value)
 
     def get(self) -> str:
-        ret, value = sim.simGetStringSignal(self._name)
-        self._check_signal(ret, 'string')
-        return value
+        return self._sim_api.getStringSignal(self._name)
 
-    def clear(self) -> int:
-        return sim.simClearStringSignal(self._name)
+    def clear(self) -> None:
+        self._sim_api.clearStringSignal(self._name)

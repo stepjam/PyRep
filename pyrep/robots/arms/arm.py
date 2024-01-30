@@ -41,8 +41,7 @@ class Arm(RobotComponent):
         self._ik_tip = Dummy('%s_tip%s' % (name, suffix))
 
         self._collision_collection_handle = self._sim_api.createCollection(0)
-        self._sim_api.addItemToCollection(self._collision_collection_handle, simc.sim_handle_tree, self.get_handle(), 0)
-
+        self._sim_api.addItemToCollection(self._collision_collection_handle, simc.sim_handle_tree, self._joint_handles[0], 0)
         self._sim_ik_api = SimBackend().sim_ik_api
         self._sim_ompl_api = SimBackend().sim_ompl_api
         self._ik_env_handle = self._sim_ik_api.createEnvironment()
@@ -150,9 +149,9 @@ class Arm(RobotComponent):
             self._ik_target.set_quaternion(quaternion, relative_to)
 
         validation_callback = None
-        if not ignore_collisions:
-            # TODO.
-            raise NotImplementedError("Needs to be implemented.")
+        # if not ignore_collisions:
+        #     # TODO.
+        #     raise ConfigurationPathError("Needs to be implemented.")
 
         # TODO: Need to implement collision checking.
         metric = [1, 1, 1, 0.1]
@@ -302,7 +301,7 @@ class Arm(RobotComponent):
         validation_callback = None
         if not ignore_collisions:
             # TODO.
-            raise NotImplementedError("Needs to be implemented.")
+            raise ConfigurationPathError("Needs to be implemented.")
 
         self._sim_ik_api.setObjectPose(self._ik_env_handle, self._ik_target_handle, self._ik_target.get_pose().tolist(), self._sim_ik_api.handle_world)
         ret_floats = self._sim_ik_api.generatePath(self._ik_env_handle, self._ik_group_handle, self._ik_joint_handles, self._ik_tip_handle, steps, validation_callback, None)

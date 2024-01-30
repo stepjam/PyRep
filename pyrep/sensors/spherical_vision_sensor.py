@@ -2,6 +2,7 @@ import numpy as np
 from typing import List, Sequence
 
 from pyrep.backend import sim, utils
+from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object
 from pyrep.objects.vision_sensor import VisionSensor
 from pyrep.const import PYREP_SCRIPT_TYPE, RenderMode, ObjectType
@@ -60,10 +61,10 @@ class SphericalVisionSensor(Object):
             sensor.set_explicit_handling(1)
 
     def _assert_matching_resolutions(self):
-        assert self._sensor_depth.get_resolution() == self._sensor_rgb.get_resolution()
+        assert np.array_equal(self._sensor_depth.get_resolution(), self._sensor_rgb.get_resolution())
         front_sensor_res = self._front.get_resolution()
         for sensor in self._six_sensors[1:]:
-            assert sensor.get_resolution() == front_sensor_res
+            assert np.array_equal(sensor.get_resolution(), front_sensor_res)
 
     def _assert_matching_render_modes(self):
         assert self._sensor_depth.get_render_mode() == self._sensor_rgb.get_render_mode()
@@ -159,8 +160,7 @@ class SphericalVisionSensor(Object):
           This enables capturing image (e.g., capture_rgb())
           without PyRep.step().
         """
-        utils.script_call('handleSpherical@PyRep', PYREP_SCRIPT_TYPE,
-                          [self._sensor_depth._handle, self._sensor_rgb._handle] + self._six_sensor_handles, [], [], [])
+        SimBackend().sim_vision_api.handleSpherical(self._sensor_rgb._handle, self._six_sensor_handles, 360, 180, self._sensor_depth._handle)
 
     def capture_rgb(self) -> np.ndarray:
         """Retrieves the rgb-image of a spherical vision sensor.

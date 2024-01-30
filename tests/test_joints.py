@@ -18,6 +18,8 @@ class TestJoints(TestCore):
     def test_get_set_joint_mode(self):
         self.prismatic.set_joint_mode(JointMode.IK)
         self.assertEqual(self.prismatic.get_joint_mode(), JointMode.IK)
+        self.prismatic.set_joint_mode(JointMode.FORCE)
+        self.assertEqual(self.prismatic.get_joint_mode(), JointMode.FORCE)
 
     def test_get_set_joint_position(self):
         self.prismatic.set_joint_position(0.5)

@@ -26,7 +26,7 @@ class Gyroscope(Object):
         current_time = self._sim_api.getSimulationTime()
         dt = current_time - self._last_time
 
-        inv_old_matrix = self._sim_api.invertMatrix(self._old_transformation_matrix)
+        inv_old_matrix = self._sim_api.getMatrixInverse(self._old_transformation_matrix)
         transformation_matrix = self.get_matrix()[:3, :4].reshape(
             (12, )).tolist()
         mat = self._sim_api.multiplyMatrices(inv_old_matrix, transformation_matrix)

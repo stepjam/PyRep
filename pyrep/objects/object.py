@@ -114,7 +114,7 @@ class Object(object):
 
         :return: Whether the object exists or not.
         """
-        return self._sim_api.getObjectName(self._handle) != ''
+        return self._sim_api.isHandle(self._handle)
 
     def get_name(self) -> str:
         """Gets the objects name in the scene.
@@ -295,10 +295,8 @@ class Object(object):
 
         :return: The parent of this object, or None if it doesn't have a parent.
         """
-        try:
-            handle = self._sim_api.getObjectParent(self._handle)
-        except RuntimeError:
-            # Most probably no parent.
+        handle = self._sim_api.getObjectParent(self._handle)
+        if handle < 0:
             return None
         object_type = ObjectType(self._sim_api.getObjectType(handle))
         cls = object_type_to_class.get(object_type, Object)
@@ -539,7 +537,7 @@ class Object(object):
         :return: If the object is colliding.
         """
         handle = simc.sim_handle_all if obj is None else obj.get_handle()
-        return self._sim_api.checkCollision(self._handle, handle) == 1
+        return self._sim_api.checkCollision(self._handle, handle)[0] == 1
 
     # === Model specific methods ===
 
@@ -740,8 +738,8 @@ class Object(object):
         :return: The distance between the objects.
         """
         result, distance_data, object_handle_pair = self._sim_api.checkDistance(
-            self.get_handle(), other.get_handle(), -1)[6]
-        obj1x, obj1y, obj1z, obj2x, obj2y, obj2z = distance_data
+            self.get_handle(), other.get_handle(), -1)
+        obj1x, obj1y, obj1z, obj2x, obj2y, obj2z, _ = distance_data
         return np.linalg.norm(np.array([obj1x, obj1y, obj1z]) - np.array([obj2x, obj2y, obj2z]))
 
     def get_bullet_friction(self) -> float:

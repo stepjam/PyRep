@@ -22,7 +22,7 @@ class ProximitySensor(Object):
 
         :return: Float distance to the first detected object
         """
-        state, _, points, _ = self._sim_api.readProximitySensor(self._handle)
+        state, dist, points, obj, norm_vec = self._sim_api.readProximitySensor(self._handle)
         if state:
             return sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
         return -1.0

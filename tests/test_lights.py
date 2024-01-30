@@ -69,9 +69,9 @@ class TestLights(TestCore):
             orig = light.get_intensity_properties()[2]
             new = orig - 0.5
             light.set_intensity_properties(spot_cutoff=new)
-            self.assertEqual(light.get_intensity_properties()[2], new)
+            self.assertAlmostEqual(light.get_intensity_properties()[2], new)
             light.set_intensity_properties(spot_cutoff=orig)
-            self.assertEqual(light.get_intensity_properties()[2], orig)
+            self.assertAlmostEqual(light.get_intensity_properties()[2], orig)
 
     # ToDo: re-add these tests once attenuation factor setting is supported in CoppeliaSim.
     #  setObjectFloatParams() does not change the properties of the light even with in-scene lua code.

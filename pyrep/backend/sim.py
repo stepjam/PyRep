@@ -18,7 +18,6 @@ class SimBackend:
     def __new__(cls):
         # Singleton pattern
         if cls._instance is None:
-            print('Creating the object')
             cls._instance = super(SimBackend, cls).__new__(cls)
             # Put any initialization here.
         return cls._instance
@@ -36,6 +35,10 @@ class SimBackend:
         return self._sim_ompl
 
     @property
+    def sim_vision_api(self):
+        return self._sim_vision
+
+    @property
     def lib(self):
         return lib
 
@@ -48,9 +51,9 @@ class SimBackend:
         self._sim = bridge.require('sim')
         self._sim_ik = bridge.require('simIK')
         self._sim_ompl = bridge.require('simOMPL')
+        self._sim_vision = bridge.require('simVision')
         v = self._sim.getInt32Param(self._sim.intparam_program_full_version)
-        version = '.'.join(str(v // 100 ** (3 - i) % 100) for i in range(4))
-        print('CoppeliaSim version is:', version)
+        self._coppelia_version = '.'.join(str(v // 100 ** (3 - i) % 100) for i in range(4))
         return self._sim
 
     def create_ui_thread(self, headless: bool) -> threading.Thread:
