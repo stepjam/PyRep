@@ -4,12 +4,11 @@ from pyrep.const import ObjectType
 
 
 class Camera(Object):
-    """Cameras can be associated with views.
-    """
+    """Cameras can be associated with views."""
 
     def __init__(self, name_or_handle: Union[str, int]):
         super().__init__(name_or_handle)
-    
+
     @staticmethod
     def create():
         raise NotImplementedError("API does not provide simCreateCamera.")

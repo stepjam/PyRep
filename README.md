@@ -21,7 +21,7 @@ PyRep has undergone a __MAJOR__ update, and is now compatible with the most rece
 
 ## Install
 
-PyRep requires version **4.6.0** of CoppeliaSim. Download: 
+PyRep requires version **4.6.0** of CoppeliaSim. Download:
 - [Ubuntu 20.04](https://downloads.coppeliarobotics.com/V4_6_0_rev16/CoppeliaSim_Edu_V4_6_0_rev16_Ubuntu20_04.tar.xz)
 - [Ubuntu 22.04](https://downloads.coppeliarobotics.com/V4_6_0_rev16/CoppeliaSim_Edu_V4_6_0_rev16_Ubuntu22_04.tar.xz)
 
@@ -97,7 +97,7 @@ from pyrep import PyRep
 
 pr = PyRep()
 # Launch the application with a scene file in headless mode
-pr.launch('scene.ttt', headless=True) 
+pr.launch('scene.ttt', headless=True)
 pr.start()  # Start the simulation
 
 # Do some stuff
@@ -113,7 +113,7 @@ pr.shutdown()  # Close the application
 from pyrep.objects.shape import Shape
 from pyrep.const import PrimitiveShape
 
-object = Shape.create(type=PrimitiveShape.CYLINDER, 
+object = Shape.create(type=PrimitiveShape.CYLINDER,
                       color=[r,g,b], size=[w, h, d],
                       position=[x, y, z])
 object.set_color([r, g, b])
@@ -124,7 +124,7 @@ object.set_position([x, y, z])
 
 Robots are designed to be modular; arms are treated separately to grippers.
 
-Use the robot ttm files defined in robots/ttms. These have been altered slightly from the original ones shipped with CoppeliaSim to allow them to be used with motional planning out of the box. 
+Use the robot ttm files defined in robots/ttms. These have been altered slightly from the original ones shipped with CoppeliaSim to allow them to be used with motional planning out of the box.
 The 'tip' of the robot may not be where you want it, so feel free to play around with this.
 
 ```python
@@ -134,7 +134,7 @@ from pyrep.robots.end_effectors.panda_gripper import PandaGripper
 
 pr = PyRep()
 # Launch the application with a scene file that contains a robot
-pr.launch('scene_with_panda.ttt') 
+pr.launch('scene_with_panda.ttt')
 pr.start()  # Start the simulation
 
 arm = Panda()  # Get the panda from the scene
@@ -149,7 +149,7 @@ done = False
 while not done:
     done = gripper.actuate(0.5, velocity=0.04)
     pr.step()
-    
+
 pr.stop()  # Stop the simulation
 pr.shutdown()  # Close the application
 ```

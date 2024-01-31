@@ -8,7 +8,7 @@ from os.path import dirname, join, abspath
 from pyrep import PyRep
 from pyrep.robots.arms.panda import Panda
 
-SCENE_FILE = join(dirname(abspath(__file__)), 'scene_panda_reach_target.ttt')
+SCENE_FILE = join(dirname(abspath(__file__)), "scene_panda_reach_target.ttt")
 DELTA = 0.01
 pr = PyRep()
 pr.launch(SCENE_FILE, headless=False)

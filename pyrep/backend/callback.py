@@ -1,6 +1,7 @@
 def callback(f):
     def wrapper(stackHandle):
         import pyrep.backend.stack as stack
+
         try:
             inArgs = stack.read(stackHandle)
             outArgs = f(*inArgs)
@@ -12,6 +13,8 @@ def callback(f):
             return 1
         except Exception:
             import traceback
+
             traceback.print_exc()
             return 0
+
     return wrapper

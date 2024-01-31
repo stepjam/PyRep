@@ -9,22 +9,20 @@ from pyrep.const import ObjectType, JointMode
 
 
 class RobotComponent(Object):
-    """Collection of joints representing arms, end effectors, mobile bases, etc.
-    """
+    """Collection of joints representing arms, end effectors, mobile bases, etc."""
 
-    def __init__(self, count: int, name: str, joint_names: List[str],
-                 base_name: str = None):
-        suffix = '' if count == 0 else '#%d' % (count - 1)
-        super().__init__(
-            name + suffix if base_name is None else base_name + suffix)
+    def __init__(
+        self, count: int, name: str, joint_names: List[str], base_name: str = None
+    ):
+        suffix = "" if count == 0 else "#%d" % (count - 1)
+        super().__init__(name + suffix if base_name is None else base_name + suffix)
         self._num_joints = len(joint_names)
 
         # Joint handles
-        self.joints = [Joint(jname + suffix)
-                       for jname in joint_names]
+        self.joints = [Joint(jname + suffix) for jname in joint_names]
         self._joint_handles = [j.get_handle() for j in self.joints]
 
-    def copy(self) -> 'RobotComponent':
+    def copy(self) -> "RobotComponent":
         """Copy and pastes the arm in the scene.
 
         The arm is copied together with all its associated calculation
@@ -36,7 +34,7 @@ class RobotComponent(Object):
         handle = self._sim_api.copyPasteObjects([self._handle], 1)[0]
         name = self._sim_api.getObjectName(handle)
         # Find the number of this arm
-        num = name[name.rfind('#') + 1:]
+        num = name[name.rfind("#") + 1 :]
         if len(num) > 0:
             num = int(num) + 1
         else:
@@ -74,8 +72,9 @@ class RobotComponent(Object):
         """
         return [j.get_joint_position() for j in self.joints]
 
-    def set_joint_positions(self, positions: List[float],
-                            disable_dynamics: bool = False) -> None:
+    def set_joint_positions(
+        self, positions: List[float], disable_dynamics: bool = False
+    ) -> None:
         """Sets the intrinsic position of the joints.
 
         See :py:meth:`Joint.set_joint_position` for more information.
@@ -89,8 +88,10 @@ class RobotComponent(Object):
         """
         self._assert_len(positions)
         if not disable_dynamics:
-            [self._sim_api.setJointPosition(jh, p)  # type: ignore
-             for jh, p in zip(self._joint_handles, positions)]
+            [
+                self._sim_api.setJointPosition(jh, p)  # type: ignore
+                for jh, p in zip(self._joint_handles, positions)
+            ]
             return
 
         is_model = self.is_model()
@@ -104,10 +105,14 @@ class RobotComponent(Object):
         sim_instance = SimBackend()
         with utils.step_lock:
             sim_instance.simLoop()  # Have to step for changes to take effect
-        [self._sim_api.setJointPosition(jh, p)  # type: ignore
-         for jh, p in zip(self._joint_handles, positions)]
-        [j.set_joint_target_position(p)  # type: ignore
-         for j, p in zip(self.joints, positions)]
+        [
+            self._sim_api.setJointPosition(jh, p)  # type: ignore
+            for jh, p in zip(self._joint_handles, positions)
+        ]
+        [
+            j.set_joint_target_position(p)  # type: ignore
+            for j, p in zip(self.joints, positions)
+        ]
         with utils.step_lock:
             sim_instance.simLoop()  # Have to step for changes to take effect
         # Re-enable the dynamics
@@ -131,17 +136,18 @@ class RobotComponent(Object):
             linear values depending on the joint type).
         """
         self._assert_len(positions)
-        [j.set_joint_target_position(p)  # type: ignore
-         for j, p in zip(self.joints, positions)]
+        [
+            j.set_joint_target_position(p)  # type: ignore
+            for j, p in zip(self.joints, positions)
+        ]
 
     def get_joint_target_velocities(self) -> List[float]:
         """Retrieves the intrinsic target velocities of the joints.
 
-         :return: List of the target velocity of the joints (linear or angular
-            velocity depending on the joint-type).
-         """
-        return [j.get_joint_target_velocity()  # type: ignore
-                for j in self.joints]
+        :return: List of the target velocity of the joints (linear or angular
+           velocity depending on the joint-type).
+        """
+        return [j.get_joint_target_velocity() for j in self.joints]  # type: ignore
 
     def set_joint_target_velocities(self, velocities: List[float]) -> None:
         """Sets the intrinsic target velocities of the joints.
@@ -150,8 +156,10 @@ class RobotComponent(Object):
             or angular velocities depending on the joint-type).
         """
         self._assert_len(velocities)
-        [j.set_joint_target_velocity(v)  # type: ignore
-         for j, v in zip(self.joints, velocities)]
+        [
+            j.set_joint_target_velocity(v)  # type: ignore
+            for j, v in zip(self.joints, velocities)
+        ]
 
     def get_joint_forces(self) -> List[float]:
         """Retrieves the forces or torques of the joints.
@@ -172,8 +180,7 @@ class RobotComponent(Object):
             These cannot be negative values.
         """
         self._assert_len(forces)
-        [j.set_joint_force(f)  # type: ignore
-         for j, f in zip(self.joints, forces)]
+        [j.set_joint_force(f) for j, f in zip(self.joints, forces)]  # type: ignore
 
     def get_joint_velocities(self) -> List[float]:
         """Get the current joint velocities.
@@ -199,8 +206,9 @@ class RobotComponent(Object):
             intervals.append(i)
         return cyclics, intervals
 
-    def set_joint_intervals(self, cyclic: List[bool],
-                            intervals: List[List[float]]) -> None:
+    def set_joint_intervals(
+        self, cyclic: List[bool], intervals: List[List[float]]
+    ) -> None:
         """Sets the interval parameters of the joints (i.e. range values).
 
         See :py:meth:`Joint.set_joint_interval` for more information.
@@ -211,14 +219,16 @@ class RobotComponent(Object):
         """
         self._assert_len(cyclic)
         self._assert_len(intervals)
-        [j.set_joint_interval(c, i)  # type: ignore
-         for j, c, i in zip( self.joints, cyclic, intervals)]
+        [
+            j.set_joint_interval(c, i)  # type: ignore
+            for j, c, i in zip(self.joints, cyclic, intervals)
+        ]
 
     def get_joint_upper_velocity_limits(self) -> List[float]:
         """Gets upper velocity limits of the joints.
 
-         :return: List of the upper velocity limits.
-         """
+        :return: List of the upper velocity limits.
+        """
         return [j.get_joint_upper_velocity_limit() for j in self.joints]
 
     def set_control_loop_enabled(self, value: bool) -> None:
@@ -226,8 +236,7 @@ class RobotComponent(Object):
 
         :param value: The new value for the control loop state.
         """
-        [j.set_control_loop_enabled(value)  # type: ignore
-         for j in self.joints]
+        [j.set_control_loop_enabled(value) for j in self.joints]  # type: ignore
 
     def set_motor_locked_at_zero_velocity(self, value: bool) -> None:
         """Sets if motor is locked when target velocity is zero for all joints.
@@ -237,16 +246,17 @@ class RobotComponent(Object):
 
         :param value: If the motors should be locked at zero velocity.
         """
-        [j.set_motor_locked_at_zero_velocity(value)  # type: ignore
-         for j in self.joints]
+        [
+            j.set_motor_locked_at_zero_velocity(value)  # type: ignore
+            for j in self.joints
+        ]
 
     def set_joint_mode(self, value: JointMode) -> None:
         """Sets the operation mode of the joint group.
 
         :param value: The new joint mode value.
         """
-        [j.set_joint_mode(value)  # type: ignore
-         for j in self.joints]
+        [j.set_joint_mode(value) for j in self.joints]  # type: ignore
 
     def get_joint_modes(self) -> List[JointMode]:
         """Gets the operation mode of the joint group.
@@ -264,10 +274,11 @@ class RobotComponent(Object):
         :return: A list of visual shapes.
         """
         tree = self.get_objects_in_tree(ObjectType.SHAPE, exclude_base=False)
-        return [obj for obj in tree if 'visual' in obj.get_name()]
+        return [obj for obj in tree if "visual" in obj.get_name()]
 
     def _assert_len(self, inputs: list) -> None:
         if len(self.joints) != len(inputs):
             raise RuntimeError(
-                'Tried to set values for %d joints, but joint group consists '
-                'of %d joints.' % (len(inputs), len(self.joints)))
+                "Tried to set values for %d joints, but joint group consists "
+                "of %d joints." % (len(inputs), len(self.joints))
+            )

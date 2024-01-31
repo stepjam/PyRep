@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List
 from pyrep.objects.object import Object
 from pyrep.objects.proximity_sensor import ProximitySensor
 from pyrep.objects.force_sensor import ForceSensor
@@ -9,14 +9,13 @@ POSITION_ERROR = 0.001
 
 
 class Gripper(RobotComponent):
-    """Represents all types of end-effectors, e.g. grippers.
-    """
+    """Represents all types of end-effectors, e.g. grippers."""
 
     def __init__(self, count: int, name: str, joint_names: List[str]):
         super().__init__(count, name, joint_names)
-        suffix = '' if count == 0 else '#%d' % (count - 1)
-        prox_name = '%s_attachProxSensor%s' % (name, suffix)
-        attach_name = '%s_attachPoint%s' % (name, suffix)
+        suffix = "" if count == 0 else "#%d" % (count - 1)
+        prox_name = "%s_attachProxSensor%s" % (name, suffix)
+        attach_name = "%s_attachPoint%s" % (name, suffix)
         self._proximity_sensor = ProximitySensor(prox_name)
         self._attach_point = ForceSensor(attach_name)
         self._old_parents: List[Object] = []
@@ -27,7 +26,7 @@ class Gripper(RobotComponent):
         self._touch_sensors = []
         i = 0
         while True:
-            fname = '%s_touchSensor%d%s' % (name, i, suffix)
+            fname = "%s_touchSensor%d%s" % (name, i, suffix)
             if not ForceSensor.exists(fname):
                 break
             self._touch_sensors.append(ForceSensor(fname))
@@ -56,8 +55,7 @@ class Gripper(RobotComponent):
         Note: The does not actuate the gripper, but instead simply detaches any
         grasped objects.
         """
-        for grasped_obj, old_parent in zip(
-                self._grasped_objects, self._old_parents):
+        for grasped_obj, old_parent in zip(self._grasped_objects, self._old_parents):
             # Check if the object still exists
             if grasped_obj.still_exists():
                 grasped_obj.set_parent(old_parent, keep_in_place=True)
@@ -104,16 +102,14 @@ class Gripper(RobotComponent):
 
         current_positions = self.get_joint_positions()
         done = True
-        for i, (j, target, cur, prev) in enumerate(zip(
-                self.joints, target_pos, current_positions,
-                self._prev_positions)):
+        for i, (j, target, cur, prev) in enumerate(
+            zip(self.joints, target_pos, current_positions, self._prev_positions)
+        ):
             # Check if the joint has moved much
-            not_moving = (prev is not None and
-                          np.fabs(cur - prev) < POSITION_ERROR)
+            not_moving = prev is not None and np.fabs(cur - prev) < POSITION_ERROR
             reached_target = np.fabs(target - cur) < POSITION_ERROR
             vel = -velocity if cur - target > 0 else velocity
-            oscillating = (self._prev_vels[i] is not None and
-                           vel != self._prev_vels[i])
+            oscillating = self._prev_vels[i] is not None and vel != self._prev_vels[i]
             if not_moving or reached_target or oscillating:
                 j.set_joint_target_velocity(0)
                 continue
@@ -136,11 +132,16 @@ class Gripper(RobotComponent):
         _, joint_intervals_list = self.get_joint_intervals()
         joint_intervals = np.array(joint_intervals_list)
         joint_range = joint_intervals[:, 1] - joint_intervals[:, 0]
-        return list(np.clip((np.array(
-            self.get_joint_positions()) - joint_intervals[:, 0]) /
-                            joint_range, 0.0, 1.0))
+        return list(
+            np.clip(
+                (np.array(self.get_joint_positions()) - joint_intervals[:, 0])
+                / joint_range,
+                0.0,
+                1.0,
+            )
+        )
 
     def get_touch_sensor_forces(self) -> List[List[float]]:
         if len(self._touch_sensors) == 0:
-            raise NotImplementedError('No touch sensors for this robot!')
+            raise NotImplementedError("No touch sensors for this robot!")
         return [ts.read()[0] for ts in self._touch_sensors]

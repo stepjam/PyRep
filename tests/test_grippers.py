@@ -11,24 +11,22 @@ from pyrep.robots.end_effectors.jaco_gripper import JacoGripper
 from pyrep.robots.end_effectors.baxter_gripper import BaxterGripper
 from pyrep.robots.end_effectors.xarm_gripper import XArmGripper
 
-ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
+ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), "assets")
 
 GRIPPERS = [
-    ('PandaGripper', PandaGripper, 0.04),
-    ('BaxterGripper', BaxterGripper, 0.04),
-    ('MicoGripper', MicoGripper, 0.2),
-    ('JacoGripper', JacoGripper, 0.2),
-    ('Robotiq85Gripper', Robotiq85Gripper, 0.04),
-    ('XArmGripper', XArmGripper, 0.04),
+    ("PandaGripper", PandaGripper, 0.04),
+    ("BaxterGripper", BaxterGripper, 0.04),
+    ("MicoGripper", MicoGripper, 0.2),
+    ("JacoGripper", JacoGripper, 0.2),
+    ("Robotiq85Gripper", Robotiq85Gripper, 0.04),
+    ("XArmGripper", XArmGripper, 0.04),
 ]
 
 
 class TestArmsAndConfigurationPaths(TestCore):
-
     def setUp(self):
         self.pyrep = PyRep()
-        self.pyrep.launch(path.join(
-            ASSET_DIR, 'test_scene_robots.ttt'), headless=True)
+        self.pyrep.launch(path.join(ASSET_DIR, "test_scene_robots.ttt"), headless=True)
         self.pyrep.step()
         self.pyrep.start()
 
@@ -50,18 +48,19 @@ class TestArmsAndConfigurationPaths(TestCore):
                     self.pyrep.step()
                     i += 1
                     if i > 1000:
-                        self.fail('Took too many steps to close')
+                        self.fail("Took too many steps to close")
                 done = False
                 i = 0
-                open_amount = 1.0 if gripper_name == 'Robotiq85Gripper' else 0.8
+                open_amount = 1.0 if gripper_name == "Robotiq85Gripper" else 0.8
                 while not done:
                     done = gripper.actuate(open_amount, velocity=vel)
                     self.pyrep.step()
                     i += 1
                     if i > 1000:
-                        self.fail('Took too many steps to open')
+                        self.fail("Took too many steps to open")
                 self.assertAlmostEqual(
-                    gripper.get_open_amount()[0], open_amount, delta=0.05)
+                    gripper.get_open_amount()[0], open_amount, delta=0.05
+                )
 
     def test_get_duplicate_gripper(self):
         g = BaxterGripper(1)
@@ -73,5 +72,5 @@ class TestArmsAndConfigurationPaths(TestCore):
         self.assertNotEqual(g, new_g)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

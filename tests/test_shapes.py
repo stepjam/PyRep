@@ -8,47 +8,47 @@ import numpy as np
 
 
 class TestShapes(TestCore):
-
     def setUp(self):
         super().setUp()
-        self.dynamic_cube = Shape('dynamic_cube')
+        self.dynamic_cube = Shape("dynamic_cube")
 
     def test_create_primitive_simple(self):
-        pr = Shape.create(
-            PrimitiveShape.CUBOID, size=[1., 1., 1.])
+        pr = Shape.create(PrimitiveShape.CUBOID, size=[1.0, 1.0, 1.0])
         self.assertIsInstance(pr, Shape)
 
     def test_create_primitive_complex(self):
         pr = Shape.create(
-            PrimitiveShape.CUBOID, size=[1., 1., 1.], mass=2.0,
-            smooth=True, respondable=True, static=False,
-            position=[1.1, 1.2, 1.3], orientation=[0.1, 0.2, 0.3],
-            color=[0.7, 0.8, 0.9])
+            PrimitiveShape.CUBOID,
+            size=[1.0, 1.0, 1.0],
+            mass=2.0,
+            smooth=True,
+            respondable=True,
+            static=False,
+            position=[1.1, 1.2, 1.3],
+            orientation=[0.1, 0.2, 0.3],
+            color=[0.7, 0.8, 0.9],
+        )
         self.assertIsInstance(pr, Shape)
         self.assertTrue(np.allclose(pr.get_position(), [1.1, 1.2, 1.3]))
         self.assertTrue(np.allclose(pr.get_orientation(), [0.1, 0.2, 0.3]))
         self.assertTrue(np.allclose(pr.get_color(), [0.7, 0.8, 0.9]))
 
     def test_import_shape(self):
-        ob = Shape.import_shape(
-            path.join(ASSET_DIR, 'cracker_box/textured_simple.obj'))
+        ob = Shape.import_shape(path.join(ASSET_DIR, "cracker_box/textured_simple.obj"))
         self.assertIsInstance(ob, Shape)
 
     def test_import_mesh(self):
-        ob = Shape.import_mesh(
-            path.join(ASSET_DIR, 'test_mesh_bowl.obj'))
+        ob = Shape.import_mesh(path.join(ASSET_DIR, "test_mesh_bowl.obj"))
         self.assertIsInstance(ob, Shape)
 
     def test_create_mesh(self):
         ob = Shape.create_mesh(
-            vertices=[-0.1, -0.1, 0.0,
-                      -0.1, 0.1, 0.0,
-                      0.1, 0.0, 0.0], indices=[0, 1, 2])
+            vertices=[-0.1, -0.1, 0.0, -0.1, 0.1, 0.0, 0.1, 0.0, 0.0], indices=[0, 1, 2]
+        )
         self.assertIsInstance(ob, Shape)
 
     def test_convex_decompose(self):
-        ob = Shape.import_mesh(
-            path.join(ASSET_DIR, 'test_mesh_bowl.obj'))
+        ob = Shape.import_mesh(path.join(ASSET_DIR, "test_mesh_bowl.obj"))
         self.assertIsInstance(ob, Shape)
         cd_1 = ob.get_convex_decomposition()
         self.assertIsInstance(cd_1, Shape)
@@ -58,8 +58,8 @@ class TestShapes(TestCore):
         self.assertEqual(ob, cd_2)
 
     def test_get_set_color(self):
-        self.dynamic_cube.set_color([.5] * 3)
-        self.assertEqual(self.dynamic_cube.get_color(), [.5] * 3)
+        self.dynamic_cube.set_color([0.5] * 3)
+        self.assertEqual(self.dynamic_cube.get_color(), [0.5] * 3)
 
     def test_get_set_transparency(self):
         self.dynamic_cube.set_transparency(0.6)
@@ -90,14 +90,14 @@ class TestShapes(TestCore):
         self.assertEqual(normals.shape, (n_faces * 3, 3))
 
     def test_set_texture(self):
-        _, texture = self.pyrep.create_texture(
-            path.join(ASSET_DIR, 'wood_texture.jpg'))
+        _, texture = self.pyrep.create_texture(path.join(ASSET_DIR, "wood_texture.jpg"))
         self.dynamic_cube.set_texture(texture, TextureMappingMode.CUBE)
-        self.assertEqual(texture.get_texture_id(),
-                         self.dynamic_cube.get_texture().get_texture_id())
+        self.assertEqual(
+            texture.get_texture_id(), self.dynamic_cube.get_texture().get_texture_id()
+        )
 
     def test_get_shape_viz(self):
-        visual = Shape('cracker_box_visual')
+        visual = Shape("cracker_box_visual")
         info = visual.get_shape_viz(index=0)
         self.assertIsInstance(info.vertices, np.ndarray)
         self.assertEqual(info.vertices.shape[1], 3)
@@ -117,7 +117,7 @@ class TestShapes(TestCore):
         self.assertIsInstance(info.texture_options, int)
 
     def test_decimate_mesh(self):
-        visual = Shape('cracker_box_visual')
+        visual = Shape("cracker_box_visual")
         _, old_indices, _ = visual.get_mesh_data()
         new_mesh = visual.decimate_mesh(0.2)
         _, new_indices, _ = new_mesh.get_mesh_data()
@@ -144,5 +144,5 @@ class TestShapes(TestCore):
         self.assertTrue(np.all(before != after))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

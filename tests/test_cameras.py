@@ -8,11 +8,10 @@ import numpy as np
 
 
 class TestCameras(TestCore):
-
     def setUp(self):
         super().setUp()
-        self.camera = Camera('DefaultCamera')
-        self.dummy = Dummy('dummy')
+        self.camera = Camera("DefaultCamera")
+        self.dummy = Dummy("dummy")
 
     def test_create(self):
         with self.assertRaises(NotImplementedError):
@@ -24,15 +23,15 @@ class TestCameras(TestCore):
         self.assertEqual(position.shape, (3,))
 
         self.camera.set_position([0.1, 0.1, 0.1], self.dummy)
-        self.assertTrue(np.allclose(
-            self.camera.get_position(self.dummy), [0.1, 0.1, 0.1]))
+        self.assertTrue(
+            np.allclose(self.camera.get_position(self.dummy), [0.1, 0.1, 0.1])
+        )
         self.camera.set_position([0.2, 0.2, 0.2])
         self.assertTrue(np.allclose(self.camera.get_position(), [0.2, 0.2, 0.2]))
 
     def test_get_object_type(self):
-        self.assertEqual(Object.get_object_type('DefaultCamera'),
-                         ObjectType.CAMERA)
+        self.assertEqual(Object.get_object_type("DefaultCamera"), ObjectType.CAMERA)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

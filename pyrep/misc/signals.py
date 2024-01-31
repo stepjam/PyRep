@@ -1,6 +1,5 @@
 from pyrep.backend.sim import SimBackend
 from pyrep.errors import PyRepError
-from pyrep.backend import sim
 from typing import Any
 
 
@@ -40,8 +39,9 @@ class Signal(object):
 
     def _check_signal(self, value: int, type_name: str) -> None:
         if value == 0:
-            raise PyRepError('Signal %s of type %s does not exist.' % (
-                self._name, type_name))
+            raise PyRepError(
+                "Signal %s of type %s does not exist." % (self._name, type_name)
+            )
 
 
 class IntegerSignal(Signal):

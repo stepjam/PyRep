@@ -1,9 +1,6 @@
-from pyrep.backend import sim, utils
-from pyrep.robots.configuration_paths.configuration_path import (
-    ConfigurationPath)
+from pyrep.backend import sim
+from pyrep.robots.configuration_paths.configuration_path import ConfigurationPath
 from pyrep.robots.mobiles.mobile_base import MobileBase
-from pyrep.const import PYREP_SCRIPT_TYPE
-from math import sqrt
 from typing import List
 
 
@@ -72,9 +69,13 @@ class MobileConfigurationPath(ConfigurationPath):
 
         tip = self._mobile
         self._drawing_handle = sim.simAddDrawingObject(
-            objectType=sim.sim_drawing_lines, size=3, duplicateTolerance=0,
-            parentObjectHandle=-1, maxItemCount=99999,
-            ambient_diffuse=[1, 0, 1])
+            objectType=sim.sim_drawing_lines,
+            size=3,
+            duplicateTolerance=0,
+            parentObjectHandle=-1,
+            maxItemCount=99999,
+            ambient_diffuse=[1, 0, 1],
+        )
         sim.simAddDrawingObjectItem(self._drawing_handle, None)
         init_pose = self._mobile.get_2d_pose()
         self._mobile.set_2d_pose(self._path_points[0][:3])
@@ -91,8 +92,7 @@ class MobileConfigurationPath(ConfigurationPath):
         self._mobile.set_2d_pose(init_pose[:3])
 
     def clear_visualization(self) -> None:
-        """Clears/removes a visualization of the path in the scene.
-        """
+        """Clears/removes a visualization of the path in the scene."""
         if self._drawing_handle is not None:
             sim.simAddDrawingObjectItem(self._drawing_handle, None)
 
@@ -108,7 +108,8 @@ class MobileConfigurationPath(ConfigurationPath):
 
     def _set_inter_target(self, i):
         self._mobile.intermediate_target_base.set_position(
-            [self._path_points[i][0], self._path_points[i][1],
-             self._mobile.target_z])
+            [self._path_points[i][0], self._path_points[i][1], self._mobile.target_z]
+        )
         self._mobile.intermediate_target_base.set_orientation(
-            [0, 0, self._path_points[i][2]])
+            [0, 0, self._path_points[i][2]]
+        )

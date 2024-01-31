@@ -1,6 +1,7 @@
-from pyrep.backend import sim, utils
+from pyrep.backend import utils
 from pyrep.robots.configuration_paths.mobile_configuration_path import (
-    MobileConfigurationPath)
+    MobileConfigurationPath,
+)
 from pyrep.const import PYREP_SCRIPT_TYPE
 from math import sqrt
 
@@ -27,11 +28,14 @@ class HolonomicConfigurationPath(MobileConfigurationPath):
 
         """
         if self._path_done:
-            raise RuntimeError('This path has already been completed. '
-                               'If you want to re-run, then call set_to_start.')
+            raise RuntimeError(
+                "This path has already been completed. "
+                "If you want to re-run, then call set_to_start."
+            )
 
         pos_inter = self._mobile.intermediate_target_base.get_position(
-            relative_to=self._mobile)
+            relative_to=self._mobile
+        )
 
         if len(self._path_points) > 2:  # Non-linear path
             if self.inter_done:
@@ -40,19 +44,22 @@ class HolonomicConfigurationPath(MobileConfigurationPath):
                 self.inter_done = False
 
                 handleBase = self._mobile.get_handle()
-                handleInterTargetBase = self._mobile.intermediate_target_base.get_handle()
+                handleInterTargetBase = (
+                    self._mobile.intermediate_target_base.get_handle()
+                )
 
                 __, ret_floats, _, _ = utils.script_call(
-                    'getBoxAdjustedMatrixAndFacingAngle@PyRep',
+                    "getBoxAdjustedMatrixAndFacingAngle@PyRep",
                     PYREP_SCRIPT_TYPE,
-                    ints=[handleBase, handleInterTargetBase])
+                    ints=[handleBase, handleInterTargetBase],
+                )
 
                 m = ret_floats[:-1]
                 angle = ret_floats[-1]
                 self._mobile.intermediate_target_base.set_position(
-                    [m[3], m[7], self._mobile.target_z])
-                self._mobile.intermediate_target_base.set_orientation(
-                    [0, 0, angle])
+                    [m[3], m[7], self._mobile.target_z]
+                )
+                self._mobile.intermediate_target_base.set_orientation([0, 0, angle])
 
             if sqrt((pos_inter[0]) ** 2 + (pos_inter[1]) ** 2) < 0.1:
                 self.inter_done = True

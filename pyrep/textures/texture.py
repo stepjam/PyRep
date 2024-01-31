@@ -15,4 +15,3 @@ class Texture(object):
         :return: The internal texture id.
         """
         return self._texture_id
-

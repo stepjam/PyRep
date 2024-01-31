@@ -45,10 +45,14 @@ def to_type(handle: int) -> Object:
     raise ValueError
 
 
-def script_call(function_name_at_script_name: str,
-                script_handle_or_type: int,
-                ints=(), floats=(), strings=(), bytes='') -> (
-        Tuple[List[int], List[float], List[str], str]):
+def script_call(
+    function_name_at_script_name: str,
+    script_handle_or_type: int,
+    ints=(),
+    floats=(),
+    strings=(),
+    bytes="",
+) -> Tuple[List[int], List[float], List[str], str]:
     """Calls a script function (from a plugin, the main client application,
     or from another script). This represents a callback inside of a script.
 
@@ -66,12 +70,18 @@ def script_call(function_name_at_script_name: str,
     """
     sim_api = SimBackend().sim_api
     return sim_api.extCallScriptFunction(
-        function_name_at_script_name, script_handle_or_type, list(ints),
-        list(floats), list(strings), bytes)
+        function_name_at_script_name,
+        script_handle_or_type,
+        list(ints),
+        list(floats),
+        list(strings),
+        bytes,
+    )
 
 
 def _is_in_ipython():
     import builtins
+
     try:
         return getattr(builtins, "__IPYTHON__", False)
     except NameError:

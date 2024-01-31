@@ -5,12 +5,11 @@ from pyrep.const import JointType, JointMode
 
 
 class TestJoints(TestCore):
-
     def setUp(self):
         super().setUp()
-        self.prismatic = Joint('prismatic_joint')
-        self.prismatic_ctr = Joint('prismatic_joint_control_loop')
-        self.revolute = Joint('revolute_joint')
+        self.prismatic = Joint("prismatic_joint")
+        self.prismatic_ctr = Joint("prismatic_joint_control_loop")
+        self.revolute = Joint("revolute_joint")
 
     def test_get_joint_type(self):
         self.assertEqual(self.prismatic.get_joint_type(), JointType.PRISMATIC)
@@ -32,8 +31,7 @@ class TestJoints(TestCore):
         self.assertEqual(pos, 0.5)
         # Now step a few times to drive the joint
         [self.pyrep.step() for _ in range(10)]
-        self.assertAlmostEqual(
-            self.prismatic_ctr.get_joint_position(), 0.5, delta=0.01)
+        self.assertAlmostEqual(self.prismatic_ctr.get_joint_position(), 0.5, delta=0.01)
 
     def test_get_set_joint_target_velocity(self):
         self.prismatic.set_joint_target_velocity(5.0)
@@ -41,8 +39,7 @@ class TestJoints(TestCore):
         self.assertEqual(vel, 5.0)
         # Now step a few times to drive the joint
         [self.pyrep.step() for _ in range(10)]
-        self.assertAlmostEqual(
-            self.prismatic.get_joint_position(), 0.5, delta=0.01)
+        self.assertAlmostEqual(self.prismatic.get_joint_position(), 0.5, delta=0.01)
 
     def test_get_set_joint_force(self):
         [self.pyrep.step() for _ in range(10)]
@@ -84,5 +81,5 @@ class TestJoints(TestCore):
         self.assertTrue(self.prismatic.is_motor_locked_at_zero_velocity())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

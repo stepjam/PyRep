@@ -19,31 +19,29 @@ from pyrep.robots.arms.ur5 import UR5
 from pyrep.robots.arms.ur10 import UR10
 from pyrep.robots.arms.xarm7 import XArm7
 
-ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
+ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), "assets")
 
 
 ARMS = [
-    ('Panda', Panda),
-    ('Sawyer', Sawyer),
-    ('Mico', Mico),
-    ('Jaco', Jaco),
-    ('Baxter_leftArm', BaxterLeft),
-    ('Baxter_rightArm', BaxterRight),
-    ('LBR_iiwa_7_R800', LBRIwaa7R800),
-    ('LBR_iiwa_14_R820', LBRIwaa14R820),
-    ('UR3', UR3),
-    ('UR5', UR5),
-    ('UR10', UR10),
-    ('XArm7', XArm7),
+    ("Panda", Panda),
+    ("Sawyer", Sawyer),
+    ("Mico", Mico),
+    ("Jaco", Jaco),
+    ("Baxter_leftArm", BaxterLeft),
+    ("Baxter_rightArm", BaxterRight),
+    ("LBR_iiwa_7_R800", LBRIwaa7R800),
+    ("LBR_iiwa_14_R820", LBRIwaa14R820),
+    ("UR3", UR3),
+    ("UR5", UR5),
+    ("UR10", UR10),
+    ("XArm7", XArm7),
 ]
 
 
 class TestArmsAndConfigurationPaths(TestCore):
-
     def setUp(self):
         self.pyrep = PyRep()
-        self.pyrep.launch(path.join(
-            ASSET_DIR, 'test_scene_robots.ttt'), headless=True)
+        self.pyrep.launch(path.join(ASSET_DIR, "test_scene_robots.ttt"), headless=True)
         self.pyrep.step()
         self.pyrep.start()
 
@@ -63,42 +61,46 @@ class TestArmsAndConfigurationPaths(TestCore):
 
     def test_set_ik_group_properties(self):
         arm = Panda()
-        arm.set_ik_group_properties('damped_least_squares')
-        arm.set_ik_group_properties('pseudo_inverse')
+        arm.set_ik_group_properties("damped_least_squares")
+        arm.set_ik_group_properties("pseudo_inverse")
 
     def test_solve_ik_via_jacobian(self):
         arm = Panda()
-        waypoint = Dummy('Panda_waypoint_jacobian')
+        waypoint = Dummy("Panda_waypoint_jacobian")
         new_pose = arm.get_tip().get_pose()
         new_pose[2] += 0.01
         waypoint.set_pose(new_pose)
         new_config = arm.solve_ik_via_jacobian(
-            waypoint.get_position(), waypoint.get_orientation())
+            waypoint.get_position(), waypoint.get_orientation()
+        )
         arm.set_joint_positions(new_config)
-        self.assertTrue(np.allclose(
-            arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001))
+        self.assertTrue(
+            np.allclose(arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001)
+        )
 
     def test_solve_ik_via_sampling(self):
         arm = Panda()
-        waypoint = Dummy('Panda_waypoint')
+        waypoint = Dummy("Panda_waypoint")
         configs = arm.solve_ik_via_sampling(
-            waypoint.get_position(), waypoint.get_orientation(), max_configs=5)
+            waypoint.get_position(), waypoint.get_orientation(), max_configs=5
+        )
         self.assertIsNotNone(configs)
         self.assertEqual(len(configs), 5)
         current_config = arm.get_joint_positions()
         # Checks correct config (last)
         arm.set_joint_positions(configs[-1])
-        self.assertTrue(np.allclose(
-            arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001))
+        self.assertTrue(
+            np.allclose(arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001)
+        )
         # Checks correct config (first)
         arm.set_joint_positions(configs[0])
-        self.assertTrue(np.allclose(
-            arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001))
+        self.assertTrue(
+            np.allclose(arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001)
+        )
         # Checks order
         prev_config_dist = 0
         for config in configs:
-            config_dist = sum(
-                [(c - f)**2 for c, f in zip(current_config, config)])
+            config_dist = sum([(c - f) ** 2 for c, f in zip(current_config, config)])
             # This test requires that the metric scale for each joint remains at
             # 1.0 in _getConfigDistance lua function
             self.assertLessEqual(prev_config_dist, config_dist)
@@ -106,67 +108,69 @@ class TestArmsAndConfigurationPaths(TestCore):
 
     def test_get_path_from_cartesian_path(self):
         arm = Panda()
-        cartesian_path = CartesianPath('Panda_cartesian_path')
+        cartesian_path = CartesianPath("Panda_cartesian_path")
         path = arm.get_path_from_cartesian_path(cartesian_path)
         self.assertIsNotNone(path)
 
     def test_get_linear_path(self):
         arm = Panda()
-        waypoint = Dummy('Panda_waypoint')
-        path = arm.get_linear_path(
-            waypoint.get_position(), waypoint.get_orientation())
+        waypoint = Dummy("Panda_waypoint")
+        path = arm.get_linear_path(waypoint.get_position(), waypoint.get_orientation())
         self.assertIsNotNone(path)
 
     def test_get_linear_path_relative(self):
         arm = Panda()
-        path = arm.get_linear_path([0, 0, 0.01], [0, 0, 0],
-                                   relative_to=arm.get_tip())
+        path = arm.get_linear_path([0, 0, 0.01], [0, 0, 0], relative_to=arm.get_tip())
         self.assertIsNotNone(path)
 
     def test_get_nonlinear_path(self):
         arm = Panda()
-        waypoint = Dummy('Panda_waypoint')
+        waypoint = Dummy("Panda_waypoint")
         path = arm.get_nonlinear_path(
-            waypoint.get_position(), waypoint.get_orientation(), max_time_ms=1000)
+            waypoint.get_position(), waypoint.get_orientation(), max_time_ms=1000
+        )
         self.assertIsNotNone(path)
 
     def test_get_nonlinear_path_out_of_reach(self):
         arm = Panda()
         with self.assertRaises(ConfigurationPathError):
-            arm.get_nonlinear_path([99, 99, 99], [0.] * 3)
+            arm.get_nonlinear_path([99, 99, 99], [0.0] * 3)
 
     def test_get_linear_path_out_of_reach(self):
         arm = Panda()
         with self.assertRaises(ConfigurationPathError):
-            arm.get_linear_path([99, 99, 99], [0.] * 3)
+            arm.get_linear_path([99, 99, 99], [0.0] * 3)
 
     def test_get_linear_path_and_step(self):
         arm = Panda()
-        waypoint = Dummy('Panda_waypoint')
-        path = arm.get_linear_path(
-            waypoint.get_position(), waypoint.get_orientation())
+        waypoint = Dummy("Panda_waypoint")
+        path = arm.get_linear_path(waypoint.get_position(), waypoint.get_orientation())
         self.assertIsNotNone(path)
         done = False
         while not done:
             done = path.step()
             self.pyrep.step()
-        self.assertTrue(np.allclose(
-            arm.get_tip().get_position(), waypoint.get_position(), atol=0.01))
+        self.assertTrue(
+            np.allclose(
+                arm.get_tip().get_position(), waypoint.get_position(), atol=0.01
+            )
+        )
 
     def test_get_linear_path_and_get_end(self):
         arm = Panda()
-        waypoint = Dummy('Panda_waypoint')
-        path = arm.get_linear_path(
-            waypoint.get_position(), waypoint.get_orientation())
+        waypoint = Dummy("Panda_waypoint")
+        path = arm.get_linear_path(waypoint.get_position(), waypoint.get_orientation())
         path.set_to_end()
-        self.assertTrue(np.allclose(
-            arm.get_tip().get_position(), waypoint.get_position(), atol=0.001))
+        self.assertTrue(
+            np.allclose(
+                arm.get_tip().get_position(), waypoint.get_position(), atol=0.001
+            )
+        )
 
     def test_get_linear_path_visualize(self):
         arm = Panda()
-        waypoint = Dummy('Panda_waypoint')
-        path = arm.get_linear_path(
-            waypoint.get_position(), waypoint.get_orientation())
+        waypoint = Dummy("Panda_waypoint")
+        path = arm.get_linear_path(waypoint.get_position(), waypoint.get_orientation())
         # Check that it does not error
         path.visualize()
 
@@ -185,5 +189,5 @@ class TestArmsAndConfigurationPaths(TestCore):
         self.assertEqual(jacobian.shape, (7, 6))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

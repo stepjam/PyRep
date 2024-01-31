@@ -5,13 +5,12 @@ from pyrep.objects.light import Light
 
 
 class TestLights(TestCore):
-
     def setUp(self):
         super().setUp()
         [self.pyrep.step() for _ in range(10)]
-        self.spot_light = Light('spot_light')
-        self.omni_light = Light('omni_light')
-        self.directed_light = Light('directed_light')
+        self.spot_light = Light("spot_light")
+        self.omni_light = Light("omni_light")
+        self.directed_light = Light("directed_light")
         self.lights = [self.spot_light, self.omni_light, self.directed_light]
         self.light_types = [1, 2, 3]
 
@@ -73,37 +72,6 @@ class TestLights(TestCore):
             light.set_intensity_properties(spot_cutoff=orig)
             self.assertAlmostEqual(light.get_intensity_properties()[2], orig)
 
-    # ToDo: re-add these tests once attenuation factor setting is supported in CoppeliaSim.
-    #  setObjectFloatParams() does not change the properties of the light even with in-scene lua code.
-    '''
-    def test_get_set_const_atten_factor(self):
-        for light in self.lights:
-            orig = light.get_intensity_properties()[3]
-            new = orig + 1.5
-            light.set_intensity_properties(const_atten_factor=new)
-            assert light.get_intensity_properties()[3] == new
-            light.set_intensity_properties(const_atten_factor=orig)
-            assert light.get_intensity_properties()[3] == orig
 
-    def test_get_set_linear_atten_factor(self):
-        for light in self.lights:
-            orig = light.get_intensity_properties()[4]
-            new = orig + 1.5
-            light.set_intensity_properties(linear_atten_factor=new)
-            assert light.get_intensity_properties()[4] == new
-            light.set_intensity_properties(linear_atten_factor=orig)
-            assert light.get_intensity_properties()[4] == orig
-
-    def test_get_set_quad_atten_factor(self):
-        for light in self.lights:
-            orig = light.get_intensity_properties()[5]
-            new = orig + 1.5
-            light.set_intensity_properties(quad_atten_factor=new)
-            assert light.get_intensity_properties()[5] == new
-            light.set_intensity_properties(quad_atten_factor=orig)
-            assert light.get_intensity_properties()[5] == orig
-    '''
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

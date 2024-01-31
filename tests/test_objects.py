@@ -11,40 +11,34 @@ import numpy as np
 
 
 class TestObjects(TestCore):
-
     def setUp(self):
         super().setUp()
-        self.dynamic_cube = Shape('dynamic_cube')
-        self.cubes_under_dummy = Dummy('cubes_under_dummy')
-        self.cube0 = Shape('cube0')
-        self.dummy = Dummy('dummy')
-        self.simple_model = Shape('simple_model')
+        self.dynamic_cube = Shape("dynamic_cube")
+        self.cubes_under_dummy = Dummy("cubes_under_dummy")
+        self.cube0 = Shape("cube0")
+        self.dummy = Dummy("dummy")
+        self.simple_model = Shape("simple_model")
 
     def test_get_object_type(self):
-        self.assertEqual(Object.get_object_type('dynamic_cube'),
-                         ObjectType.SHAPE)
-        self.assertEqual(Object.get_object_type('dummy'),
-                         ObjectType.DUMMY)
+        self.assertEqual(Object.get_object_type("dynamic_cube"), ObjectType.SHAPE)
+        self.assertEqual(Object.get_object_type("dummy"), ObjectType.DUMMY)
 
     def test_get_object_name(self):
-        self.assertEqual(Object.get_object_name('dynamic_cube'),
-                         'dynamic_cube')
+        self.assertEqual(Object.get_object_name("dynamic_cube"), "dynamic_cube")
         self.assertEqual(
-            Object.get_object_name(self.dynamic_cube.get_handle()),
-            'dynamic_cube')
+            Object.get_object_name(self.dynamic_cube.get_handle()), "dynamic_cube"
+        )
 
     def test_get_object(self):
-        self.assertEqual(Object.get_object('dynamic_cube'),
-                         self.dynamic_cube)
-        self.assertEqual(Object.get_object('dummy'),
-                         self.dummy)
-        self.assertEqual(Object.get_object(self.dynamic_cube.get_handle()),
-                         self.dynamic_cube)
-        self.assertEqual(Object.get_object(self.dummy.get_handle()),
-                         self.dummy)
+        self.assertEqual(Object.get_object("dynamic_cube"), self.dynamic_cube)
+        self.assertEqual(Object.get_object("dummy"), self.dummy)
+        self.assertEqual(
+            Object.get_object(self.dynamic_cube.get_handle()), self.dynamic_cube
+        )
+        self.assertEqual(Object.get_object(self.dummy.get_handle()), self.dummy)
 
     def test_equality(self):
-        cube2 = Shape('dynamic_cube')
+        cube2 = Shape("dynamic_cube")
         self.assertEqual(self.dynamic_cube, cube2)
 
     def test_get_handle(self):
@@ -59,14 +53,14 @@ class TestObjects(TestCore):
         self.assertFalse(self.dynamic_cube.still_exists())
 
     def test_object_exists(self):
-        yes = Object.exists('dynamic_cube')
-        no = Object.exists('dynamic_cubeee')
+        yes = Object.exists("dynamic_cube")
+        no = Object.exists("dynamic_cubeee")
         self.assertTrue(yes)
         self.assertFalse(no)
 
     def test_get_set_name(self):
-        self.dynamic_cube.set_name('test1')
-        self.assertEqual(self.dynamic_cube.get_name(), 'test1')
+        self.dynamic_cube.set_name("test1")
+        self.assertEqual(self.dynamic_cube.get_name(), "test1")
 
     def test_get_set_position(self):
         position = self.cube0.get_position()
@@ -74,8 +68,11 @@ class TestObjects(TestCore):
         self.assertEqual(position.shape, (3,))
 
         self.cube0.set_position([0.1, 0.1, 0.1], self.cubes_under_dummy)
-        self.assertTrue(np.allclose(
-            self.cube0.get_position(self.cubes_under_dummy), [0.1, 0.1, 0.1]))
+        self.assertTrue(
+            np.allclose(
+                self.cube0.get_position(self.cubes_under_dummy), [0.1, 0.1, 0.1]
+            )
+        )
         self.cube0.set_position([0.2, 0.2, 0.2])
         self.assertTrue(np.allclose(self.cube0.get_position(), [0.2, 0.2, 0.2]))
 
@@ -85,12 +82,13 @@ class TestObjects(TestCore):
         self.assertEqual(orientation.shape, (3,))
 
         self.cube0.set_orientation([0.0, 0.0, 0.2], self.cubes_under_dummy)
-        self.assertTrue(np.allclose(
-            self.cube0.get_orientation(self.cubes_under_dummy),
-            [0.0, 0.0, 0.2]))
+        self.assertTrue(
+            np.allclose(
+                self.cube0.get_orientation(self.cubes_under_dummy), [0.0, 0.0, 0.2]
+            )
+        )
         self.cube0.set_orientation([0.0, 0.0, 0.3])
-        self.assertTrue(np.allclose(
-            self.cube0.get_orientation(), [0.0, 0.0, 0.3]))
+        self.assertTrue(np.allclose(self.cube0.get_orientation(), [0.0, 0.0, 0.3]))
 
     def test_get_set_quaternion(self):
         quaternion = self.cube0.get_quaternion()
@@ -98,14 +96,18 @@ class TestObjects(TestCore):
         self.assertEqual(quaternion.shape, (4,))
 
         # x, y, z, w
-        self.cube0.set_quaternion([1., 0., 0., 0.], self.cubes_under_dummy)
-        self.assertTrue(np.allclose(
-            self.cube0.get_quaternion(self.cubes_under_dummy),
-            [1., 0., 0., 0.]))
-        self.cube0.set_quaternion([np.sqrt(0.5), 0, 0., np.sqrt(0.5)])
-        self.assertTrue(np.allclose(
-            self.cube0.get_quaternion(),
-            [np.sqrt(0.5), 0, 0., np.sqrt(0.5)]))
+        self.cube0.set_quaternion([1.0, 0.0, 0.0, 0.0], self.cubes_under_dummy)
+        self.assertTrue(
+            np.allclose(
+                self.cube0.get_quaternion(self.cubes_under_dummy), [1.0, 0.0, 0.0, 0.0]
+            )
+        )
+        self.cube0.set_quaternion([np.sqrt(0.5), 0, 0.0, np.sqrt(0.5)])
+        self.assertTrue(
+            np.allclose(
+                self.cube0.get_quaternion(), [np.sqrt(0.5), 0, 0.0, np.sqrt(0.5)]
+            )
+        )
 
     def test_get_velocity(self):
         linear_vel, angular_vel = self.cube0.get_velocity()
@@ -124,8 +126,7 @@ class TestObjects(TestCore):
         self.dynamic_cube.set_parent(self.dummy, keep_in_place=False)
         parent = self.dynamic_cube.get_parent()
         self.assertEqual(parent, self.dummy)
-        self.assertFalse(np.allclose(
-            init_pos, self.dynamic_cube.get_position()))
+        self.assertFalse(np.allclose(init_pos, self.dynamic_cube.get_position()))
 
     def test_get_parent_when_orphan(self):
         parent = self.dummy.get_parent()
@@ -148,8 +149,8 @@ class TestObjects(TestCore):
         self.assertIsNone(contact_data)
         for _ in range(20):
             self.pyrep.step()
-        c1 = Shape('colliding_cube1')
-        c0 = Shape('colliding_cube0')
+        c1 = Shape("colliding_cube1")
+        c0 = Shape("colliding_cube0")
         contact = c1.get_contacts()
         self.assertTrue(len(contact) > 0)
         contact = c0.get_contacts()
@@ -188,8 +189,8 @@ class TestObjects(TestCore):
         self.simple_model.remove()
         self.assertFalse(self.dynamic_cube.still_exists())
         self.assertFalse(self.simple_model.still_exists())
-        self.assertFalse(Object.exists('dynamic_cube'))
-        self.assertFalse(Object.exists('simple_model'))
+        self.assertFalse(Object.exists("dynamic_cube"))
+        self.assertFalse(Object.exists("simple_model"))
 
     def test_dynamic_object(self):
         # Can't really test this. So lets just make sure it doesn't error
@@ -200,23 +201,30 @@ class TestObjects(TestCore):
         self.assertTrue(np.allclose(bb, [-0.05, 0.05] * 3))
 
     def test_get_objects_in_tree(self):
-        dummys = [Dummy('nested_dummy%d' % i) for i in range(3)]
+        dummys = [Dummy("nested_dummy%d" % i) for i in range(3)]
 
         objects = dummys[0].get_objects_in_tree(
-            exclude_base=False, first_generation_only=False)
+            exclude_base=False, first_generation_only=False
+        )
         self.assertListEqual(objects, dummys)
         for obj in objects:
             self.assertIs(type(obj), Dummy)
 
         self.assertListEqual(
             dummys[0].get_objects_in_tree(
-                exclude_base=True, first_generation_only=False), dummys[1:])
+                exclude_base=True, first_generation_only=False
+            ),
+            dummys[1:],
+        )
         self.assertListEqual(
             dummys[0].get_objects_in_tree(
-                exclude_base=False,first_generation_only=True), dummys[:-1])
+                exclude_base=False, first_generation_only=True
+            ),
+            dummys[:-1],
+        )
 
     def test_get_extention_string(self):
-        self.assertEqual(self.dynamic_cube.get_extension_string(), 'test')
+        self.assertEqual(self.dynamic_cube.get_extension_string(), "test")
 
     def test_get_configuration_tree(self):
         config = self.dynamic_cube.get_configuration_tree()
@@ -224,8 +232,9 @@ class TestObjects(TestCore):
 
     def test_rotate(self):
         self.dynamic_cube.rotate([0.02, 0.04, 0.06])
-        self.assertTrue(np.allclose(
-            self.dynamic_cube.get_orientation(), [0.02, 0.04, 0.06]))
+        self.assertTrue(
+            np.allclose(self.dynamic_cube.get_orientation(), [0.02, 0.04, 0.06])
+        )
 
     def test_get_set_model_collidable(self):
         self.simple_model.set_model_collidable(False)
@@ -264,12 +273,12 @@ class TestObjects(TestCore):
         self.assertTrue(self.simple_model.is_model_respondable())
 
     def test_check_collision(self):
-        c1 = Shape('colliding_cube0')
-        c2 = Shape('colliding_cube1')
+        c1 = Shape("colliding_cube0")
+        c2 = Shape("colliding_cube1")
         self.assertTrue(c1.check_collision(c2))
 
     def test_check_collision_all(self):
-        c1 = Shape('colliding_cube0')
+        c1 = Shape("colliding_cube0")
         self.assertTrue(c1.check_collision(None))
 
     def test_copy(self):
@@ -303,5 +312,5 @@ class TestObjects(TestCore):
         cam.remove()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

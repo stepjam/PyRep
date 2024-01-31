@@ -4,15 +4,16 @@ import pyrep
 from pyrep import PyRep
 from os import path
 
-ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
+ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), "assets")
 pyrep.testing = True
 
 
 class TestCore(unittest.TestCase):
-
     def setUp(self):
         self.pyrep = PyRep()
-        self.pyrep.launch(path.join(ASSET_DIR, 'test_scene.ttt'), headless=True, responsive_ui=False)
+        self.pyrep.launch(
+            path.join(ASSET_DIR, "test_scene.ttt"), headless=True, responsive_ui=False
+        )
         self.pyrep.step()
         self.pyrep.start()
 

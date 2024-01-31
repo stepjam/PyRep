@@ -7,20 +7,18 @@ from os import path
 from pyrep.robots.end_effectors.dobot_suction_cup import DobotSuctionCup
 from pyrep.robots.end_effectors.baxter_suction_cup import BaxterSuctionCup
 
-ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), 'assets')
+ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), "assets")
 
 SUCTION_CUPS = [
-    ('DobotSuctionCup', DobotSuctionCup),
-    ('BaxterSuctionCup', BaxterSuctionCup),
+    ("DobotSuctionCup", DobotSuctionCup),
+    ("BaxterSuctionCup", BaxterSuctionCup),
 ]
 
 
 class TestSuctionCups(TestCore):
-
     def setUp(self):
         self.pyrep = PyRep()
-        self.pyrep.launch(path.join(
-            ASSET_DIR, 'test_scene_robots.ttt'), headless=True)
+        self.pyrep.launch(path.join(ASSET_DIR, "test_scene_robots.ttt"), headless=True)
         self.pyrep.step()
         self.pyrep.start()
 
@@ -33,8 +31,8 @@ class TestSuctionCups(TestCore):
     def test_grasp_and_release_with_suction(self):
         for cup_name, cup_type in SUCTION_CUPS:
             with self.subTest(suction_cup=cup_name):
-                suction_cube = Shape('%s_cube' % cup_name)
-                cube = Shape('cube')
+                suction_cube = Shape("%s_cube" % cup_name)
+                cube = Shape("cube")
                 cup = cup_type()
                 self.pyrep.step()
                 grasped = cup.grasp(cube)
@@ -47,5 +45,5 @@ class TestSuctionCups(TestCore):
                 self.assertEqual(len(cup.get_grasped_objects()), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

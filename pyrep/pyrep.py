@@ -1,15 +1,16 @@
 import numpy as np
-from contextlib import contextmanager
 
 from pyrep.backend import utils
 from pyrep.backend.sim import SimBackend
 from pyrep.backend.sim_const import sim_floatparam_simulation_time_step
+
 # from pyrep.backend import sim, utils
 from pyrep.const import Verbosity
 from pyrep.objects.object import Object
 from pyrep.objects.shape import Shape
 from pyrep.textures.texture import Texture
 from pyrep.errors import PyRepError
+
 # from pyrep.backend import sim
 import os
 import sys
@@ -34,14 +35,16 @@ class PyRep(object):
         self._sim_api = None  # check later
         self._shutting_down = False
 
-        if 'COPPELIASIM_ROOT' not in os.environ:
+        if "COPPELIASIM_ROOT" not in os.environ:
             raise PyRepError(
-                'COPPELIASIM_ROOT not defined. See installation instructions.')
-        self._coppeliasim_root = os.environ['COPPELIASIM_ROOT']
+                "COPPELIASIM_ROOT not defined. See installation instructions."
+            )
+        self._coppeliasim_root = os.environ["COPPELIASIM_ROOT"]
         if not os.path.exists(self._coppeliasim_root):
             raise PyRepError(
-                'COPPELIASIM_ROOT was not a correct path. '
-                'See installation instructions')
+                "COPPELIASIM_ROOT was not a correct path. "
+                "See installation instructions"
+            )
 
     def _run_responsive_ui_thread(self) -> None:
         while True:
@@ -55,9 +58,14 @@ class PyRep(object):
         if not self._shutting_down:
             self.shutdown()
 
-    def launch(self, scene_file: str = "", headless: bool = False,
-               responsive_ui: bool = False, blocking: bool = False,
-               verbosity: Verbosity = Verbosity.NONE) -> None:
+    def launch(
+        self,
+        scene_file: str = "",
+        headless: bool = False,
+        responsive_ui: bool = False,
+        blocking: bool = False,
+        verbosity: Verbosity = Verbosity.NONE,
+    ) -> None:
         """Launches CoppeliaSim.
 
         Launches the UI thread, waits until the UI thread has finished, this
@@ -76,11 +84,13 @@ class PyRep(object):
         """
         abs_scene_file = os.path.abspath(scene_file)
         if len(scene_file) > 0 and not os.path.isfile(abs_scene_file):
-            raise PyRepError('Scene file does not exist: %s' % scene_file)
+            raise PyRepError("Scene file does not exist: %s" % scene_file)
         self._sim_backend = SimBackend()
         self._ui_thread = self._sim_backend.create_ui_thread(headless)
         self._ui_thread.start()
-        self._sim_api = self._sim_backend.simInitialize(self._coppeliasim_root, verbosity.value)
+        self._sim_api = self._sim_backend.simInitialize(
+            self._coppeliasim_root, verbosity.value
+        )
         if len(scene_file) > 0:
             self._sim_api.loadScene(abs_scene_file)
 
@@ -90,7 +100,8 @@ class PyRep(object):
             self.shutdown()
         elif responsive_ui:
             self._responsive_ui_thread = threading.Thread(
-                target=self._run_responsive_ui_thread)
+                target=self._run_responsive_ui_thread
+            )
             self._responsive_ui_thread.daemon = True
             try:
                 self._responsive_ui_thread.start()
@@ -103,11 +114,9 @@ class PyRep(object):
             self.step()
 
     def shutdown(self) -> None:
-        """Shuts down the CoppeliaSim simulation.
-        """
+        """Shuts down the CoppeliaSim simulation."""
         if self._ui_thread is None:
-            raise PyRepError(
-                'CoppeliaSim has not been launched. Call launch first.')
+            raise PyRepError("CoppeliaSim has not been launched. Call launch first.")
         if self._ui_thread is not None:
             # self._shutting_down = True
             self.stop()
@@ -125,21 +134,17 @@ class PyRep(object):
         # self._shutting_down = False
 
     def start(self) -> None:
-        """Starts the physics simulation if it is not already running.
-        """
+        """Starts the physics simulation if it is not already running."""
         if self._ui_thread is None:
-            raise PyRepError(
-                'CoppeliaSim has not been launched. Call launch first.')
+            raise PyRepError("CoppeliaSim has not been launched. Call launch first.")
         if not self.running:
             self._sim_backend.simStartSimulation()
             self.running = True
 
     def stop(self) -> None:
-        """Stops the physics simulation if it is running.
-        """
+        """Stops the physics simulation if it is running."""
         if self._ui_thread is None:
-            raise PyRepError(
-                'CoppeliaSim has not been launched. Call launch first.')
+            raise PyRepError("CoppeliaSim has not been launched. Call launch first.")
         if self.running:
             self._sim_backend.simStopSimulation()
             self.running = False
@@ -173,9 +178,11 @@ class PyRep(object):
         """
         self._sim_api.setFloatParameter(sim_floatparam_simulation_time_step, dt)
         if not np.allclose(self.get_simulation_timestep(), dt):
-            warnings.warn('Could not change simulation timestep. You may need '
-                          'to change it to "custom dt" using simulation '
-                          'settings dialog.')
+            warnings.warn(
+                "Could not change simulation timestep. You may need "
+                'to change it to "custom dt" using simulation '
+                "settings dialog."
+            )
 
     def get_simulation_timestep(self) -> float:
         """Gets the simulation time step.
@@ -216,7 +223,7 @@ class PyRep(object):
         self._sim_api.saveScene(filename)
 
     def import_model(self, filename: str) -> Object:
-        """	Loads a previously saved model.
+        """Loads a previously saved model.
 
         :param filename: model filename. The filename extension is required
             ("ttm"). An optional "@copy" can be appended to the filename, in
@@ -227,9 +234,14 @@ class PyRep(object):
         handle = self._sim_api.loadModel(filename)
         return utils.to_type(handle)
 
-    def create_texture(self, filename: str, interpolate=True, decal_mode=False,
-                       repeat_along_u=False, repeat_along_v=False
-                       ) -> Tuple[Shape, Texture]:
+    def create_texture(
+        self,
+        filename: str,
+        interpolate=True,
+        decal_mode=False,
+        repeat_along_u=False,
+        repeat_along_v=False,
+    ) -> Tuple[Shape, Texture]:
         """Creates a planar shape that is textured.
 
         :param filename: Path to the texture to load.
@@ -253,8 +265,7 @@ class PyRep(object):
         s = Shape(handle)
         return s, s.get_texture()
 
-    def get_objects_in_tree(self, root_object=None, *args, **kwargs
-                            ) -> List[Object]:
+    def get_objects_in_tree(self, root_object=None, *args, **kwargs) -> List[Object]:
         """Retrieves the objects in a given hierarchy tree.
 
         :param root_object: The root object in the tree. Pass None to retrieve
@@ -271,7 +282,7 @@ class PyRep(object):
     def get_collection_handle_by_name(self, collection_name: str) -> int:
         """Retrieves the integer handle for a given collection.
 
-        :param collection_name: Name of the collection to retrieve the integer handle for
-        :return: An integer handle for the collection
+        :param collection_name: Name of the collection to retrieve the integer handle.
+        :return: An integer handle for the collection.
         """
         return self._sim_api.getCollectionHandle(collection_name)

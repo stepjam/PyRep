@@ -42,31 +42,31 @@ class JointMode(Enum):
 
 
 class ConfigurationPathAlgorithms(Enum):
-    BiTRRT = 'BiTRRT'
-    BITstar = 'BITstar'
-    BKPIECE1 = 'BKPIECE1'
-    CForest = 'CForest'
-    EST = 'EST'
-    FMT = 'FMT'
-    KPIECE1 = 'KPIECE1'
-    LazyPRM = 'LazyPRM'
-    LazyPRMstar = 'LazyPRMstar'
-    LazyRRT = 'LazyRRT'
-    LBKPIECE1 = 'LBKPIECE1'
-    LBTRRT = 'LBTRRT'
-    PDST = 'PDST'
-    PRM = 'PRM'
-    PRMstar = 'PRMstar'
-    pRRT = 'pRRT'
-    pSBL = 'pSBL'
-    RRT = 'RRT'
-    RRTConnect = 'RRTConnect'
-    RRTstar = 'RRTstar'
-    SBL = 'SBL'
-    SPARS = 'SPARS'
-    SPARStwo = 'SPARStwo'
-    STRIDE = 'STRIDE'
-    TRRT = 'TRRT'
+    BiTRRT = "BiTRRT"
+    BITstar = "BITstar"
+    BKPIECE1 = "BKPIECE1"
+    CForest = "CForest"
+    EST = "EST"
+    FMT = "FMT"
+    KPIECE1 = "KPIECE1"
+    LazyPRM = "LazyPRM"
+    LazyPRMstar = "LazyPRMstar"
+    LazyRRT = "LazyRRT"
+    LBKPIECE1 = "LBKPIECE1"
+    LBTRRT = "LBTRRT"
+    PDST = "PDST"
+    PRM = "PRM"
+    PRMstar = "PRMstar"
+    pRRT = "pRRT"
+    pSBL = "pSBL"
+    RRT = "RRT"
+    RRTConnect = "RRTConnect"
+    RRTstar = "RRTstar"
+    SBL = "SBL"
+    SPARS = "SPARS"
+    SPARStwo = "SPARStwo"
+    STRIDE = "STRIDE"
+    TRRT = "TRRT"
 
 
 class TextureMappingMode(Enum):
@@ -93,18 +93,18 @@ class RenderMode(Enum):
 
 
 class Verbosity(Enum):
-    NONE = 'none'
-    ERRORS = 'errors'
-    WARNINGS = 'warnings'
-    LOAD_INFOS = 'loadinfos'
-    SCRIPT_ERRORS = 'scripterrors'
-    SCRIPT_WARNINGS = 'scriptwarnings'
-    SCRIPT_INFOS = 'scriptinfos'
-    INFOS = 'infos'
-    DEBUG = 'debug'
-    TRACE = 'trace'
-    TRACE_LUA = 'tracelua'
-    TYRACE_ALL = 'traceall'
+    NONE = "none"
+    ERRORS = "errors"
+    WARNINGS = "warnings"
+    LOAD_INFOS = "loadinfos"
+    SCRIPT_ERRORS = "scripterrors"
+    SCRIPT_WARNINGS = "scriptwarnings"
+    SCRIPT_INFOS = "scriptinfos"
+    INFOS = "infos"
+    DEBUG = "debug"
+    TRACE = "trace"
+    TRACE_LUA = "tracelua"
+    TYRACE_ALL = "traceall"
 
 
 PYREP_SCRIPT_TYPE = sim.sim_scripttype_addonscript

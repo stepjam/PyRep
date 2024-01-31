@@ -1,10 +1,9 @@
 from ctypes import CFUNCTYPE, c_int
 from pyrep.backend.sim import SimBackend
 from pyrep.backend import sim_const as simc
-from pyrep.objects import Object, Joint
+from pyrep.objects import Object
 from pyrep.objects.dummy import Dummy
-from pyrep.robots.configuration_paths.arm_configuration_path import (
-    ArmConfigurationPath)
+from pyrep.robots.configuration_paths.arm_configuration_path import ArmConfigurationPath
 from pyrep.robots.robot_component import RobotComponent
 from pyrep.objects.cartesian_path import CartesianPath
 from pyrep.errors import ConfigurationError, ConfigurationPathError, IKError
@@ -27,14 +26,20 @@ def collision_check_callback(state, data):
 
 
 class Arm(RobotComponent):
-    """Base class representing a robot arm with path planning support.
-    """
+    """Base class representing a robot arm with path planning support."""
 
-    def __init__(self, count: int, name: str, num_joints: int,
-                 base_name: str = None,
-                 max_velocity=1.0, max_acceleration=4.0, max_jerk=1000):
+    def __init__(
+        self,
+        count: int,
+        name: str,
+        num_joints: int,
+        base_name: str = None,
+        max_velocity=1.0,
+        max_acceleration=4.0,
+        max_jerk=1000,
+    ):
         """Count is used for when we have multiple copies of arms"""
-        joint_names = ['%s_joint%d' % (name, i+1) for i in range(num_joints)]
+        joint_names = ["%s_joint%d" % (name, i + 1) for i in range(num_joints)]
         super().__init__(count, name, joint_names, base_name)
 
         # Used for motion planning
@@ -43,12 +48,17 @@ class Arm(RobotComponent):
         self.max_jerk = max_jerk
 
         # Motion planning handles
-        suffix = '' if count == 0 else '#%d' % (count - 1)
-        self._ik_target = Dummy('%s_target%s' % (name, suffix))
-        self._ik_tip = Dummy('%s_tip%s' % (name, suffix))
+        suffix = "" if count == 0 else "#%d" % (count - 1)
+        self._ik_target = Dummy("%s_target%s" % (name, suffix))
+        self._ik_tip = Dummy("%s_tip%s" % (name, suffix))
 
         self._collision_collection_handle = self._sim_api.createCollection(0)
-        self._sim_api.addItemToCollection(self._collision_collection_handle, simc.sim_handle_tree, self._joint_handles[0], 0)
+        self._sim_api.addItemToCollection(
+            self._collision_collection_handle,
+            simc.sim_handle_tree,
+            self._joint_handles[0],
+            0,
+        )
         self._sim_ik_api = SimBackend().sim_ik_api
         self._sim_ompl_api = SimBackend().sim_ompl_api
         self._ik_env_handle = self._sim_ik_api.createEnvironment()
@@ -59,10 +69,24 @@ class Arm(RobotComponent):
         target_handle = self._ik_target.get_handle()
         tip_handle = self._ik_tip.get_handle()
 
-        self._ik_element, self._sim_to_ik_map, self._ik_to_sim_map = self._sim_ik_api.addElementFromScene(
-            self._ik_env_handle, self._ik_group_handle, base_handle, tip_handle, target_handle,
-            self._sim_ik_api.constraint_pose)
-        self._sim_ik_api.setElementPrecision(self._ik_env_handle, self._ik_group_handle, self._ik_element, [0.00005, 0.0017])
+        (
+            self._ik_element,
+            self._sim_to_ik_map,
+            self._ik_to_sim_map,
+        ) = self._sim_ik_api.addElementFromScene(
+            self._ik_env_handle,
+            self._ik_group_handle,
+            base_handle,
+            tip_handle,
+            target_handle,
+            self._sim_ik_api.constraint_pose,
+        )
+        self._sim_ik_api.setElementPrecision(
+            self._ik_env_handle,
+            self._ik_group_handle,
+            self._ik_element,
+            [0.00005, 0.0017],
+        )
         self._ik_joint_handles = [self._sim_to_ik_map[h] for h in self._joint_handles]
         self._ik_base_handle = self._sim_to_ik_map[base_handle]
         self._ik_target_handle = self._sim_to_ik_map[target_handle]
@@ -73,10 +97,14 @@ class Arm(RobotComponent):
         SimBackend().lib.simRegCallback(0, self._collision_callback)
         self._coll_callback_args = [count, name, num_joints, base_name]
 
-    def set_ik_element_properties(self, constraint_x=True, constraint_y=True,
-                                  constraint_z=True,
-                                  constraint_alpha_beta=True,
-                                  constraint_gamma=True) -> None:
+    def set_ik_element_properties(
+        self,
+        constraint_x=True,
+        constraint_y=True,
+        constraint_z=True,
+        constraint_alpha_beta=True,
+        constraint_gamma=True,
+    ) -> None:
         constraints = 0
         if constraint_x:
             constraints |= self._sim_ik_api.constraint_x
@@ -88,30 +116,44 @@ class Arm(RobotComponent):
             constraints |= self._sim_ik_api.constraint_alpha_beta
         if constraint_gamma:
             constraints |= self._sim_ik_api.constraint_gamma
-        self._sim_ik_api.setElementConstraints(self._ik_env_handle, self._ik_group_handle, self._ik_element, constraints)
+        self._sim_ik_api.setElementConstraints(
+            self._ik_env_handle, self._ik_group_handle, self._ik_element, constraints
+        )
 
-    def set_ik_group_properties(self, resolution_method='pseudo_inverse', max_iterations=6, dls_damping=0.1) -> None:
+    def set_ik_group_properties(
+        self, resolution_method="pseudo_inverse", max_iterations=6, dls_damping=0.1
+    ) -> None:
         try:
-            res_method = {'pseudo_inverse': self._sim_ik_api.method_pseudo_inverse,
-                          'damped_least_squares': self._sim_ik_api.method_damped_least_squares,
-                          'jacobian_transpose': self._sim_ik_api.method_jacobian_transpose}[resolution_method]
+            res_method = {
+                "pseudo_inverse": self._sim_ik_api.method_pseudo_inverse,
+                "damped_least_squares": self._sim_ik_api.method_damped_least_squares,
+                "jacobian_transpose": self._sim_ik_api.method_jacobian_transpose,
+            }[resolution_method]
         except KeyError:
-            raise Exception('Invalid resolution method,'
-                            'Must be one of ["pseudo_inverse" | "damped_least_squares" | "jacobian_transpose"]')
-        self._sim_ik_api.setGroupCalculation(self._ik_env_handle, self._ik_group_handle, res_method, dls_damping, max_iterations)
+            raise Exception(
+                "Invalid resolution method. Must be one of "
+                "['pseudo_inverse' | 'damped_least_squares' | 'jacobian_transpose']"
+            )
+        self._sim_ik_api.setGroupCalculation(
+            self._ik_env_handle,
+            self._ik_group_handle,
+            res_method,
+            dls_damping,
+            max_iterations,
+        )
 
-
-    def solve_ik_via_sampling(self,
-                              position: Union[List[float], np.ndarray],
-                              euler: Union[List[float], np.ndarray] = None,
-                              quaternion: Union[List[float], np.ndarray] = None,
-                              ignore_collisions: bool = False,
-                              trials: int = 300,
-                              max_configs: int = 1,
-                              distance_threshold: float = 0.65,
-                              max_time_ms: float = 100,
-                              relative_to: Object = None
-                              ) -> np.ndarray:
+    def solve_ik_via_sampling(
+        self,
+        position: Union[List[float], np.ndarray],
+        euler: Union[List[float], np.ndarray] = None,
+        quaternion: Union[List[float], np.ndarray] = None,
+        ignore_collisions: bool = False,
+        trials: int = 300,
+        max_configs: int = 1,
+        distance_threshold: float = 0.65,
+        max_time_ms: float = 100,
+        relative_to: Object = None,
+    ) -> np.ndarray:
         """Solves an IK group and returns the calculated joint values.
 
         This IK method performs a random searches for manipulator configurations
@@ -146,7 +188,8 @@ class Arm(RobotComponent):
         """
         if not ((euler is None) ^ (quaternion is None)):
             raise ConfigurationError(
-                'Specify either euler or quaternion values, but not both.')
+                "Specify either euler or quaternion values, but not both."
+            )
 
         prev_pose = self._ik_target.get_pose()
         self._ik_target.set_position(position, relative_to)
@@ -163,13 +206,28 @@ class Arm(RobotComponent):
         metric = [1, 1, 1, 0.1]
         valid_joint_positions = []
         max_time_s = float(max_time_ms) * 0.001
-        self._sim_ik_api.setObjectPose(self._ik_env_handle, self._ik_target_handle, self._ik_target.get_pose().tolist(), self._sim_ik_api.handle_world)
+        self._sim_ik_api.setObjectPose(
+            self._ik_env_handle,
+            self._ik_target_handle,
+            self._ik_target.get_pose().tolist(),
+            self._sim_ik_api.handle_world,
+        )
         for i in range(trials):
-            config = self._sim_ik_api.findConfig(self._ik_env_handle, self._ik_group_handle, self._ik_joint_handles, distance_threshold, max_time_s, metric, validation_callback, self._coll_callback_args)
+            config = self._sim_ik_api.findConfig(
+                self._ik_env_handle,
+                self._ik_group_handle,
+                self._ik_joint_handles,
+                distance_threshold,
+                max_time_s,
+                metric,
+                validation_callback,
+                self._coll_callback_args,
+            )
             if config is None:
                 continue
             # TODO: Look to get alternative config
-            # config = self._sim_ik_api.getAlternateConfigs(self._ik_env_handle, self._ik_joint_handles)
+            # config = self._sim_ik_api.getAlternateConfigs(
+            #   self._ik_env_handle, self._ik_joint_handles)
             if len(config) > 0:
                 valid_joint_positions.append(config)
             if len(valid_joint_positions) >= max_configs:
@@ -178,22 +236,24 @@ class Arm(RobotComponent):
         self._ik_target.set_pose(prev_pose)
         if len(valid_joint_positions) == 0:
             raise ConfigurationError(
-                'Could not find a valid joint configuration for desired '
-                'end effector pose.')
+                "Could not find a valid joint configuration for desired "
+                "end effector pose."
+            )
 
         if len(valid_joint_positions) > 1:
             current_config = np.array(self.get_joint_positions())
             # Sort based on angular distance
-            valid_joint_positions.sort(
-                key=lambda x: np.linalg.norm(current_config - x))
+            valid_joint_positions.sort(key=lambda x: np.linalg.norm(current_config - x))
 
         return np.array(valid_joint_positions)
 
     def solve_ik_via_jacobian(
-            self, position: Union[List[float], np.ndarray],
-            euler: Union[List[float], np.ndarray] = None,
-            quaternion: Union[List[float], np.ndarray] = None,
-            relative_to: Object = None) -> np.ndarray:
+        self,
+        position: Union[List[float], np.ndarray],
+        euler: Union[List[float], np.ndarray] = None,
+        quaternion: Union[List[float], np.ndarray] = None,
+        relative_to: Object = None,
+    ) -> np.ndarray:
         """Solves an IK group and returns the calculated joint values.
 
         This IK method performs a linearisation around the current robot
@@ -223,25 +283,36 @@ class Arm(RobotComponent):
             # simIK.syncFromSim and followed by simIK.syncToSim
             "syncWorlds": False,
         }
-        self._sim_ik_api.setObjectPose(self._ik_env_handle, self._ik_target_handle, self._ik_target.get_pose().tolist(), self._sim_ik_api.handle_world)
-        result, reason, precision = self._sim_ik_api.handleGroup(self._ik_env_handle, self._ik_group_handle, options)
+        self._sim_ik_api.setObjectPose(
+            self._ik_env_handle,
+            self._ik_target_handle,
+            self._ik_target.get_pose().tolist(),
+            self._sim_ik_api.handle_world,
+        )
+        result, reason, precision = self._sim_ik_api.handleGroup(
+            self._ik_env_handle, self._ik_group_handle, options
+        )
         if reason == self._sim_ik_api.calc_notperformed:
-            raise IKError('IK failed. Calculation not performed.')
+            raise IKError("IK failed. Calculation not performed.")
         elif reason == self._sim_ik_api.calc_cannotinvert:
-            raise IKError('IK failed. Could not invert Jacobian.')
+            raise IKError("IK failed. Could not invert Jacobian.")
         elif reason == self._sim_ik_api.calc_notwithintolerance:
-            raise IKError('IK failed. Calculation not within tolerance.')
+            raise IKError("IK failed. Calculation not within tolerance.")
         elif reason == self._sim_ik_api.calc_stepstoobig:
-            raise IKError('IK failed. Calculation step too big.')
+            raise IKError("IK failed. Calculation step too big.")
         elif reason == self._sim_ik_api.calc_limithit:
-            raise IKError('IK failed. Calculation limit hit.')
+            raise IKError("IK failed. Calculation limit hit.")
         if result != self._sim_ik_api.result_success:
-            raise IKError('IK failed for unknown reason.')
-        joint_values = np.array([self._sim_ik_api.getJointPosition(self._ik_env_handle, jh) for jh in self._ik_joint_handles])
+            raise IKError("IK failed for unknown reason.")
+        joint_values = np.array(
+            [
+                self._sim_ik_api.getJointPosition(self._ik_env_handle, jh)
+                for jh in self._ik_joint_handles
+            ]
+        )
         return joint_values
 
-    def get_path_from_cartesian_path(self, path: CartesianPath
-                                     ) -> ArmConfigurationPath:
+    def get_path_from_cartesian_path(self, path: CartesianPath) -> ArmConfigurationPath:
         """Translate a path from cartesian space, to arm configuration space.
 
         Note: It must be possible to reach the start of the path via a linear
@@ -256,7 +327,7 @@ class Arm(RobotComponent):
         full_path = []
         initial_config = self.get_joint_positions()
         delta = 0.05
-        for i in np.linspace(delta, 1, int(1/delta)):
+        for i in np.linspace(delta, 1, int(1 / delta)):
             pos, ori = path.get_pose_on_path(i)
             intermediate_path = self.get_linear_path(pos, ori, steps=5)
             full_path.extend(intermediate_path._path_points)
@@ -264,11 +335,15 @@ class Arm(RobotComponent):
         self.set_joint_positions(initial_config)
         return ArmConfigurationPath(self, full_path)
 
-    def get_linear_path(self, position: Union[List[float], np.ndarray],
-                        euler: Union[List[float], np.ndarray] = None,
-                        quaternion: Union[List[float], np.ndarray] = None,
-                        steps=50, ignore_collisions=False,
-                        relative_to: Object = None) -> ArmConfigurationPath:
+    def get_linear_path(
+        self,
+        position: Union[List[float], np.ndarray],
+        euler: Union[List[float], np.ndarray] = None,
+        quaternion: Union[List[float], np.ndarray] = None,
+        steps=50,
+        ignore_collisions=False,
+        relative_to: Object = None,
+    ) -> ArmConfigurationPath:
         """Gets a linear configuration path given a target pose.
 
         Generates a path that drives a robot from its current configuration
@@ -294,7 +369,8 @@ class Arm(RobotComponent):
         """
         if not ((euler is None) ^ (quaternion is None)):
             raise ConfigurationPathError(
-                'Specify either euler or quaternion values, but not both.')
+                "Specify either euler or quaternion values, but not both."
+            )
 
         prev_pose = self._ik_target.get_pose()
         self._ik_target.set_position(position, relative_to)
@@ -307,25 +383,40 @@ class Arm(RobotComponent):
         if not ignore_collisions:
             validation_callback = CALLBACK_NAME
 
-        self._sim_ik_api.setObjectPose(self._ik_env_handle, self._ik_target_handle, self._ik_target.get_pose().tolist(), self._sim_ik_api.handle_world)
-        ret_floats = self._sim_ik_api.generatePath(self._ik_env_handle, self._ik_group_handle, self._ik_joint_handles, self._ik_tip_handle, steps, validation_callback, self._coll_callback_args)
+        self._sim_ik_api.setObjectPose(
+            self._ik_env_handle,
+            self._ik_target_handle,
+            self._ik_target.get_pose().tolist(),
+            self._sim_ik_api.handle_world,
+        )
+        ret_floats = self._sim_ik_api.generatePath(
+            self._ik_env_handle,
+            self._ik_group_handle,
+            self._ik_joint_handles,
+            self._ik_tip_handle,
+            steps,
+            validation_callback,
+            self._coll_callback_args,
+        )
         self._ik_target.set_pose(prev_pose)
         if len(ret_floats) == 0:
-            raise ConfigurationPathError('Could not create path.')
+            raise ConfigurationPathError("Could not create path.")
         return ArmConfigurationPath(self, ret_floats)
 
-    def get_nonlinear_path(self, position: Union[List[float], np.ndarray],
-                           euler: Union[List[float], np.ndarray] = None,
-                           quaternion: Union[List[float], np.ndarray] = None,
-                           ignore_collisions=False,
-                           trials=300,
-                           max_configs=1,
-                           distance_threshold: float = 0.65,
-                           max_time_ms: int = 100,
-                           trials_per_goal=1,
-                           algorithm=Algos.SBL,
-                           relative_to: Object = None
-                           ) -> ArmConfigurationPath:
+    def get_nonlinear_path(
+        self,
+        position: Union[List[float], np.ndarray],
+        euler: Union[List[float], np.ndarray] = None,
+        quaternion: Union[List[float], np.ndarray] = None,
+        ignore_collisions=False,
+        trials=300,
+        max_configs=1,
+        distance_threshold: float = 0.65,
+        max_time_ms: int = 100,
+        trials_per_goal=1,
+        algorithm=Algos.SBL,
+        relative_to: Object = None,
+    ) -> ArmConfigurationPath:
         """Gets a non-linear (planned) configuration path given a target pose.
 
         A path is generated by finding several configs for a pose, and ranking
@@ -358,21 +449,36 @@ class Arm(RobotComponent):
         """
         try:
             configs = self.solve_ik_via_sampling(
-                position, euler, quaternion, ignore_collisions, trials,
-                max_configs, distance_threshold, max_time_ms, relative_to)
+                position,
+                euler,
+                quaternion,
+                ignore_collisions,
+                trials,
+                max_configs,
+                distance_threshold,
+                max_time_ms,
+                relative_to,
+            )
         except ConfigurationError as e:
-            raise ConfigurationPathError('Could not create path.') from e
+            raise ConfigurationPathError("Could not create path.") from e
 
         task_handle = self._sim_ompl_api.createTask("pyrep_task")
         self._sim_ompl_api.setVerboseLevel(task_handle, 0)
         algo = getattr(self._sim_ompl_api.Algorithm, algorithm.value)
         self._sim_ompl_api.setAlgorithm(task_handle, algo)
 
-        ss_handles = [self._sim_ompl_api.createStateSpaceForJoint(f"joint_{jh}_state_space", jh, 1) for jh in self._joint_handles]
+        ss_handles = [
+            self._sim_ompl_api.createStateSpaceForJoint(
+                f"joint_{jh}_state_space", jh, 1
+            )
+            for jh in self._joint_handles
+        ]
         self._sim_ompl_api.setStateSpace(task_handle, ss_handles)
 
         use_for_projection = weights = np.ones_like(self._joint_handles).tolist()
-        self._sim_ompl_api.setStateSpaceForJoints(task_handle, self._joint_handles, use_for_projection, weights)
+        self._sim_ompl_api.setStateSpaceForJoints(
+            task_handle, self._joint_handles, use_for_projection, weights
+        )
         self._sim_ompl_api.setStartState(task_handle, self.get_joint_positions())
         self._sim_ompl_api.setGoalState(task_handle, configs[0].tolist())
         if not ignore_collisions:
@@ -381,25 +487,29 @@ class Arm(RobotComponent):
         self._sim_ompl_api.setup(task_handle)
 
         max_time_s = float(max_time_ms) * 0.001
-        solved, planned_path = self._sim_ompl_api.compute(task_handle, max_time_s, -1, 300)
+        solved, planned_path = self._sim_ompl_api.compute(
+            task_handle, max_time_s, -1, 300
+        )
         self._sim_ompl_api.destroyTask(task_handle)
 
         if not solved or len(planned_path) == 0:
-            raise ConfigurationPathError('Could not create path.')
+            raise ConfigurationPathError("Could not create path.")
         return ArmConfigurationPath(self, planned_path)
 
-    def get_path(self, position: Union[List[float], np.ndarray],
-                 euler: Union[List[float], np.ndarray] = None,
-                 quaternion: Union[List[float], np.ndarray] = None,
-                 ignore_collisions=False,
-                 trials=300,
-                 max_configs=1,
-                 distance_threshold: float = 0.65,
-                 max_time_ms: int = 100,
-                 trials_per_goal=1,
-                 algorithm=Algos.SBL,
-                 relative_to: Object = None
-                 ) -> ArmConfigurationPath:
+    def get_path(
+        self,
+        position: Union[List[float], np.ndarray],
+        euler: Union[List[float], np.ndarray] = None,
+        quaternion: Union[List[float], np.ndarray] = None,
+        ignore_collisions=False,
+        trials=300,
+        max_configs=1,
+        distance_threshold: float = 0.65,
+        max_time_ms: int = 100,
+        trials_per_goal=1,
+        algorithm=Algos.SBL,
+        relative_to: Object = None,
+    ) -> ArmConfigurationPath:
         """Tries to get a linear path, failing that tries a non-linear path.
 
         Must specify either rotation in euler or quaternions, but not both!
@@ -428,18 +538,31 @@ class Arm(RobotComponent):
         :return: A linear or non-linear path in the arm configuration space.
         """
         try:
-            p = self.get_linear_path(position, euler, quaternion,
-                                     ignore_collisions=ignore_collisions,
-                                     relative_to=relative_to)
+            p = self.get_linear_path(
+                position,
+                euler,
+                quaternion,
+                ignore_collisions=ignore_collisions,
+                relative_to=relative_to,
+            )
             return p
         except ConfigurationPathError:
             pass  # Allowed. Try again, but with non-linear.
 
         # This time if an exception is thrown, we dont want to catch it.
         p = self.get_nonlinear_path(
-            position, euler, quaternion, ignore_collisions, trials, max_configs,
-            distance_threshold, max_time_ms, trials_per_goal, algorithm,
-            relative_to)
+            position,
+            euler,
+            quaternion,
+            ignore_collisions,
+            trials,
+            max_configs,
+            distance_threshold,
+            max_time_ms,
+            trials_per_goal,
+            algorithm,
+            relative_to,
+        )
         return p
 
     def get_tip(self) -> Dummy:
@@ -457,11 +580,13 @@ class Arm(RobotComponent):
         :return: the row-major Jacobian matix.
         """
         self._ik_target.set_matrix(self._ik_tip.get_matrix())
-        jacobian, errorVector = self._sim_ik_api.computeGroupJacobian(self._ik_env_handle, self._ik_group_handle)
-        jacobian = np.array(jacobian).reshape((len(self.joints), 6), order='F')
+        jacobian, errorVector = self._sim_ik_api.computeGroupJacobian(
+            self._ik_env_handle, self._ik_group_handle
+        )
+        jacobian = np.array(jacobian).reshape((len(self.joints), 6), order="F")
         return jacobian
 
-    def check_arm_collision(self, obj: 'Object' = None) -> bool:
+    def check_arm_collision(self, obj: "Object" = None) -> bool:
         """Checks whether two entities are colliding.
 
         :param obj: The other collidable object to check collision against,
@@ -470,5 +595,7 @@ class Arm(RobotComponent):
         :return: If the object is colliding.
         """
         handle = simc.sim_handle_all if obj is None else obj.get_handle()
-        result, colliding_handles = self._sim_api.checkCollision(self._collision_collection_handle, handle)
+        result, colliding_handles = self._sim_api.checkCollision(
+            self._collision_collection_handle, handle
+        )
         return result == 1

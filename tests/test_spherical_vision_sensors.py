@@ -8,11 +8,12 @@ from pyrep.sensors.spherical_vision_sensor import SphericalVisionSensor
 
 
 class TestSphericalVisionSensors(TestCore):
-
     def setUp(self):
         super().setUp()
         [self.pyrep.step() for _ in range(10)]
-        self.spherical_vision_sensor = SphericalVisionSensor('sphericalVisionRGBAndDepth')
+        self.spherical_vision_sensor = SphericalVisionSensor(
+            "sphericalVisionRGBAndDepth"
+        )
 
     def test_handle_explicitly(self):
         # non-blank image
@@ -34,21 +35,31 @@ class TestSphericalVisionSensors(TestCore):
 
     def test_get_set_resolution(self):
         self.spherical_vision_sensor.set_resolution([480, 240])
-        self.assertTrue(np.array_equal(self.spherical_vision_sensor.get_resolution(), [480, 240]))
-        self.assertEqual(self.spherical_vision_sensor.capture_rgb().shape, (240, 480, 3))
+        self.assertTrue(
+            np.array_equal(self.spherical_vision_sensor.get_resolution(), [480, 240])
+        )
+        self.assertEqual(
+            self.spherical_vision_sensor.capture_rgb().shape, (240, 480, 3)
+        )
 
     def test_get_set_render_mode(self):
         for render_mode in [RenderMode.OPENGL, RenderMode.OPENGL3]:
             self.spherical_vision_sensor.set_render_mode(render_mode)
-            self.assertEqual(self.spherical_vision_sensor.get_render_mode(), render_mode)
+            self.assertEqual(
+                self.spherical_vision_sensor.get_render_mode(), render_mode
+            )
 
     def test_get_set_near_clipping_plane(self):
         self.spherical_vision_sensor.set_near_clipping_plane(0.1)
-        self.assertAlmostEqual(self.spherical_vision_sensor.get_near_clipping_plane(), 0.1)
+        self.assertAlmostEqual(
+            self.spherical_vision_sensor.get_near_clipping_plane(), 0.1
+        )
 
     def test_get_set_far_clipping_plane(self):
         self.spherical_vision_sensor.set_far_clipping_plane(0.1)
-        self.assertAlmostEqual(self.spherical_vision_sensor.get_far_clipping_plane(), 0.1)
+        self.assertAlmostEqual(
+            self.spherical_vision_sensor.get_far_clipping_plane(), 0.1
+        )
 
     def test_get_set_windowed_size(self):
         self.spherical_vision_sensor.set_windowed_size((640, 480))
@@ -59,5 +70,5 @@ class TestSphericalVisionSensors(TestCore):
         self.assertIsNone(self.spherical_vision_sensor.get_entity_to_render())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

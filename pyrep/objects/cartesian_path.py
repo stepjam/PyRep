@@ -9,17 +9,25 @@ from pyrep.const import ObjectType
 
 
 class CartesianPath(Object):
-    """An object that defines a cartesian path or trajectory in space.
-    """
+    """An object that defines a cartesian path or trajectory in space."""
 
     @staticmethod
-    def create(show_line: bool = True, show_orientation: bool = True,
-               show_position: bool = True, closed_path: bool = False,
-               automatic_orientation: bool = True, flat_path: bool = False,
-               keep_x_up: bool = False, line_size: int = 1,
-               length_calculation_method: int = simc.sim_distcalcmethod_dl_if_nonzero, control_point_size: float = 0.01,
-               ang_to_lin_conv_coeff: float = 1., virt_dist_scale_factor: float = 1.,
-               path_color: tuple = (0.1, 0.75, 1.), paths_points: list = []) -> 'CartesianPath':
+    def create(
+        show_line: bool = True,
+        show_orientation: bool = True,
+        show_position: bool = True,
+        closed_path: bool = False,
+        automatic_orientation: bool = True,
+        flat_path: bool = False,
+        keep_x_up: bool = False,
+        line_size: int = 1,
+        length_calculation_method: int = simc.sim_distcalcmethod_dl_if_nonzero,
+        control_point_size: float = 0.01,
+        ang_to_lin_conv_coeff: float = 1.0,
+        virt_dist_scale_factor: float = 1.0,
+        path_color: tuple = (0.1, 0.75, 1.0),
+        paths_points: list = [],
+    ) -> "CartesianPath":
         """Creates a cartesian path and inserts in the scene.
 
         :param show_line: Shows line in UI.
@@ -53,7 +61,7 @@ class CartesianPath(Object):
 
         :return: The newly created cartesian path.
         """
-        attributes = 16  #  the path points' orientation is computed according to the orientationMode below
+        attributes = 16  # path points orientation computed according to orientationMode
         if closed_path:
             attributes |= 2
         orientation_mode = 0
@@ -69,14 +77,17 @@ class CartesianPath(Object):
         if len(paths_points) == 0:
             #  Path must have at least 2 points
             paths_points = np.zeros((14,)).tolist()
-        handle = sim_api.createPath(paths_points, attributes, subdiv, smoothness, orientation_mode, up_vector)
+        handle = sim_api.createPath(
+            paths_points, attributes, subdiv, smoothness, orientation_mode, up_vector
+        )
         return CartesianPath(handle)
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.PATH
 
-    def get_pose_on_path(self, relative_distance: float
-                         ) -> Tuple[List[float], List[float]]:
+    def get_pose_on_path(
+        self, relative_distance: float
+    ) -> Tuple[List[float], List[float]]:
         """Retrieves the absolute interpolated pose of a point along the path.
 
         :param relative_distance: A value between 0 and 1, where 0 is the
@@ -85,15 +96,26 @@ class CartesianPath(Object):
             orientation of the point on the path (in radians).
         """
         sim_api = SimBackend().sim_api
-        path_data = sim_api.unpackDoubleTable(sim_api.readCustomDataBlock(self.get_handle(), 'PATH'))
+        path_data = sim_api.unpackDoubleTable(
+            sim_api.readCustomDataBlock(self.get_handle(), "PATH")
+        )
         m = np.array(path_data).reshape(len(path_data) // 7, 7)
         path_positions = m[:, :3].flatten().tolist()
         path_quaternions = m[:, 3:].flatten().tolist()
         path_lengths, total_length = sim_api.getPathLengths(path_positions, 3)
-        pos = sim_api.getPathInterpolatedConfig(path_positions, path_lengths, total_length * relative_distance)
-        quat = sim_api.getPathInterpolatedConfig(path_quaternions, path_lengths, total_length * relative_distance, None, [2, 2, 2, 2])
+        pos = sim_api.getPathInterpolatedConfig(
+            path_positions, path_lengths, total_length * relative_distance
+        )
+        quat = sim_api.getPathInterpolatedConfig(
+            path_quaternions,
+            path_lengths,
+            total_length * relative_distance,
+            None,
+            [2, 2, 2, 2],
+        )
         # TODO: Hack for now; convert quat -> euler using library
         from pyrep.objects import Dummy
+
         d = Dummy.create()
         d.set_position(pos, self)
         d.set_quaternion(quat, self)

@@ -5,6 +5,7 @@ from ctypes import c_void_p, c_char_p, POINTER
 from ctypes import CFUNCTYPE
 
 from pyrep.errors import PyRepError
+import platform
 
 
 c_void = None
@@ -16,25 +17,27 @@ c_ubyte_p = POINTER(c_ubyte)
 c_callbackfn_p = CFUNCTYPE(c_int, c_int)
 
 
-if 'COPPELIASIM_ROOT' not in os.environ:
-    raise PyRepError(
-        'COPPELIASIM_ROOT not defined. See installation instructions.')
-coppeliasim_root = os.environ['COPPELIASIM_ROOT']
+if "COPPELIASIM_ROOT" not in os.environ:
+    raise PyRepError("COPPELIASIM_ROOT not defined. See installation instructions.")
+coppeliasim_root = os.environ["COPPELIASIM_ROOT"]
 coppeliasim_library = os.path.join(coppeliasim_root, "libcoppeliaSim.so")
 if not os.path.isfile(coppeliasim_library):
     raise PyRepError(
-        'COPPELIASIM_ROOT was not a correct path. '
-        'See installation instructions')
+        "COPPELIASIM_ROOT was not a correct path. " "See installation instructions"
+    )
 
 appDir = os.path.dirname(coppeliasim_library)
-os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = appDir
+os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = appDir
 
-import platform
+
 plat = platform.system()
-if plat == 'Darwin':
-    fd = os.path.normpath(appDir + '/../Frameworks')
-    os.environ['DYLD_LIBRARY_PATH'] = fd + ':' + os.environ.get('DYLD_LIBRARY_PATH', '')
-    print(f'If next step fails, do: export DYLD_LIBRARY_PATH={fd}:$DYLD_LIBRARY_PATH and relaunch.')
+if plat == "Darwin":
+    fd = os.path.normpath(appDir + "/../Frameworks")
+    os.environ["DYLD_LIBRARY_PATH"] = fd + ":" + os.environ.get("DYLD_LIBRARY_PATH", "")
+    print(
+        f"If next step fails, do: export DYLD_LIBRARY_PATH={fd}:"
+        "$DYLD_LIBRARY_PATH and relaunch."
+    )
 
 coppeliaSimLib = cdll.LoadLibrary(coppeliasim_library)
 coppeliaSimLib.simRunGui.argtypes = [c_int]
@@ -123,13 +126,13 @@ coppeliaSimLib.simDebugStack.restype = c_int
 __all__ = []
 
 for name in dir(coppeliaSimLib):
-    if name.startswith('sim'):
+    if name.startswith("sim"):
         f = getattr(coppeliaSimLib, name)
         if callable(f):
             globals()[name] = f
             __all__.append(name)
 
-const = type('', (), {})
+const = type("", (), {})
 
 const.sim_stackitem_null = 0
 const.sim_stackitem_double = 1
@@ -153,7 +156,7 @@ const.sim_scripttype_addonscript = 2
 const.sim_scripttype_customizationscript = 6
 const.sim_scripttype_sandboxscript = 8
 
-const.sim_gui_all = 0x0ffff
+const.sim_gui_all = 0x0FFFF
 const.sim_gui_headless = 0x10000
 
 const.sim_stringparam_app_arg1 = 2
@@ -165,7 +168,7 @@ const.sim_stringparam_dlgverbosity = 123
 const.sim_stringparam_startupscriptstring = 125
 
 for name in dir(const):
-    if name.startswith('sim'):
+    if name.startswith("sim"):
         f = getattr(const, name)
         globals()[name] = f
         __all__.append(name)

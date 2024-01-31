@@ -13,15 +13,13 @@ from pyrep.robots.arms.panda import Panda
 from pyrep.objects.shape import Shape
 import numpy as np
 
-SCENE_FILE = join(dirname(abspath(__file__)),
-                  'scene_reinforcement_learning_env.ttt')
+SCENE_FILE = join(dirname(abspath(__file__)), "scene_reinforcement_learning_env.ttt")
 POS_MIN, POS_MAX = [0.8, -0.2, 1.0], [1.0, 0.2, 1.4]
 EPISODES = 5
 EPISODE_LENGTH = 200
 
 
 class ReacherEnv(object):
-
     def __init__(self):
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
@@ -29,15 +27,19 @@ class ReacherEnv(object):
         self.agent = Panda()
         self.agent.set_control_loop_enabled(False)
         self.agent.set_motor_locked_at_zero_velocity(True)
-        self.target = Shape('target')
+        self.target = Shape("target")
         self.agent_ee_tip = self.agent.get_tip()
         self.initial_joint_positions = self.agent.get_joint_positions()
 
     def _get_state(self):
         # Return state containing arm joint angles/velocities & target position
-        return np.concatenate([self.agent.get_joint_positions(),
-                               self.agent.get_joint_velocities(),
-                               self.target.get_position()])
+        return np.concatenate(
+            [
+                self.agent.get_joint_positions(),
+                self.agent.get_joint_velocities(),
+                self.target.get_position(),
+            ]
+        )
 
     def reset(self):
         # Get a random position within a cuboid and set the target position
@@ -61,7 +63,6 @@ class ReacherEnv(object):
 
 
 class Agent(object):
-
     def act(self, state):
         del state
         return list(np.random.uniform(-1.0, 1.0, size=(7,)))
@@ -76,8 +77,7 @@ agent = Agent()
 replay_buffer = []
 
 for e in range(EPISODES):
-
-    print('Starting episode %d' % e)
+    print("Starting episode %d" % e)
     state = env.reset()
     for i in range(EPISODE_LENGTH):
         action = agent.act(state)
@@ -86,5 +86,5 @@ for e in range(EPISODES):
         state = next_state
         agent.learn(replay_buffer)
 
-print('Done!')
+print("Done!")
 env.shutdown()

@@ -1,20 +1,17 @@
 from typing import Tuple, List
-from pyrep.backend import sim
 from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 
 
 class ForceSensor(Object):
-    """An object able to measure forces and torques that are applied to it.
-    """
+    """An object able to measure forces and torques that are applied to it."""
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.FORCE_SENSOR
 
     @classmethod
-    def create(cls, sensor_size=0.01) -> 'ForceSensor':
-        options = 0  # force and torque threshold are disabled
+    def create(cls, sensor_size=0.01) -> "ForceSensor":
         intParams = [0, 0, 0, 0, 0]
         floatParams = [sensor_size, 0, 0, 0, 0]
         sim_api = SimBackend().sim_api

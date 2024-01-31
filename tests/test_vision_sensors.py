@@ -5,11 +5,10 @@ from pyrep.const import RenderMode, PerspectiveMode
 
 
 class TestVisionSensors(TestCore):
-
     def setUp(self):
         super().setUp()
         [self.pyrep.step() for _ in range(10)]
-        self.cam = VisionSensor('cam0')
+        self.cam = VisionSensor("cam0")
 
     def test_handle_explicitly(self):
         cam = VisionSensor.create((640, 480), explicit_handling=True)
@@ -49,12 +48,14 @@ class TestVisionSensors(TestCore):
         self.assertFalse(img.min() == img.max() == 1.0)
 
     def test_create(self):
-        cam = VisionSensor.create([640, 480],
-                                  perspective_mode=True,
-                                  view_angle=35.0,
-                                  near_clipping_plane=0.25,
-                                  far_clipping_plane=5.0,
-                                  render_mode=RenderMode.OPENGL3)
+        cam = VisionSensor.create(
+            [640, 480],
+            perspective_mode=True,
+            view_angle=35.0,
+            near_clipping_plane=0.25,
+            far_clipping_plane=5.0,
+            render_mode=RenderMode.OPENGL3,
+        )
         self.assertEqual(cam.capture_rgb().shape, (480, 640, 3))
         self.assertEqual(cam.get_perspective_mode(), PerspectiveMode.PERSPECTIVE)
         self.assertAlmostEqual(cam.get_perspective_angle(), 35.0, 3)
@@ -70,10 +71,7 @@ class TestVisionSensors(TestCore):
     def test_get_set_perspective_mode(self):
         for perspective_mode in PerspectiveMode:
             self.cam.set_perspective_mode(perspective_mode)
-            self.assertEqual(
-                self.cam.get_perspective_mode(),
-                perspective_mode
-            )
+            self.assertEqual(self.cam.get_perspective_mode(), perspective_mode)
 
     def test_get_set_render_mode(self):
         for render_mode in [RenderMode.OPENGL, RenderMode.OPENGL3]:
@@ -109,5 +107,5 @@ class TestVisionSensors(TestCore):
         self.assertEqual(i.shape, (3, 3))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

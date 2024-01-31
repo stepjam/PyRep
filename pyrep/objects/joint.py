@@ -38,8 +38,9 @@ class Joint(Object):
         """
         return self._sim_api.getJointPosition(self._handle)
 
-    def set_joint_position(self, position: float,
-                           disable_dynamics: bool = False) -> None:
+    def set_joint_position(
+        self, position: float, disable_dynamics: bool = False
+    ) -> None:
         """Sets the intrinsic position of the joint.
 
         :param disable_dynamics: If True, then the position can be set even
@@ -149,7 +150,8 @@ class Joint(Object):
             on the joint-type).
         """
         return self._sim_api.getObjectFloatParam(
-            self._handle, simc.sim_jointfloatparam_velocity)
+            self._handle, simc.sim_jointfloatparam_velocity
+        )
 
     def get_joint_interval(self) -> Tuple[bool, List[float]]:
         """Retrieves the interval parameters of a joint.
@@ -184,7 +186,8 @@ class Joint(Object):
         :return: The upper velocity limit.
         """
         return self._sim_api.getObjectFloatParam(
-            self._handle, simc.sim_jointfloatparam_upper_limit)
+            self._handle, simc.sim_jointfloatparam_upper_limit
+        )
 
     def is_control_loop_enabled(self) -> bool:
         """Gets whether the control loop is enable.
@@ -192,7 +195,8 @@ class Joint(Object):
         :return: True if the control loop is enabled.
         """
         return self._sim_api.getObjectInt32Param(
-            self._handle, simc.sim_jointintparam_ctrl_enabled)
+            self._handle, simc.sim_jointintparam_ctrl_enabled
+        )
 
     def set_control_loop_enabled(self, value: bool) -> None:
         """Sets whether the control loop is enable.
@@ -200,7 +204,8 @@ class Joint(Object):
         :param value: The new value for the control loop state.
         """
         self._sim_api.setObjectInt32Param(
-            self._handle, simc.sim_jointintparam_ctrl_enabled, int(value))
+            self._handle, simc.sim_jointintparam_ctrl_enabled, int(value)
+        )
 
     def is_motor_enabled(self) -> bool:
         """Gets whether the motor is enable.
@@ -208,7 +213,8 @@ class Joint(Object):
         :return: True if the motor is enabled.
         """
         return self._sim_api.getObjectInt32Param(
-            self._handle, simc.sim_jointintparam_motor_enabled)
+            self._handle, simc.sim_jointintparam_motor_enabled
+        )
 
     def set_motor_enabled(self, value: bool) -> None:
         """Sets whether the motor is enable.
@@ -216,7 +222,8 @@ class Joint(Object):
         :param value: The new value for the motor state.
         """
         self._sim_api.setObjectInt32Param(
-            self._handle, simc.sim_jointintparam_motor_enabled, int(value))
+            self._handle, simc.sim_jointintparam_motor_enabled, int(value)
+        )
 
     def is_motor_locked_at_zero_velocity(self) -> bool:
         """Gets if the motor is locked when target velocity is zero.
@@ -227,7 +234,8 @@ class Joint(Object):
         :return: If the motor will be locked at zero velocity.
         """
         return self._sim_api.getObjectInt32Param(
-            self._handle, simc.sim_jointintparam_velocity_lock)
+            self._handle, simc.sim_jointintparam_velocity_lock
+        )
 
     def set_motor_locked_at_zero_velocity(self, value: bool) -> None:
         """Set if the motor is locked when target velocity is zero.
@@ -238,7 +246,8 @@ class Joint(Object):
         :param value: If the motor should be locked at zero velocity.
         """
         self._sim_api.setObjectInt32Param(
-            self._handle, simc.sim_jointintparam_velocity_lock, int(value))
+            self._handle, simc.sim_jointintparam_velocity_lock, int(value)
+        )
 
     def get_joint_mode(self) -> JointMode:
         """Retrieves the operation mode of the joint.

@@ -6,14 +6,13 @@ from pyrep.objects.force_sensor import ForceSensor
 
 
 class SuctionCup(Shape):
-    """Represents all suction cups.
-    """
+    """Represents all suction cups."""
 
     def __init__(self, count: int, name: str, base_name: str = None):
-        suffix = '' if count == 0 else '#%d' % (count - 1)
+        suffix = "" if count == 0 else "#%d" % (count - 1)
         super().__init__(name + suffix if base_name is None else base_name + suffix)
-        self._proximity_sensor = ProximitySensor('%s_sensor%s' % (name, suffix))
-        self._attach_point = ForceSensor('%s_connection%s' % (name, suffix))
+        self._proximity_sensor = ProximitySensor("%s_sensor%s" % (name, suffix))
+        self._attach_point = ForceSensor("%s_connection%s" % (name, suffix))
         self._old_parents: List[Object] = []
         self._grasped_objects: List[Object] = []
 
@@ -41,8 +40,7 @@ class SuctionCup(Shape):
         Note: The does not actuate the gripper, but instead simply detaches any
         grasped objects.
         """
-        for grasped_obj, old_parent in zip(
-                self._grasped_objects, self._old_parents):
+        for grasped_obj, old_parent in zip(self._grasped_objects, self._old_parents):
             # Check if the object still exists
             if grasped_obj.still_exists():
                 grasped_obj.set_parent(old_parent, keep_in_place=True)

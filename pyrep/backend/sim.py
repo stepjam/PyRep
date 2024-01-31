@@ -6,13 +6,17 @@ from ctypes import c_char_p
 
 from pyrep.backend import lib
 from pyrep.backend import bridge
-from pyrep.backend.sim_const import sim_gui_all, sim_gui_headless, \
-    sim_stringparam_verbosity, sim_stringparam_statusbarverbosity
+from pyrep.backend.sim_const import (
+    sim_gui_all,
+    sim_gui_headless,
+    sim_stringparam_verbosity,
+    sim_stringparam_statusbarverbosity,
+)
 
 sim_api = None
 
-class SimBackend:
 
+class SimBackend:
     _instance = None
 
     def __new__(cls):
@@ -43,24 +47,28 @@ class SimBackend:
         return lib
 
     def simInitialize(self, appDir: str, verbosity: str):
-        lib.simSetStringParam(sim_stringparam_verbosity, c_char_p(verbosity.encode('utf-8')))
-        lib.simSetStringParam(sim_stringparam_statusbarverbosity, c_char_p(verbosity.encode('utf-8')))
-        lib.simInitialize(c_char_p(appDir.encode('utf-8')), 0)
+        lib.simSetStringParam(
+            sim_stringparam_verbosity, c_char_p(verbosity.encode("utf-8"))
+        )
+        lib.simSetStringParam(
+            sim_stringparam_statusbarverbosity, c_char_p(verbosity.encode("utf-8"))
+        )
+        lib.simInitialize(c_char_p(appDir.encode("utf-8")), 0)
         bridge.load()
         # fetch CoppeliaSim API sim-namespace functions:
-        self._sim = bridge.require('sim')
-        self._sim_ik = bridge.require('simIK')
-        self._sim_ompl = bridge.require('simOMPL')
-        self._sim_vision = bridge.require('simVision')
+        self._sim = bridge.require("sim")
+        self._sim_ik = bridge.require("simIK")
+        self._sim_ompl = bridge.require("simOMPL")
+        self._sim_vision = bridge.require("simVision")
         v = self._sim.getInt32Param(self._sim.intparam_program_full_version)
-        self._coppelia_version = '.'.join(str(v // 100 ** (3 - i) % 100) for i in range(4))
+        self._coppelia_version = ".".join(
+            str(v // 100 ** (3 - i) % 100) for i in range(4)
+        )
         return self._sim
 
     def create_ui_thread(self, headless: bool) -> threading.Thread:
         options = sim_gui_headless if headless else sim_gui_all
-        ui_thread = threading.Thread(
-            target=lib.simRunGui,
-            args=(options,))
+        ui_thread = threading.Thread(target=lib.simRunGui, args=(options,))
         ui_thread.daemon = True
         return ui_thread
 

@@ -1,5 +1,7 @@
-__version__ = '4.6.0'
+from pyrep.pyrep import PyRep
+
+__version__ = "4.6.0"
+
+__all__ = ["PyRep"]
 
 testing = False
-
-from .pyrep import PyRep

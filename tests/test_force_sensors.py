@@ -4,10 +4,9 @@ from pyrep.objects.force_sensor import ForceSensor
 
 
 class TestForceSensors(TestCore):
-
     def setUp(self):
         super().setUp()
-        self.sensor = ForceSensor('force_sensor')
+        self.sensor = ForceSensor("force_sensor")
 
     def test_read(self):
         force_vector, torque_vector = self.sensor.read()
@@ -19,5 +18,5 @@ class TestForceSensors(TestCore):
         sensor.remove()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

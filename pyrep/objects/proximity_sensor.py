@@ -1,6 +1,5 @@
 from math import sqrt
 
-from pyrep.backend import sim
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType
 
@@ -22,7 +21,9 @@ class ProximitySensor(Object):
 
         :return: Float distance to the first detected object
         """
-        state, dist, points, obj, norm_vec = self._sim_api.readProximitySensor(self._handle)
+        state, dist, points, obj, norm_vec = self._sim_api.readProximitySensor(
+            self._handle
+        )
         if state:
             return sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
         return -1.0
@@ -34,7 +35,8 @@ class ProximitySensor(Object):
         :return: Bool indicating if the object was detected.
         """
         res, dist, point, obj, norm_vec = self._sim_api.checkProximitySensor(
-            self._handle, obj.get_handle())
+            self._handle, obj.get_handle()
+        )
         return res == 1
 
 

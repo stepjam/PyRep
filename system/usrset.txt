@@ -186,7 +186,7 @@ useExternalLuaLibrary = false // if true, will call all Lua functions via the si
 additionalLuaPath =  // e.g. d:/myLuaRoutines
 desktopRecordingIndex = 0
 desktopRecordingWidth = -1 // -1=default.
-externalScriptEditor = 
+externalScriptEditor =
 xmlExportSplitSize = 0 // 0=generate a single file.
 xmlExportKnownFormats = true // true=if several files are generated, mesh and image files are saved under known formats.
 

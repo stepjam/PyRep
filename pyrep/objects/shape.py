@@ -1,6 +1,5 @@
 from typing import List, Tuple
 import numpy as np
-from pyrep.backend import sim
 from pyrep.backend.sim import SimBackend
 from pyrep.objects.object import Object, object_type_to_class
 from pyrep.const import ObjectType, PrimitiveShape, TextureMappingMode
@@ -11,32 +10,40 @@ from pyrep.backend import sim_const as simc
 
 
 SShapeVizInfo = collections.namedtuple(
-    'SShapeVizInfo',
+    "SShapeVizInfo",
     [
-        'vertices',
-        'indices',
-        'normals',
-        'shading_angle',
-        'colors',
-        'texture',
-        'texture_id',
-        'texture_coords',
-        'texture_apply_mode',
-        'texture_options',
+        "vertices",
+        "indices",
+        "normals",
+        "shading_angle",
+        "colors",
+        "texture",
+        "texture_id",
+        "texture_coords",
+        "texture_apply_mode",
+        "texture_options",
     ],
 )
 
 
 class Shape(Object):
-    """Shapes are rigid mesh objects that are composed of triangular faces.
-    """
+    """Shapes are rigid mesh objects that are composed of triangular faces."""
 
     @staticmethod
-    def create(type: PrimitiveShape, size: List[float],
-               mass=1., backface_culling=False, visible_edges=False,
-               smooth=False, respondable=True,
-               static=False, renderable=True, position=None,
-               orientation=None, color=None) -> 'Shape':
+    def create(
+        type: PrimitiveShape,
+        size: List[float],
+        mass=1.0,
+        backface_culling=False,
+        visible_edges=False,
+        smooth=False,
+        respondable=True,
+        static=False,
+        renderable=True,
+        position=None,
+        orientation=None,
+        color=None,
+    ) -> "Shape":
         """Creates a primitive shape in the scene.
 
         :param type: The type of primitive to shape. One of:
@@ -81,10 +88,16 @@ class Shape(Object):
         return ob
 
     @classmethod
-    def import_shape(cls, filename: str, scaling_factor=1.0,
-                     keep_identical_vertices=False, ignore_color=False,
-                     ignore_texture=False, reorient_bounding_box=False,
-                     ignore_up_vector=False) -> 'Shape':
+    def import_shape(
+        cls,
+        filename: str,
+        scaling_factor=1.0,
+        keep_identical_vertices=False,
+        ignore_color=False,
+        ignore_texture=False,
+        reorient_bounding_box=False,
+        ignore_up_vector=False,
+    ) -> "Shape":
         """Imports a shape with visuals from a file.
 
         :param filename: The location of the file to import.
@@ -98,7 +111,7 @@ class Shape(Object):
         :return: The Shape object.
         """
         if not os.path.isfile(filename):
-            raise ValueError('Filename does not exist: ' + filename)
+            raise ValueError("Filename does not exist: " + filename)
 
         options = 0
         if keep_identical_vertices:
@@ -116,9 +129,12 @@ class Shape(Object):
         return cls(handle)
 
     @staticmethod
-    def import_mesh(filename: str, scaling_factor=1.0,
-                    keep_identical_vertices=False,
-                    ignore_up_vector=False) -> 'Shape':
+    def import_mesh(
+        filename: str,
+        scaling_factor=1.0,
+        keep_identical_vertices=False,
+        ignore_up_vector=False,
+    ) -> "Shape":
         """Imports a mesh from a file.
 
         :param filename: The location of the file to import.
@@ -129,7 +145,7 @@ class Shape(Object):
         """
 
         if not os.path.isfile(filename):
-            raise ValueError('Filename does not exist: ' + filename)
+            raise ValueError("Filename does not exist: " + filename)
 
         options = 0
         if keep_identical_vertices:
@@ -140,8 +156,7 @@ class Shape(Object):
         # fileformat is 0 as it is automatically detected.
         # identicalVerticeTolerance has no effect. Setting to zero.
         sim_api = SimBackend().sim_api
-        verticies, indices = sim_api.importMesh(
-            0, filename, options, 0, scaling_factor)
+        verticies, indices = sim_api.importMesh(0, filename, options, 0, scaling_factor)
         mesh_objects = []
         for v, i in zip(verticies, indices):
             mesh_ob = Shape.create_mesh(v, i)
@@ -154,9 +169,13 @@ class Shape(Object):
         return grouped
 
     @staticmethod
-    def create_mesh(vertices: List[float], indices: List[int],
-                    shading_angle=None, backface_culling=False,
-                    visible_edges=False) -> 'Shape':
+    def create_mesh(
+        vertices: List[float],
+        indices: List[int],
+        shading_angle=None,
+        backface_culling=False,
+        visible_edges=False,
+    ) -> "Shape":
         """Creates a mesh shape.
 
         :param vertices: A list of vertices.
@@ -174,8 +193,7 @@ class Shape(Object):
         if shading_angle is None:
             shading_angle = 20.0 * 3.1415 / 180.0
         sim_api = SimBackend().sim_api
-        handle = sim_api.createMeshShape(
-            options, shading_angle, vertices, indices)
+        handle = sim_api.createMeshShape(options, shading_angle, vertices, indices)
         return Shape(handle)
 
     def _get_requested_type(self) -> ObjectType:
@@ -187,7 +205,8 @@ class Shape(Object):
         :return: If the shape is respondable.
         """
         return self._sim_api.getObjectInt32Param(
-            self._handle, simc.sim_shapeintparam_respondable)
+            self._handle, simc.sim_shapeintparam_respondable
+        )
 
     def set_respondable(self, value: bool) -> None:
         """Set whether the shape is respondable or not.
@@ -195,7 +214,8 @@ class Shape(Object):
         :param value: The new value of the respondable state of the shape.
         """
         self._sim_api.setObjectInt32Param(
-            self._handle, simc.sim_shapeintparam_respondable, int(value))
+            self._handle, simc.sim_shapeintparam_respondable, int(value)
+        )
         self.reset_dynamic_object()
 
     def is_dynamic(self) -> bool:
@@ -204,7 +224,8 @@ class Shape(Object):
         :return: If the shape is dynamic.
         """
         return not self._sim_api.getObjectInt32Param(
-            self._handle, simc.sim_shapeintparam_static)
+            self._handle, simc.sim_shapeintparam_static
+        )
 
     def set_dynamic(self, value: bool) -> None:
         """Set whether the shape is dynamic or not.
@@ -212,7 +233,8 @@ class Shape(Object):
         :param value: The new value of the dynamic state of the shape.
         """
         self._sim_api.setObjectInt32Param(
-            self._handle, simc.sim_shapeintparam_static, int(not value))
+            self._handle, simc.sim_shapeintparam_static, int(not value)
+        )
         self.reset_dynamic_object()
 
     def get_color(self) -> List[float]:
@@ -221,7 +243,8 @@ class Shape(Object):
         :return: The r, g, b values of the shape.
         """
         result, data = self._sim_api.getShapeColor(
-            self._handle, "", simc.sim_colorcomponent_ambient_diffuse)
+            self._handle, "", simc.sim_colorcomponent_ambient_diffuse
+        )
         assert result == 1
         return data
 
@@ -231,7 +254,8 @@ class Shape(Object):
         :param color: The r, g, b values of the shape.
         """
         self._sim_api.setShapeColor(
-            self._handle, "", simc.sim_colorcomponent_ambient_diffuse, color)
+            self._handle, "", simc.sim_colorcomponent_ambient_diffuse, color
+        )
 
     def get_transparency(self) -> float:
         """Sets the transparency of the shape.
@@ -239,7 +263,8 @@ class Shape(Object):
         :return: The transparency values of the shape.
         """
         result, data = self._sim_api.getShapeColor(
-            self._handle, "", simc.sim_colorcomponent_transparency)
+            self._handle, "", simc.sim_colorcomponent_transparency
+        )
         assert result == 1
         return data[0]
 
@@ -249,17 +274,19 @@ class Shape(Object):
         :param value: Value between 0 and 1.
         """
         if 0 > value > 1:
-            raise ValueError('Value must be between 0 and 1.')
+            raise ValueError("Value must be between 0 and 1.")
         self._sim_api.setShapeColor(
-            self._handle, "", simc.sim_colorcomponent_transparency, [value])
+            self._handle, "", simc.sim_colorcomponent_transparency, [value]
+        )
 
     def get_mass(self) -> float:
         """Gets the mass of the shape.
 
         :return: A float representing the mass.
         """
-        return self._sim_api.getObjectFloatParam(self._handle,
-                                              simc.sim_shapefloatparam_mass)
+        return self._sim_api.getObjectFloatParam(
+            self._handle, simc.sim_shapefloatparam_mass
+        )
 
     def set_mass(self, mass: float) -> None:
         """Sets the mass of the shape.
@@ -267,7 +294,8 @@ class Shape(Object):
         :param mass: The new mass value.
         """
         self._sim_api.setObjectFloatParam(
-            self._handle, simc.sim_shapefloatparam_mass, mass)
+            self._handle, simc.sim_shapefloatparam_mass, mass
+        )
 
     def compute_mass_and_inertia(self, density: float) -> None:
         """Computes and applies the mass and inertia properties for a
@@ -278,8 +306,8 @@ class Shape(Object):
         ret = self._sim_api.computeMassAndInertia(self._handle, density)
         if ret == 0:
             raise ValueError(
-                'The shape must be a convex shape (or convex compound shape)')
-
+                "The shape must be a convex shape (or convex compound shape)"
+            )
 
     def get_mesh_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Retrieves a shape's mesh information.
@@ -292,38 +320,54 @@ class Shape(Object):
         normals = np.array(normals, dtype=np.float64).reshape(-1, 3)
         return vertices, indices, normals
 
-    def decimate_mesh(self, percentage: float) -> 'Shape':
+    def decimate_mesh(self, percentage: float) -> "Shape":
         """Retrieves a shape's mesh information.
 
         :param percentage: The percentage of the desired decimation (0.1-0.9).
         :return: A new shape that has a decimated mesh.
         """
         if percentage < 0.1 or percentage > 0.9:
-            raise ValueError('percentage param must be between 0.1 and 0.9.')
+            raise ValueError("percentage param must be between 0.1 and 0.9.")
         # verts, inds, _ = self.get_mesh_data()
         verts, inds, _ = self._sim_api.getShapeMesh(self._handle)
         new_verts, new_inds = self._sim_api.getDecimatedMesh(
             # verts.reshape(-1).tolist(), inds.reshape(-1).tolist(), percentage)
-            verts, inds, percentage)
+            verts,
+            inds,
+            percentage,
+        )
         s = Shape.create_mesh(new_verts, new_inds)
         s.set_matrix(self.get_matrix())
         return s
 
-    def get_convex_decomposition(self, morph=False, same=False, use_vhacd=False,
-                                 individual_meshes=False,
-                                 hacd_extra_points=True, hacd_face_points=True,
-                                 hacd_min_clusters=1, hacd_tri_target=500,
-                                 hacd_max_vertex=200, hacd_max_iter=4,
-                                 hacd_max_concavity=100, hacd_max_dist=30,
-                                 hacd_cluster_thresh=0.25,
-                                 vhacd_pca=False, vhacd_tetrahedron=False,
-                                 vhacd_res=100000, vhacd_depth=20,
-                                 vhacd_plane_downsample=4,
-                                 vhacd_hull_downsample=4,
-                                 vhacd_max_vertex=64, vhacd_concavity=0.0025,
-                                 vhacd_alpha=0.05, vhacd_beta=0.05,
-                                 vhacd_gamma=0.00125, vhacd_min_vol=0.0001
-                                 ) -> 'Shape':
+    def get_convex_decomposition(
+        self,
+        morph=False,
+        same=False,
+        use_vhacd=False,
+        individual_meshes=False,
+        hacd_extra_points=True,
+        hacd_face_points=True,
+        hacd_min_clusters=1,
+        hacd_tri_target=500,
+        hacd_max_vertex=200,
+        hacd_max_iter=4,
+        hacd_max_concavity=100,
+        hacd_max_dist=30,
+        hacd_cluster_thresh=0.25,
+        vhacd_pca=False,
+        vhacd_tetrahedron=False,
+        vhacd_res=100000,
+        vhacd_depth=20,
+        vhacd_plane_downsample=4,
+        vhacd_hull_downsample=4,
+        vhacd_max_vertex=64,
+        vhacd_concavity=0.0025,
+        vhacd_alpha=0.05,
+        vhacd_beta=0.05,
+        vhacd_gamma=0.00125,
+        vhacd_min_vol=0.0001,
+    ) -> "Shape":
         """
         Compute the convex decomposition of the shape using HACD or V-HACD
          algorithms
@@ -384,33 +428,36 @@ class Shape(Object):
             options |= 512
 
         int_params = [
-            hacd_min_clusters,          # [0]
-            hacd_tri_target,            # [1]
-            hacd_max_vertex,            # [2]
-            hacd_max_iter,              # [3]
-            0,                          # [4]
-            vhacd_res,                  # [5]
-            vhacd_depth,                # [6]
-            vhacd_plane_downsample,     # [7]
-            vhacd_hull_downsample,      # [8]
-            vhacd_max_vertex            # [9]
+            hacd_min_clusters,  # [0]
+            hacd_tri_target,  # [1]
+            hacd_max_vertex,  # [2]
+            hacd_max_iter,  # [3]
+            0,  # [4]
+            vhacd_res,  # [5]
+            vhacd_depth,  # [6]
+            vhacd_plane_downsample,  # [7]
+            vhacd_hull_downsample,  # [8]
+            vhacd_max_vertex,  # [9]
         ]
 
         float_params = [
-            hacd_max_concavity,         # [0]
-            hacd_max_dist,              # [1]
-            hacd_cluster_thresh,        # [2]
-            0.0,                        # [3]
-            0.0,                        # [4]
-            vhacd_concavity,            # [5]
-            vhacd_alpha,                # [6]
-            vhacd_beta,                 # [7]
-            vhacd_gamma,                # [8]
-            vhacd_min_vol               # [9]
+            hacd_max_concavity,  # [0]
+            hacd_max_dist,  # [1]
+            hacd_cluster_thresh,  # [2]
+            0.0,  # [3]
+            0.0,  # [4]
+            vhacd_concavity,  # [5]
+            vhacd_alpha,  # [6]
+            vhacd_beta,  # [7]
+            vhacd_gamma,  # [8]
+            vhacd_min_vol,  # [9]
         ]
 
-        return Shape(self._sim_api.convexDecompose(self.get_handle(), options,
-                                            int_params, float_params))
+        return Shape(
+            self._sim_api.convexDecompose(
+                self.get_handle(), options, int_params, float_params
+            )
+        )
 
     def get_texture(self):
         """Retrieves the texture from the shape.
@@ -419,15 +466,21 @@ class Shape(Object):
         return Texture(self._sim_api.getShapeTextureId(self.get_handle()))
 
     def remove_texture(self):
-        """Removes the texture from the shape.
-        """
+        """Removes the texture from the shape."""
         self._sim_api.setShapeTexture(self.get_handle(), -1, 0, 0, [1, 1], None, None)
 
-    def set_texture(self, texture: Texture, mapping_mode: TextureMappingMode,
-                    interpolate=True, decal_mode=False, repeat_along_u=False,
-                    repeat_along_v=False, uv_scaling=[1., 1.],
-                    position: List[float] = None,
-                    orientation: List[float] = None):
+    def set_texture(
+        self,
+        texture: Texture,
+        mapping_mode: TextureMappingMode,
+        interpolate=True,
+        decal_mode=False,
+        repeat_along_u=False,
+        repeat_along_v=False,
+        uv_scaling=[1.0, 1.0],
+        position: List[float] = None,
+        orientation: List[float] = None,
+    ):
         """Applies a texture to a shape
 
         :param texture: The texture to add.
@@ -458,10 +511,16 @@ class Shape(Object):
         if repeat_along_v:
             options |= 8
         self._sim_api.setShapeTexture(
-            self.get_handle(), texture.get_texture_id(), mapping_mode.value,
-            options, list(uv_scaling), position, orientation)
+            self.get_handle(),
+            texture.get_texture_id(),
+            mapping_mode.value,
+            options,
+            list(uv_scaling),
+            position,
+            orientation,
+        )
 
-    def ungroup(self) -> List['Shape']:
+    def ungroup(self) -> List["Shape"]:
         """Ungroups a compound shape into several simple shapes.
 
         :return: A list of shapes.
@@ -483,9 +542,11 @@ class Shape(Object):
         normals = np.array(info["normals"], dtype=float).reshape(-1, 3)
         colors = np.array(info["colors"], dtype=float)
         texture = np.frombuffer(info["texture"]["texture"], dtype=np.uint8).reshape(
-            info["texture"]["resolution"][1], info["texture"]["resolution"][0], 4)
+            info["texture"]["resolution"][1], info["texture"]["resolution"][0], 4
+        )
         textureCoords = np.array(info["texture"]["coordinates"], dtype=float).reshape(
-            -1, 2)
+            -1, 2
+        )
 
         res = SShapeVizInfo(
             vertices=vertices,
@@ -505,8 +566,9 @@ class Shape(Object):
         relto = -1 if relative_to is None else relative_to.get_handle()
         self._sim_api.reorientShapeBoundingBox(self._handle, relto)
 
-    def add_force(self, position: np.ndarray, force: np.ndarray,
-                  reset_force_torque: bool = False) -> None:
+    def add_force(
+        self, position: np.ndarray, force: np.ndarray, reset_force_torque: bool = False
+    ) -> None:
         """
         Adds a non-central force to a shape object that is dynamically enabled.
         Added forces are cumulative.
@@ -515,13 +577,20 @@ class Shape(Object):
         :param force: The force (in relative coordinates) to add.
         :param reset_force_torque: Clears the accumulated force and torque.
         """
-        h = (self._handle | simc.sim_handleflag_resetforcetorque
-             if reset_force_torque else self._handle)
+        h = (
+            self._handle | simc.sim_handleflag_resetforcetorque
+            if reset_force_torque
+            else self._handle
+        )
         self._sim_api.addForce(h, list(position), list(force))
 
-    def add_force_and_torque(self, force: np.ndarray, torque: np.ndarray,
-                             reset_force: bool = False,
-                             reset_torque: bool = False) -> None:
+    def add_force_and_torque(
+        self,
+        force: np.ndarray,
+        torque: np.ndarray,
+        reset_force: bool = False,
+        reset_torque: bool = False,
+    ) -> None:
         """
         Adds a force and/or torque to a shape object that is dynamically
         enabled. Forces are applied at the center of mass.
@@ -537,9 +606,11 @@ class Shape(Object):
             h |= simc.sim_handleflag_resetforce
         if reset_torque:
             h |= simc.sim_handleflag_resettorque
-        self._sim_api.addForceAndTorque(h,
-                                 None if force is None else list(force),
-                                 None if torque is None else list(torque))
+        self._sim_api.addForceAndTorque(
+            h,
+            None if force is None else list(force),
+            None if torque is None else list(torque),
+        )
 
 
 object_type_to_class[ObjectType.SHAPE] = Shape

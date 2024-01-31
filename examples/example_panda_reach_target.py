@@ -14,24 +14,26 @@ import numpy as np
 import math
 
 LOOPS = 10
-SCENE_FILE = join(dirname(abspath(__file__)), 'scene_panda_reach_target.ttt')
+SCENE_FILE = join(dirname(abspath(__file__)), "scene_panda_reach_target.ttt")
 pr = PyRep()
 pr.launch(SCENE_FILE, headless=False)
 pr.start()
 agent = Panda()
 
 # We could have made this target in the scene, but lets create one dynamically
-target = Shape.create(type=PrimitiveShape.SPHERE,
-                      size=[0.05, 0.05, 0.05],
-                      color=[1.0, 0.1, 0.1],
-                      static=True, respondable=False)
+target = Shape.create(
+    type=PrimitiveShape.SPHERE,
+    size=[0.05, 0.05, 0.05],
+    color=[1.0, 0.1, 0.1],
+    static=True,
+    respondable=False,
+)
 
 position_min, position_max = [0.8, -0.2, 1.0], [1.0, 0.2, 1.4]
 
 starting_joint_positions = agent.get_joint_positions()
 
 for i in range(LOOPS):
-
     # Reset the arm at the start of each 'episode'
     agent.set_joint_positions(starting_joint_positions)
 
@@ -41,10 +43,9 @@ for i in range(LOOPS):
 
     # Get a path to the target (rotate so z points down)
     try:
-        path = agent.get_path(
-            position=pos, euler=[0, math.radians(180), 0])
-    except ConfigurationPathError as e:
-        print('Could not find path')
+        path = agent.get_path(position=pos, euler=[0, math.radians(180), 0])
+    except ConfigurationPathError:
+        print("Could not find path")
         continue
 
     # Step the simulation and advance the agent along the path
@@ -53,7 +54,7 @@ for i in range(LOOPS):
         done = path.step()
         pr.step()
 
-    print('Reached target %d!' % i)
+    print("Reached target %d!" % i)
 
 pr.stop()
 pr.shutdown()

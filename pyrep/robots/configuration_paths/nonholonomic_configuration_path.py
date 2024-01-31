@@ -1,5 +1,6 @@
 from pyrep.robots.configuration_paths.mobile_configuration_path import (
-    MobileConfigurationPath)
+    MobileConfigurationPath,
+)
 from math import sqrt
 
 
@@ -25,11 +26,14 @@ class NonHolonomicConfigurationPath(MobileConfigurationPath):
 
         """
         if self._path_done:
-            raise RuntimeError('This path has already been completed. '
-                               'If you want to re-run, then call set_to_start.')
+            raise RuntimeError(
+                "This path has already been completed. "
+                "If you want to re-run, then call set_to_start."
+            )
 
         pos_inter = self._mobile.intermediate_target_base.get_position(
-            relative_to=self._mobile)
+            relative_to=self._mobile
+        )
 
         if len(self._path_points) > 2:  # Non-linear path
             if self.inter_done:

@@ -1,6 +1,5 @@
 class ConfigurationPath(object):
-    """Base class for paths expressed in joint configuration space.
-    """
+    """Base class for paths expressed in joint configuration space."""
 
     def step(self) -> bool:
         raise NotImplementedError()

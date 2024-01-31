@@ -1,9 +1,14 @@
 from pyrep.backend import sim_const as simc
 from pyrep.backend.sim import SimBackend
-from pyrep.robots.configuration_paths.configuration_path import (
-    ConfigurationPath)
+from pyrep.robots.configuration_paths.configuration_path import ConfigurationPath
 import numpy as np
 from typing import List, Optional, Union
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Circular import issue
+    from pyrep.robots.arms.arm import Arm
 
 
 class ArmConfigurationPath(ConfigurationPath):
@@ -18,8 +23,7 @@ class ArmConfigurationPath(ConfigurationPath):
     control systems.
     """
 
-    def __init__(self, arm: 'Arm',  # type: ignore
-                 path_points: Union[List[float], np.ndarray]):
+    def __init__(self, arm: Arm, path_points: Union[List[float], np.ndarray]):
         self._arm = arm
         self._path_points = np.asarray(path_points)
         self._rml_handle: Optional[int] = None
@@ -47,8 +51,10 @@ class ArmConfigurationPath(ConfigurationPath):
         :return: If the end of the trajectory has been reached.
         """
         if self._path_done:
-            raise RuntimeError('This path has already been completed. '
-                               'If you want to re-run, then call set_to_start.')
+            raise RuntimeError(
+                "This path has already been completed. "
+                "If you want to re-run, then call set_to_start."
+            )
         if self._rml_handle is None:
             self._rml_handle = self._get_rml_handle()
         done = self._step_motion() == 1
@@ -56,16 +62,14 @@ class ArmConfigurationPath(ConfigurationPath):
         return done
 
     def set_to_start(self, disable_dynamics=False) -> None:
-        """Sets the arm to the beginning of this path.
-        """
-        start_config = self._path_points[:len(self._arm.joints)]
+        """Sets the arm to the beginning of this path."""
+        start_config = self._path_points[: len(self._arm.joints)]
         self._arm.set_joint_positions(start_config, disable_dynamics=disable_dynamics)
         self._path_done = False
 
     def set_to_end(self, disable_dynamics=False) -> None:
-        """Sets the arm to the end of this path.
-        """
-        final_config = self._path_points[-len(self._arm.joints):]
+        """Sets the arm to the end of this path."""
+        final_config = self._path_points[-len(self._arm.joints) :]
         self._arm.set_joint_positions(final_config, disable_dynamics=disable_dynamics)
 
     def visualize(self) -> None:
@@ -78,16 +82,17 @@ class ArmConfigurationPath(ConfigurationPath):
             raise RuntimeError("Can't visualise a path with no points.")
         tip = self._arm.get_tip()
         self._drawing_handle = self._sim_api.addDrawingObject(
-            simc.sim_drawing_lines, 3, 0, -1, 99999, [1, 0, 1])
+            simc.sim_drawing_lines, 3, 0, -1, 99999, [1, 0, 1]
+        )
         self._sim_api.addDrawingObjectItem(self._drawing_handle, None)
         init_angles = self._arm.get_joint_positions()
-        self._arm.set_joint_positions(
-            self._path_points[0: len(self._arm.joints)])
+        self._arm.set_joint_positions(self._path_points[0 : len(self._arm.joints)])
         prev_point = list(tip.get_position())
 
-        for i in range(len(self._arm.joints), len(self._path_points),
-                       len(self._arm.joints)):
-            points = self._path_points[i:i + len(self._arm.joints)]
+        for i in range(
+            len(self._arm.joints), len(self._path_points), len(self._arm.joints)
+        ):
+            points = self._path_points[i : i + len(self._arm.joints)]
             self._arm.set_joint_positions(points)
             p = list(tip.get_position())
             self._sim_api.addDrawingObjectItem(self._drawing_handle, prev_point + p)
@@ -97,8 +102,7 @@ class ArmConfigurationPath(ConfigurationPath):
         self._arm.set_joint_positions(init_angles)
 
     def clear_visualization(self) -> None:
-        """Clears/removes a visualization of the path in the scene.
-        """
+        """Clears/removes a visualization of the path in the scene."""
         if self._drawing_handle is not None:
             self._sim_api.addDrawingObjectItem(self._drawing_handle, None)
 
@@ -113,35 +117,40 @@ class ArmConfigurationPath(ConfigurationPath):
         max_accel = self._arm.max_acceleration
         max_jerk = self._arm.max_jerk
         lengths = self._get_path_point_lengths()
-        target_pos_vel = [lengths[-1],0]
-        previous_q = self._path_points[0:len(self._arm.joints)]
+        target_pos_vel = [lengths[-1], 0]
+        previous_q = self._path_points[0 : len(self._arm.joints)]
 
         # TODO sim.ruckigPos
         while True:
             pos_vel_accel = [0, 0, 0]
             rMax = 0
             rml_handle = self._sim_api.ruckigPos(
-                1, 0.0001, -1, pos_vel_accel,
+                1,
+                0.0001,
+                -1,
+                pos_vel_accel,
                 [max_vel * vel_correction, max_accel, max_jerk],
-                [1], target_pos_vel)
+                [1],
+                target_pos_vel,
+            )
             state = 0
             while state == 0:
-                state, pos_vel_accel, synchronization_time = self._sim_api.ruckigStep(rml_handle, dt)
+                state, pos_vel_accel, synchronization_time = self._sim_api.ruckigStep(
+                    rml_handle, dt
+                )
                 if state < 0:
                     raise RuntimeError("Issue with stepping along path,")
                 # state, pos_vel_accel = sim.simRMLStep(rml_handle, dt)
                 if state >= 0:
                     pos = pos_vel_accel[0]
-                    for i in range(len(lengths)-1):
+                    for i in range(len(lengths) - 1):
                         if lengths[i] <= pos <= lengths[i + 1]:
                             t = (pos - lengths[i]) / (lengths[i + 1] - lengths[i])
                             # For each joint
                             offset = len(self._arm.joints) * i
-                            p1 = self._path_points[
-                                 offset:offset + self._num_joints]
+                            p1 = self._path_points[offset : offset + self._num_joints]
                             offset = len(self._arm.joints) * (i + 1)
-                            p2 = self._path_points[
-                                 offset:offset + self._num_joints]
+                            p2 = self._path_points[offset : offset + self._num_joints]
                             dx = p2 - p1
                             qs = p1 + dx * t
                             dq = qs - previous_q
@@ -158,9 +167,14 @@ class ArmConfigurationPath(ConfigurationPath):
                 break
         pos_vel_accel = [0, 0, 0]
         rml_handle = self._sim_api.ruckigPos(
-            1, 0.0001, -1, pos_vel_accel,
+            1,
+            0.0001,
+            -1,
+            pos_vel_accel,
             [max_vel * vel_correction, max_accel, max_jerk],
-            [1], target_pos_vel)
+            [1],
+            target_pos_vel,
+        )
         return rml_handle
 
     def _step_motion(self) -> int:
@@ -168,7 +182,8 @@ class ArmConfigurationPath(ConfigurationPath):
         dt = self._sim_api.getSimulationTimeStep()
         lengths = self._get_path_point_lengths()
         state, pos_vel_accel, synchronization_time = self._sim_api.ruckigStep(
-            self._rml_handle, dt)
+            self._rml_handle, dt
+        )
         if state >= 0:
             pos = pos_vel_accel[0]
             for i in range(len(lengths) - 1):
@@ -176,11 +191,9 @@ class ArmConfigurationPath(ConfigurationPath):
                     t = (pos - lengths[i]) / (lengths[i + 1] - lengths[i])
                     # For each joint
                     offset = len(self._arm.joints) * i
-                    p1 = self._path_points[
-                         offset:offset + len(self._arm.joints)]
+                    p1 = self._path_points[offset : offset + len(self._arm.joints)]
                     offset = self._arm._num_joints * (i + 1)
-                    p2 = self._path_points[
-                         offset:offset + len(self._arm.joints)]
+                    p2 = self._path_points[offset : offset + len(self._arm.joints)]
                     dx = p2 - p1
                     qs = p1 + dx * t
                     self._joint_position_action = qs
@@ -192,12 +205,13 @@ class ArmConfigurationPath(ConfigurationPath):
 
     def _get_path_point_lengths(self) -> List[float]:
         path_points = self._path_points
-        prev_points = path_points[0:len(self._arm.joints)]
-        dists = [0.]
+        prev_points = path_points[0 : len(self._arm.joints)]
+        dists = [0.0]
         d = 0
-        for i in range(len(self._arm.joints), len(self._path_points),
-                       len(self._arm.joints)):
-            points = path_points[i:i + len(self._arm.joints)]
+        for i in range(
+            len(self._arm.joints), len(self._path_points), len(self._arm.joints)
+        ):
+            points = path_points[i : i + len(self._arm.joints)]
             d += np.sqrt(np.sum(np.square(prev_points - points)))
             dists.append(d)
             prev_points = points

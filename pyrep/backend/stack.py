@@ -7,11 +7,12 @@ def read_null(stackHandle):
         simPopStackItem,
         sim_stackitem_null,
     )
+
     if simGetStackItemType(stackHandle, -1) == sim_stackitem_null:
         simPopStackItem(stackHandle, 1)
         return None
     else:
-        raise RuntimeError('expected nil')
+        raise RuntimeError("expected nil")
 
 
 def read_bool(stackHandle):
@@ -19,12 +20,13 @@ def read_bool(stackHandle):
         simGetStackBoolValue,
         simPopStackItem,
     )
+
     value = ctypes.c_bool()
     if simGetStackBoolValue(stackHandle, ctypes.byref(value)) == 1:
         simPopStackItem(stackHandle, 1)
         return value.value
     else:
-        raise RuntimeError('expected bool')
+        raise RuntimeError("expected bool")
 
 
 def read_int(stackHandle):
@@ -32,12 +34,13 @@ def read_int(stackHandle):
         simGetStackInt32Value,
         simPopStackItem,
     )
+
     value = ctypes.c_int()
     if simGetStackInt32Value(stackHandle, ctypes.byref(value)) == 1:
         simPopStackItem(stackHandle, 1)
         return value.value
     else:
-        raise RuntimeError('expected int')
+        raise RuntimeError("expected int")
 
 
 def read_long(stackHandle):
@@ -45,12 +48,13 @@ def read_long(stackHandle):
         simGetStackInt64Value,
         simPopStackItem,
     )
+
     value = ctypes.c_longlong()
     if simGetStackInt64Value(stackHandle, ctypes.byref(value)) == 1:
         simPopStackItem(stackHandle, 1)
         return value.value
     else:
-        raise RuntimeError('expected int64')
+        raise RuntimeError("expected int64")
 
 
 def read_double(stackHandle):
@@ -58,12 +62,13 @@ def read_double(stackHandle):
         simGetStackDoubleValue,
         simPopStackItem,
     )
+
     value = ctypes.c_double()
     if simGetStackDoubleValue(stackHandle, ctypes.byref(value)) == 1:
         simPopStackItem(stackHandle, 1)
         return value.value
     else:
-        raise RuntimeError('expected double')
+        raise RuntimeError("expected double")
 
 
 def read_string(stackHandle):
@@ -72,11 +77,12 @@ def read_string(stackHandle):
         simReleaseBuffer,
         simPopStackItem,
     )
+
     string_size = ctypes.c_int()
     string_ptr = simGetStackStringValue(stackHandle, ctypes.byref(string_size))
     string_value = ctypes.string_at(string_ptr, string_size.value)
     simPopStackItem(stackHandle, 1)
-    value = string_value.decode('utf-8')
+    value = string_value.decode("utf-8")
     simReleaseBuffer(string_ptr)
     return value
 
@@ -90,10 +96,11 @@ def read_dict(stackHandle):
         sim_stack_table_map,
         sim_stack_table_empty,
     )
+
     d = dict()
     info = simGetStackTableInfo(stackHandle, 0)
     if info != sim_stack_table_map and info != sim_stack_table_empty:
-        raise RuntimeError('expected a map')
+        raise RuntimeError("expected a map")
     oldsz = simGetStackSize(stackHandle)
     simUnfoldStackTable(stackHandle)
     n = (simGetStackSize(stackHandle) - oldsz + 1) // 2
@@ -111,7 +118,8 @@ def read_list(stackHandle):
         simUnfoldStackTable,
         simMoveStackItemToTop,
     )
-    l = list()
+
+    vals = list()
     oldsz = simGetStackSize(stackHandle)
     simUnfoldStackTable(stackHandle)
     n = (simGetStackSize(stackHandle) - oldsz + 1) // 2
@@ -119,8 +127,8 @@ def read_list(stackHandle):
         simMoveStackItemToTop(stackHandle, oldsz - 1)
         read_value(stackHandle)
         simMoveStackItemToTop(stackHandle, oldsz - 1)
-        l.append(read_value(stackHandle))
-    return l
+        vals.append(read_value(stackHandle))
+    return vals
 
 
 def read_table(stackHandle):
@@ -129,6 +137,7 @@ def read_table(stackHandle):
         sim_stack_table_map,
         sim_stack_table_empty,
     )
+
     sz = simGetStackTableInfo(stackHandle, 0)
     if sz >= 0:
         return read_list(stackHandle)
@@ -146,6 +155,7 @@ def read_value(stackHandle):
         sim_stackitem_table,
         sim_stackitem_integer,
     )
+
     item_type = simGetStackItemType(stackHandle, -1)
     if item_type == sim_stackitem_null:
         value = read_null(stackHandle)
@@ -160,7 +170,7 @@ def read_value(stackHandle):
     elif item_type == sim_stackitem_integer:
         value = read_long(stackHandle)
     else:
-        raise RuntimeError(f'unexpected stack item type: {item_type}')
+        raise RuntimeError(f"unexpected stack item type: {item_type}")
     return value
 
 
@@ -170,12 +180,13 @@ def read(stackHandle):
         simMoveStackItemToTop,
         simPopStackItem,
     )
+
     stack_size = simGetStackSize(stackHandle)
     tuple_data = []
     for i in range(stack_size):
         simMoveStackItemToTop(stackHandle, 0)
         tuple_data.append(read_value(stackHandle))
-    simPopStackItem(stackHandle, 0) # clear all
+    simPopStackItem(stackHandle, 0)  # clear all
     return tuple(tuple_data)
 
 
@@ -183,6 +194,7 @@ def write_null(stackHandle, value):
     from pyrep.backend.lib import (
         simPushNullOntoStack,
     )
+
     simPushNullOntoStack(stackHandle)
 
 
@@ -190,6 +202,7 @@ def write_double(stackHandle, value):
     from pyrep.backend.lib import (
         simPushDoubleOntoStack,
     )
+
     simPushDoubleOntoStack(stackHandle, value)
 
 
@@ -197,6 +210,7 @@ def write_bool(stackHandle, value):
     from pyrep.backend.lib import (
         simPushBoolOntoStack,
     )
+
     simPushBoolOntoStack(stackHandle, value)
 
 
@@ -204,6 +218,7 @@ def write_int(stackHandle, value):
     from pyrep.backend.lib import (
         simPushInt32OntoStack,
     )
+
     simPushInt32OntoStack(stackHandle, value)
 
 
@@ -211,7 +226,8 @@ def write_string(stackHandle, value):
     from pyrep.backend.lib import (
         simPushStringOntoStack,
     )
-    simPushStringOntoStack(stackHandle, value.encode('utf-8'), len(value))
+
+    simPushStringOntoStack(stackHandle, value.encode("utf-8"), len(value))
 
 
 def write_dict(stackHandle, value):
@@ -219,6 +235,7 @@ def write_dict(stackHandle, value):
         simPushTableOntoStack,
         simInsertDataIntoStackTable,
     )
+
     simPushTableOntoStack(stackHandle)
     for k, v in value.items():
         write_value(stackHandle, k)
@@ -231,6 +248,7 @@ def write_list(stackHandle, value):
         simPushTableOntoStack,
         simInsertDataIntoStackTable,
     )
+
     simPushTableOntoStack(stackHandle)
     for i, v in enumerate(value):
         write_value(stackHandle, i + 1)
@@ -254,7 +272,7 @@ def write_value(stackHandle, value):
     elif isinstance(value, list):
         write_list(stackHandle, value)
     else:
-        raise RuntimeError(f'unexpected type: {type(value)}')
+        raise RuntimeError(f"unexpected type: {type(value)}")
 
 
 def write(stackHandle, tuple_data):
@@ -262,15 +280,16 @@ def write(stackHandle, tuple_data):
         write_value(stackHandle, item)
 
 
-def debug(stackHandle, info = None):
+def debug(stackHandle, info=None):
     from pyrep.backend.lib import (
         simGetStackSize,
         simDebugStack,
     )
-    info = '' if info is None else f' {info} '
+
+    info = "" if info is None else f" {info} "
     n = (70 - len(info)) // 2
     m = 70 - len(info) - n
-    print('#' * n + info + '#' * m)
+    print("#" * n + info + "#" * m)
     for i in range(simGetStackSize(stackHandle)):
         simDebugStack(stackHandle, i)
-    print('#' * 70)
+    print("#" * 70)
