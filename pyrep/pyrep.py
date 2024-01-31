@@ -184,20 +184,6 @@ class PyRep(object):
         """
         return self._sim_api.getSimulationTimeStep()
 
-    def set_configuration_tree(self, config_tree: bytes) -> None:
-        """Restores configuration information previously retrieved.
-
-        Configuration information (object relative positions/orientations,
-        joint/path values) can be retrieved with
-        :py:meth:`Object.get_configuration_tree`. Dynamically simulated
-        objects will implicitly be reset before the command is applied
-        (i.e. similar to calling :py:meth:`Object.reset_dynamic_object` just
-        before).
-
-        :param config_tree: The configuration tree to restore.
-        """
-        self._sim_api.setConfigurationTree(config_tree)
-
     def group_objects(self, objects: List[Shape]) -> Shape:
         """Groups several shapes into a compound shape (or simple shape).
 

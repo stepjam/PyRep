@@ -78,15 +78,6 @@ class TestPyrep(TestCore):
         self.assertEqual(
             len(top.get_objects_in_tree(exclude_base=True)), 1)
 
-    def test_set_configuration_tree(self):
-        dynamic_cube = Shape('dynamic_cube')
-        pos = dynamic_cube.get_position()
-        config = dynamic_cube.get_configuration_tree()
-        self.assertIsNotNone(config)
-        [self.pyrep.step() for _ in range(10)]
-        self.pyrep.set_configuration_tree(config)
-        self.assertTrue(np.allclose(pos, dynamic_cube.get_position()))
-
     def test_create_texture_and_get_texture(self):
         plane, texture = self.pyrep.create_texture(
             path.join(ASSET_DIR, 'wood_texture.jpg'))

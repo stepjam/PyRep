@@ -500,19 +500,6 @@ class Object(object):
         """
         return self._sim_api.getExtensionString(self._handle, -1, '')
 
-    def get_configuration_tree(self) -> bytes:
-        """Retrieves configuration information for a hierarchy tree.
-
-        Configuration includes object relative positions/orientations,
-        joint/path values. Calling :py:meth:`PyRep.set_configuration_tree` at a
-        later time, will restore the object configuration
-        (use this function to temporarily save object
-        positions/orientations/joint/path values).
-
-        :return: The configuration tree.
-        """
-        return self._sim_api.getConfigurationTree(self._handle)
-
     def rotate(self, rotation: List[float]) -> None:
         """Rotates a transformation matrix.
 

@@ -1,7 +1,7 @@
-from pyrep.backend import sim, utils
+from ctypes import CFUNCTYPE, c_int
 from pyrep.backend.sim import SimBackend
 from pyrep.backend import sim_const as simc
-from pyrep.objects import Object
+from pyrep.objects import Object, Joint
 from pyrep.objects.dummy import Dummy
 from pyrep.robots.configuration_paths.arm_configuration_path import (
     ArmConfigurationPath)
@@ -9,15 +9,22 @@ from pyrep.robots.robot_component import RobotComponent
 from pyrep.objects.cartesian_path import CartesianPath
 from pyrep.errors import ConfigurationError, ConfigurationPathError, IKError
 from pyrep.const import ConfigurationPathAlgorithms as Algos
-from pyrep.const import PYREP_SCRIPT_TYPE
 from typing import List, Union
 import numpy as np
-import warnings
 
 
-def check_col(config, aux_data):
-    print("Hello")
-    return True
+from pyrep.backend.callback import callback
+
+
+CALLBACK_NAME = "ccallback0"
+
+
+@callback
+def collision_check_callback(state, data):
+    arm = Arm(*data)
+    arm.set_joint_positions(state)
+    return not arm.check_arm_collision()
+
 
 class Arm(RobotComponent):
     """Base class representing a robot arm with path planning support.
@@ -55,10 +62,16 @@ class Arm(RobotComponent):
         self._ik_element, self._sim_to_ik_map, self._ik_to_sim_map = self._sim_ik_api.addElementFromScene(
             self._ik_env_handle, self._ik_group_handle, base_handle, tip_handle, target_handle,
             self._sim_ik_api.constraint_pose)
+        self._sim_ik_api.setElementPrecision(self._ik_env_handle, self._ik_group_handle, self._ik_element, [0.00005, 0.0017])
         self._ik_joint_handles = [self._sim_to_ik_map[h] for h in self._joint_handles]
         self._ik_base_handle = self._sim_to_ik_map[base_handle]
         self._ik_target_handle = self._sim_to_ik_map[target_handle]
         self._ik_tip_handle = self._sim_to_ik_map[tip_handle]
+
+        #  Not used, but needs to be kept in scope, or will be garbage collected
+        self._collision_callback = CFUNCTYPE(c_int, c_int)(collision_check_callback)
+        SimBackend().lib.simRegCallback(0, self._collision_callback)
+        self._coll_callback_args = [count, name, num_joints, base_name]
 
     def set_ik_element_properties(self, constraint_x=True, constraint_y=True,
                                   constraint_z=True,
@@ -87,12 +100,6 @@ class Arm(RobotComponent):
                             'Must be one of ["pseudo_inverse" | "damped_least_squares" | "jacobian_transpose"]')
         self._sim_ik_api.setGroupCalculation(self._ik_env_handle, self._ik_group_handle, res_method, dls_damping, max_iterations)
 
-    def _col_check(self, config):
-        print("HEre")
-        # _S.armModule.setConfig(config)
-        # local
-        # r = sim.checkCollision(_S.armModule.collection, sim.handle_all)
-        # return (r == 0)
 
     def solve_ik_via_sampling(self,
                               position: Union[List[float], np.ndarray],
@@ -149,18 +156,16 @@ class Arm(RobotComponent):
             self._ik_target.set_quaternion(quaternion, relative_to)
 
         validation_callback = None
-        # if not ignore_collisions:
-        #     # TODO.
-        #     raise ConfigurationPathError("Needs to be implemented.")
+        if not ignore_collisions:
+            validation_callback = CALLBACK_NAME
 
         # TODO: Need to implement collision checking.
         metric = [1, 1, 1, 0.1]
         valid_joint_positions = []
-        auxData = None
         max_time_s = float(max_time_ms) * 0.001
         self._sim_ik_api.setObjectPose(self._ik_env_handle, self._ik_target_handle, self._ik_target.get_pose().tolist(), self._sim_ik_api.handle_world)
         for i in range(trials):
-            config = self._sim_ik_api.findConfig(self._ik_env_handle, self._ik_group_handle, self._ik_joint_handles, distance_threshold, max_time_s, metric, validation_callback, auxData)
+            config = self._sim_ik_api.findConfig(self._ik_env_handle, self._ik_group_handle, self._ik_joint_handles, distance_threshold, max_time_s, metric, validation_callback, self._coll_callback_args)
             if config is None:
                 continue
             # TODO: Look to get alternative config
@@ -300,11 +305,10 @@ class Arm(RobotComponent):
 
         validation_callback = None
         if not ignore_collisions:
-            # TODO.
-            raise ConfigurationPathError("Needs to be implemented.")
+            validation_callback = CALLBACK_NAME
 
         self._sim_ik_api.setObjectPose(self._ik_env_handle, self._ik_target_handle, self._ik_target.get_pose().tolist(), self._sim_ik_api.handle_world)
-        ret_floats = self._sim_ik_api.generatePath(self._ik_env_handle, self._ik_group_handle, self._ik_joint_handles, self._ik_tip_handle, steps, validation_callback, None)
+        ret_floats = self._sim_ik_api.generatePath(self._ik_env_handle, self._ik_group_handle, self._ik_joint_handles, self._ik_tip_handle, steps, validation_callback, self._coll_callback_args)
         self._ik_target.set_pose(prev_pose)
         if len(ret_floats) == 0:
             raise ConfigurationPathError('Could not create path.')

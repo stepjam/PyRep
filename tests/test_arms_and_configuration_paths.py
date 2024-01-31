@@ -127,7 +127,7 @@ class TestArmsAndConfigurationPaths(TestCore):
         arm = Panda()
         waypoint = Dummy('Panda_waypoint')
         path = arm.get_nonlinear_path(
-            waypoint.get_position(), waypoint.get_orientation())
+            waypoint.get_position(), waypoint.get_orientation(), max_time_ms=1000)
         self.assertIsNotNone(path)
 
     def test_get_nonlinear_path_out_of_reach(self):

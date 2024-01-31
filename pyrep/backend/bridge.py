@@ -1,37 +1,36 @@
-from ctypes import *
+import ctypes
 
-from pyrep.backend.lib import *
-from pyrep.errors import CoppeliaSimError
-
-
-def __f(f):
-    return f + '@lua'
 
 def load():
-    stack = simCreateStack()
-    simPushStringOntoStack(stack, c_char_p('scriptClientBridge'.encode('ascii')), 0)
-    r = simCallScriptFunctionEx(8, c_char_p(__f('require').encode('ascii')), stack)
-    simReleaseStack(stack)
+    call('require', ('scriptClientBridge',))
+
 
 def call(func, args):
-    stack = simCreateStack()
-    import cbor
-    b = cbor.dumps({'func': func, 'args': args})
-    simPushStringOntoStack(stack, c_char_p(b), len(b))
-    r = simCallScriptFunctionEx(8, c_char_p(__f('scriptClientBridge.call').encode('ascii')), stack)
-    sz = c_int()
-    ptr = simGetStackStringValue(stack, byref(sz))
-    o = cbor.loads(string_at(ptr, sz.value))
-    simReleaseBuffer(ptr)
-    simReleaseStack(stack)
-    if o['success']:
-        ret = o['result']
-        if len(ret) == 1:
-            return ret[0]
-        if len(ret) > 1:
-            return tuple(ret)
-    else:
-        raise CoppeliaSimError(o['error'])
+    from pyrep.backend.lib import (
+        simCreateStack,
+        simCallScriptFunctionEx,
+        simReleaseStack,
+        sim_scripttype_sandboxscript,
+    )
+    import pyrep.backend.stack as stack
+    stackHandle = simCreateStack()
+    stack.write(stackHandle, args)
+    s = sim_scripttype_sandboxscript
+    f = ctypes.c_char_p(f'{func}@lua'.encode('ascii'))
+    r = simCallScriptFunctionEx(s, f, stackHandle)
+    if r == -1:
+        if False:
+            what = f'simCallScriptFunctionEx({s}, {func!r}, {args!r})'
+        else:
+            what = 'simCallScriptFunctionEx'
+        raise Exception(f'{what} returned -1')
+    ret = stack.read(stackHandle)
+    simReleaseStack(stackHandle)
+    if len(ret) == 1:
+        return ret[0]
+    elif len(ret) > 1:
+        return ret
+
 
 def getObject(name, _info=None):
     ret = type(name, (), {})
@@ -41,12 +40,22 @@ def getObject(name, _info=None):
         if not isinstance(v, dict):
             raise ValueError('found nondict')
         if len(v) == 1 and 'func' in v:
+            if f'{name}.{k}' == 'sim.getScriptFunctions':
+                setattr(ret, k, lambda scriptHandle:
+                        type('', (object,), {
+                            '__getattr__':
+                                lambda _, func:
+                                    lambda *args:
+                                        call('sim.callScriptFunction', (func, scriptHandle) + args)
+                        })())
+                continue
             setattr(ret, k, lambda *a, func=f'{name}.{k}': call(func, a))
         elif len(v) == 1 and 'const' in v:
             setattr(ret, k, v['const'])
         else:
             setattr(ret, k, getObject(f'{name}.{k}', _info=v))
     return ret
+
 
 def require(obj):
     call('scriptClientBridge.require', [obj])
