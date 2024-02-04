@@ -38,6 +38,7 @@ jobs:
           tar -xf CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04.tar.xz
           export COPPELIASIM_ROOT="$cur/CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04"
           export LD_LIBRARY_PATH=$COPPELIASIM_ROOT:/lib/x86_64-linux-gnu/
+          export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT/platforms
           echo $COPPELIASIM_ROOT
           pip install .
           mv pyrep _pyrep
