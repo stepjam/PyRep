@@ -50,7 +50,7 @@ setuptools.setup(
     author_email="stepjamuk@gmail.com",
     url="https://stepjam.github.io/",
     packages=setuptools.find_packages(),
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     install_requires=core_requirements,
     extras_require={
         "dev": ["pre-commit"],
