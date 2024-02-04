@@ -30,14 +30,14 @@ jobs:
       - name: PyRep Tests
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y xvfb qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev qt5-default qttools5-dev-tools
+          sudo apt-get install -y xvfb
           # start xvfb in the background
           sudo /usr/bin/Xvfb $DISPLAY -screen 0 1280x1024x24 &
           cur=`pwd`
           wget https://downloads.coppeliarobotics.com/V4_6_0_rev16/CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04.tar.xz
           tar -xf CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04.tar.xz
           export COPPELIASIM_ROOT="$cur/CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04"
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib/x86_64-linux-gnu/
+          export LD_LIBRARY_PATH=$COPPELIASIM_ROOT:/lib/x86_64-linux-gnu/
           echo $COPPELIASIM_ROOT
           pip install .
           mv pyrep _pyrep
