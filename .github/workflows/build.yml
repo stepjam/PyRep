@@ -37,10 +37,8 @@ jobs:
           wget https://downloads.coppeliarobotics.com/V4_6_0_rev16/CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04.tar.xz
           tar -xf CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04.tar.xz
           export COPPELIASIM_ROOT="$cur/CoppeliaSim_Player_V4_6_0_rev16_Ubuntu20_04"
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib/x86_64-linux-gnu/
           echo $COPPELIASIM_ROOT
           pip install .
           mv pyrep _pyrep
-          ldd /usr/bin/wget
-          ldd $COPPELIASIM_ROOT/libcoppeliaSim.so
           python -m unittest discover tests
