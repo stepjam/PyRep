@@ -30,7 +30,7 @@ jobs:
       - name: PyRep Tests
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y xvfb qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev qt5-default qttools5-dev-tools
+          sudo apt-get install -y xvfb
           # start xvfb in the background
           sudo /usr/bin/Xvfb $DISPLAY -screen 0 1280x1024x24 &
           cur=`pwd`
