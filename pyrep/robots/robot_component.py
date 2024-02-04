@@ -22,6 +22,14 @@ class RobotComponent(Object):
         self.joints = [Joint(jname + suffix) for jname in joint_names]
         self._joint_handles = [j.get_handle() for j in self.joints]
 
+        self._collision_collection_handle = self._sim_api.createCollection(0)
+        self._sim_api.addItemToCollection(
+            self._collision_collection_handle,
+            simc.sim_handle_tree,
+            self._joint_handles[0],
+            0,
+        )
+
     def copy(self) -> "RobotComponent":
         """Copy and pastes the arm in the scene.
 
@@ -282,3 +290,17 @@ class RobotComponent(Object):
                 "Tried to set values for %d joints, but joint group consists "
                 "of %d joints." % (len(inputs), len(self.joints))
             )
+
+    def check_collision(self, obj: "Object" = None) -> bool:
+        """Checks whether two entities are colliding.
+
+        :param obj: The other collidable object to check collision against,
+            or None to check against all collidable objects. Note that objects
+            must be marked as collidable!
+        :return: If the object is colliding.
+        """
+        handle = simc.sim_handle_all if obj is None else obj.get_handle()
+        result, colliding_handles = self._sim_api.checkCollision(
+            self._collision_collection_handle, handle
+        )
+        return result == 1

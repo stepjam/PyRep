@@ -1,11 +1,26 @@
 import ctypes
+import sys
 
 
 def load():
+    # add coppeliaSim's pythondir to sys.path:
+    from pyrep.backend.lib import (
+        simGetStringParam,
+        simReleaseBuffer,
+        sim_stringparam_pythondir,
+    )
+
+    pythonDirPtr = simGetStringParam(sim_stringparam_pythondir)
+    pythonDir = ctypes.string_at(pythonDirPtr).decode("utf-8")
+    simReleaseBuffer(pythonDirPtr)
+    if pythonDir not in sys.path:
+        sys.path.append(pythonDir)
+
+    # load lua functions for call(), getObject(), etc...:
     call("require", ("scriptClientBridge",))
 
 
-def call(func, args):
+def call(func, args, typeHints=None):
     from pyrep.backend.lib import (
         simCreateStack,
         simCallScriptFunctionEx,

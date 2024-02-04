@@ -1,7 +1,7 @@
 from ctypes import CFUNCTYPE, c_int
 from pyrep.backend.sim import SimBackend
 from pyrep.backend import sim_const as simc
-from pyrep.objects import Object
+from pyrep.objects.object import Object
 from pyrep.objects.dummy import Dummy
 from pyrep.robots.configuration_paths.arm_configuration_path import ArmConfigurationPath
 from pyrep.robots.robot_component import RobotComponent
@@ -10,9 +10,7 @@ from pyrep.errors import ConfigurationError, ConfigurationPathError, IKError
 from pyrep.const import ConfigurationPathAlgorithms as Algos
 from typing import List, Union
 import numpy as np
-
-
-from pyrep.backend.callback import callback
+from pyrep.backend.stack import callback
 
 
 CALLBACK_NAME = "ccallback0"
@@ -20,9 +18,13 @@ CALLBACK_NAME = "ccallback0"
 
 @callback
 def collision_check_callback(state, data):
-    arm = Arm(*data)
+    count, name, num_joints, base_name = data
+    joint_names = ["%s_joint%d" % (name, i + 1) for i in range(num_joints)]
+    arm = RobotComponent(
+        count, name, joint_names, None if len(base_name) == 0 else base_name
+    )
     arm.set_joint_positions(state)
-    return not arm.check_arm_collision()
+    return not arm.check_collision()
 
 
 class Arm(RobotComponent):
@@ -52,18 +54,11 @@ class Arm(RobotComponent):
         self._ik_target = Dummy("%s_target%s" % (name, suffix))
         self._ik_tip = Dummy("%s_tip%s" % (name, suffix))
 
-        self._collision_collection_handle = self._sim_api.createCollection(0)
-        self._sim_api.addItemToCollection(
-            self._collision_collection_handle,
-            simc.sim_handle_tree,
-            self._joint_handles[0],
-            0,
-        )
         self._sim_ik_api = SimBackend().sim_ik_api
         self._sim_ompl_api = SimBackend().sim_ompl_api
         self._ik_env_handle = self._sim_ik_api.createEnvironment()
         self._ik_group_handle = self._sim_ik_api.createGroup(self._ik_env_handle)
-        self.set_ik_group_properties("pseudo_inverse", 6, 0.1)
+        self.set_ik_group_properties("pseudo_inverse", 6, 0.02)
 
         base_handle = self.get_handle()
         target_handle = self._ik_target.get_handle()
@@ -95,7 +90,12 @@ class Arm(RobotComponent):
         #  Not used, but needs to be kept in scope, or will be garbage collected
         self._collision_callback = CFUNCTYPE(c_int, c_int)(collision_check_callback)
         SimBackend().lib.simRegCallback(0, self._collision_callback)
-        self._coll_callback_args = [count, name, num_joints, base_name]
+        self._coll_callback_args = [
+            count,
+            name,
+            num_joints,
+            base_name if base_name is not None else "",
+        ]
 
     def set_ik_element_properties(
         self,
@@ -150,8 +150,8 @@ class Arm(RobotComponent):
         ignore_collisions: bool = False,
         trials: int = 300,
         max_configs: int = 1,
-        distance_threshold: float = 0.65,
-        max_time_ms: float = 100,
+        distance_threshold: float = 0.25,
+        max_time_ms: float = 500,
         relative_to: Object = None,
     ) -> np.ndarray:
         """Solves an IK group and returns the calculated joint values.
@@ -212,6 +212,7 @@ class Arm(RobotComponent):
             self._ik_target.get_pose().tolist(),
             self._sim_ik_api.handle_world,
         )
+        initial_config = self.get_joint_positions()
         for i in range(trials):
             config = self._sim_ik_api.findConfig(
                 self._ik_env_handle,
@@ -223,6 +224,8 @@ class Arm(RobotComponent):
                 validation_callback,
                 self._coll_callback_args,
             )
+            if not np.allclose(self.get_tip().get_position(), position, atol=0.01):
+                raise ConfigurationError("Found a config, but tip was not on target.")
             if config is None:
                 continue
             # TODO: Look to get alternative config
@@ -233,6 +236,7 @@ class Arm(RobotComponent):
             if len(valid_joint_positions) >= max_configs:
                 break
 
+        self.set_joint_positions(initial_config)
         self._ik_target.set_pose(prev_pose)
         if len(valid_joint_positions) == 0:
             raise ConfigurationError(
@@ -411,10 +415,10 @@ class Arm(RobotComponent):
         ignore_collisions=False,
         trials=300,
         max_configs=1,
-        distance_threshold: float = 0.65,
-        max_time_ms: int = 100,
+        distance_threshold: float = 0.25,
+        max_time_ms: int = 500,
         trials_per_goal=1,
-        algorithm=Algos.SBL,
+        algorithm=Algos.RRTConnect,
         relative_to: Object = None,
     ) -> ArmConfigurationPath:
         """Gets a non-linear (planned) configuration path given a target pose.
@@ -505,9 +509,9 @@ class Arm(RobotComponent):
         trials=300,
         max_configs=1,
         distance_threshold: float = 0.65,
-        max_time_ms: int = 100,
+        max_time_ms: int = 500,
         trials_per_goal=1,
-        algorithm=Algos.SBL,
+        algorithm=Algos.RRTConnect,
         relative_to: Object = None,
     ) -> ArmConfigurationPath:
         """Tries to get a linear path, failing that tries a non-linear path.
@@ -594,8 +598,4 @@ class Arm(RobotComponent):
             must be marked as collidable!
         :return: If the object is colliding.
         """
-        handle = simc.sim_handle_all if obj is None else obj.get_handle()
-        result, colliding_handles = self._sim_api.checkCollision(
-            self._collision_collection_handle, handle
-        )
-        return result == 1
+        return self.check_collision(obj)

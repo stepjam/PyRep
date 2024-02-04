@@ -128,10 +128,7 @@ class Octree(Object):
 
     def clear_voxels(self) -> None:
         """Clears all voxels from the octree."""
-        # self._sim_api.removeVoxelsFromOctree(self._handle, 0, None)
-        raise NotImplementedError(
-            "removeVoxelsFromOctree seems to have bug on coppeliasim side."
-        )
+        self._sim_api.removeVoxelsFromOctree(self._handle, 0, self.get_voxels())
 
 
 object_type_to_class[ObjectType.OCTREE] = Octree

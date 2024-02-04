@@ -62,13 +62,16 @@ class Object(object):
         return handle >= 0
 
     @staticmethod
-    def get_object_type(name: str) -> ObjectType:
+    def get_object_type(name_or_handle: Union[int, str]) -> ObjectType:
         """Gets the type of the object.
 
         :return: Type of the object.
         """
         sim_api = SimBackend().sim_api
-        return ObjectType(sim_api.getObjectType(sim_api.getObjectHandle(name)))
+        handle = name_or_handle
+        if not isinstance(name_or_handle, int):
+            handle = sim_api.getObjectHandle(name_or_handle)
+        return ObjectType(sim_api.getObjectType(handle))
 
     @staticmethod
     def get_object_name(name_or_handle: Union[str, int]) -> str:
@@ -84,15 +87,14 @@ class Object(object):
         return name
 
     @staticmethod
-    def get_object(name_or_handle: str) -> "Object":
+    def get_object(name_or_handle: Union[int, str]) -> "Object":
         """Gets object retrieved by name.
 
         :return: The object.
         """
-        name = Object.get_object_name(name_or_handle)
-        object_type = Object.get_object_type(name)
+        object_type = Object.get_object_type(name_or_handle)
         cls = object_type_to_class[object_type]
-        return cls(name)
+        return cls(name_or_handle)
 
     def _get_requested_type(self) -> ObjectType:
         """Used for internally checking assumptions user made about object type.
@@ -520,7 +522,21 @@ class Object(object):
 
         :return: The extension string.
         """
-        return self._sim_api.getExtensionString(self._handle, -1, "")
+        val = self._sim_api.getExtensionString(self._handle, -1, "")
+        return "" if val is None else val
+
+    def get_configuration_tree(self) -> bytes:
+        """Retrieves configuration information for a hierarchy tree.
+
+        Configuration includes object relative positions/orientations,
+        joint/path values. Calling :py:meth:`PyRep.set_configuration_tree` at a
+        later time, will restore the object configuration
+        (use this function to temporarily save object
+        positions/orientations/joint/path values).
+
+        :return: The configuration tree.
+        """
+        return self._sim_api.getConfigurationTree(self._handle)
 
     def rotate(self, rotation: List[float]) -> None:
         """Rotates a transformation matrix.

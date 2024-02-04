@@ -4,13 +4,11 @@ from pyrep import PyRep
 from pyrep.objects.shape import Shape
 from os import path
 
-from pyrep.robots.end_effectors.dobot_suction_cup import DobotSuctionCup
 from pyrep.robots.end_effectors.baxter_suction_cup import BaxterSuctionCup
 
 ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), "assets")
 
 SUCTION_CUPS = [
-    ("DobotSuctionCup", DobotSuctionCup),
     ("BaxterSuctionCup", BaxterSuctionCup),
 ]
 

@@ -48,7 +48,7 @@ class Light(Object):
     def set_diffuse(self, diffuse):
         """Set the diffuse colors of the light."""
         self._sim_api.setLightParameters(
-            self._handle, self.is_on(), None, list(diffuse), None
+            self._handle, self.is_on(), None, list(diffuse), list(self.get_specular())
         )
 
     def get_specular(self):

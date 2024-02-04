@@ -4,12 +4,6 @@ from pyrep.robots.configuration_paths.configuration_path import ConfigurationPat
 import numpy as np
 from typing import List, Optional, Union
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    # Circular import issue
-    from pyrep.robots.arms.arm import Arm
-
 
 class ArmConfigurationPath(ConfigurationPath):
     """A path expressed in joint configuration space.
@@ -23,7 +17,9 @@ class ArmConfigurationPath(ConfigurationPath):
     control systems.
     """
 
-    def __init__(self, arm: Arm, path_points: Union[List[float], np.ndarray]):
+    def __init__(
+        self, arm: "Arm", path_points: Union[List[float], np.ndarray]  # noqa: F821
+    ):
         self._arm = arm
         self._path_points = np.asarray(path_points)
         self._rml_handle: Optional[int] = None
@@ -89,8 +85,11 @@ class ArmConfigurationPath(ConfigurationPath):
         self._arm.set_joint_positions(self._path_points[0 : len(self._arm.joints)])
         prev_point = list(tip.get_position())
 
+        sub_sample = 10
         for i in range(
-            len(self._arm.joints), len(self._path_points), len(self._arm.joints)
+            len(self._arm.joints),
+            len(self._path_points),
+            len(self._arm.joints) * sub_sample,
         ):
             points = self._path_points[i : i + len(self._arm.joints)]
             self._arm.set_joint_positions(points)

@@ -132,6 +132,8 @@ class VisionSensor(Object):
         :return: A numpy array of size (width, height, 3)
         """
         enc_img, resolution = self._sim_api.getVisionSensorImg(self._handle)
+        if isinstance(enc_img, str):
+            enc_img = enc_img.encode()
         img = np.frombuffer(enc_img, dtype=np.uint8).reshape(
             resolution[1], resolution[0], 3
         )

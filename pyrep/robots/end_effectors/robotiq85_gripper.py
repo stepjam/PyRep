@@ -1,6 +1,6 @@
 from typing import List
 
-from pyrep.objects import Joint
+from pyrep.objects.joint import Joint
 from pyrep.robots.end_effectors.gripper import Gripper
 import numpy as np
 

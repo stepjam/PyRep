@@ -20,19 +20,26 @@ c_callbackfn_p = CFUNCTYPE(c_int, c_int)
 if "COPPELIASIM_ROOT" not in os.environ:
     raise PyRepError("COPPELIASIM_ROOT not defined. See installation instructions.")
 coppeliasim_root = os.environ["COPPELIASIM_ROOT"]
-coppeliasim_library = os.path.join(coppeliasim_root, "libcoppeliaSim.so")
+
+coppeliasim_library = ""
+plat = platform.system()
+if plat == "Windows":
+    raise NotImplementedError()
+    # coppeliasim_library /= f'{defaultLibNameBase}.dll'
+elif plat == "Linux":
+    coppeliasim_library = os.path.join(coppeliasim_root, "libcoppeliaSim.so")
+elif plat == "Darwin":
+    raise NotImplementedError()
+    # coppeliasim_library /= f'../MacOS/lib{defaultLibNameBase}.dylib'
 if not os.path.isfile(coppeliasim_library):
     raise PyRepError(
         "COPPELIASIM_ROOT was not a correct path. " "See installation instructions"
     )
 
-appDir = os.path.dirname(coppeliasim_library)
-os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = appDir
+os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = coppeliasim_root
 
-
-plat = platform.system()
 if plat == "Darwin":
-    fd = os.path.normpath(appDir + "/../Frameworks")
+    fd = os.path.normpath(coppeliasim_root + "/../Frameworks")
     os.environ["DYLD_LIBRARY_PATH"] = fd + ":" + os.environ.get("DYLD_LIBRARY_PATH", "")
     print(
         f"If next step fails, do: export DYLD_LIBRARY_PATH={fd}:"
@@ -122,6 +129,8 @@ coppeliaSimLib.simPushDoubleTableOntoStack.argtypes = [c_int, c_double_p, c_int]
 coppeliaSimLib.simPushDoubleTableOntoStack.restype = c_int
 coppeliaSimLib.simDebugStack.argtypes = [c_int, c_int]
 coppeliaSimLib.simDebugStack.restype = c_int
+coppeliaSimLib.simGetStringParam.argtypes = [c_int]
+coppeliaSimLib.simGetStringParam.restype = c_void_p
 
 __all__ = []
 
@@ -166,6 +175,8 @@ const.sim_stringparam_verbosity = 121
 const.sim_stringparam_statusbarverbosity = 122
 const.sim_stringparam_dlgverbosity = 123
 const.sim_stringparam_startupscriptstring = 125
+
+const.sim_stringparam_pythondir = 137
 
 for name in dir(const):
     if name.startswith("sim"):

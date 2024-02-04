@@ -226,9 +226,13 @@ class TestObjects(TestCore):
     def test_get_extention_string(self):
         self.assertEqual(self.dynamic_cube.get_extension_string(), "test")
 
-    def test_get_configuration_tree(self):
-        config = self.dynamic_cube.get_configuration_tree()
+    def test_set_configuration_tree(self):
+        dynamic_cube = Shape("dynamic_cube")
+        dynamic_cube.get_position()
+        config = dynamic_cube.get_configuration_tree()
         self.assertIsNotNone(config)
+        [self.pyrep.step() for _ in range(10)]
+        self.pyrep.set_configuration_tree(config)
 
     def test_rotate(self):
         self.dynamic_cube.rotate([0.02, 0.04, 0.06])

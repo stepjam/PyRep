@@ -4,7 +4,7 @@ import numpy as np
 
 from pyrep.backend import sim_const as simc
 from pyrep.backend.sim import SimBackend
-from pyrep.objects.object import Object, object_type_to_class
+from pyrep.objects.object import Object
 from pyrep.const import ObjectType
 
 
@@ -83,7 +83,7 @@ class CartesianPath(Object):
         return CartesianPath(handle)
 
     def _get_requested_type(self) -> ObjectType:
-        return ObjectType.PATH
+        return ObjectType.DUMMY
 
     def get_pose_on_path(
         self, relative_distance: float
@@ -114,7 +114,7 @@ class CartesianPath(Object):
             [2, 2, 2, 2],
         )
         # TODO: Hack for now; convert quat -> euler using library
-        from pyrep.objects import Dummy
+        from pyrep.objects.dummy import Dummy
 
         d = Dummy.create()
         d.set_position(pos, self)
@@ -124,6 +124,3 @@ class CartesianPath(Object):
         ori = d.get_orientation()
         d.remove()
         return pos, ori
-
-
-object_type_to_class[ObjectType.PATH] = CartesianPath
