@@ -1,4 +1,4 @@
-from typing import Tuple, List, Union
+from typing import Tuple, List
 from pyrep.backend import sim_const as simc
 from pyrep.backend import utils
 from pyrep.backend.sim import SimBackend
@@ -13,9 +13,6 @@ class Joint(Object):
     Four types are supported: revolute joints, prismatic joints,
     screws and spherical joints.
     """
-
-    def __init__(self, name_or_handle: Union[str, int]):
-        super().__init__(name_or_handle)
 
     def _get_requested_type(self) -> ObjectType:
         return ObjectType.JOINT

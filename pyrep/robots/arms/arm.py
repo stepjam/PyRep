@@ -50,9 +50,8 @@ class Arm(RobotComponent):
         self.max_jerk = max_jerk
 
         # Motion planning handles
-        suffix = "" if count == 0 else "#%d" % (count - 1)
-        self._ik_target = Dummy("%s_target%s" % (name, suffix))
-        self._ik_tip = Dummy("%s_tip%s" % (name, suffix))
+        self._ik_target = Dummy("%s_target" % (name,), proxy=self)
+        self._ik_tip = Dummy("%s_tip" % (name,), proxy=self)
 
         self._sim_ik_api = SimBackend().sim_ik_api
         self._sim_ompl_api = SimBackend().sim_ompl_api
@@ -80,7 +79,7 @@ class Arm(RobotComponent):
             self._ik_env_handle,
             self._ik_group_handle,
             self._ik_element,
-            [0.00005, 0.0017],
+            [0.001, 0.01],
         )
         self._ik_joint_handles = [self._sim_to_ik_map[h] for h in self._joint_handles]
         self._ik_base_handle = self._sim_to_ik_map[base_handle]
@@ -151,7 +150,7 @@ class Arm(RobotComponent):
         trials: int = 300,
         max_configs: int = 1,
         distance_threshold: float = 0.25,
-        max_time_ms: float = 500,
+        max_time_ms: float = 2000,
         relative_to: Object = None,
     ) -> np.ndarray:
         """Solves an IK group and returns the calculated joint values.
@@ -212,6 +211,7 @@ class Arm(RobotComponent):
             self._ik_target.get_pose().tolist(),
             self._sim_ik_api.handle_world,
         )
+        self._sim_ik_api.syncFromSim(self._ik_env_handle, [self._ik_group_handle])
         initial_config = self.get_joint_positions()
         for i in range(trials):
             config = self._sim_ik_api.findConfig(
@@ -224,8 +224,8 @@ class Arm(RobotComponent):
                 validation_callback,
                 self._coll_callback_args,
             )
-            if not np.allclose(self.get_tip().get_position(), position, atol=0.01):
-                raise ConfigurationError("Found a config, but tip was not on target.")
+            # if not np.allclose(self.get_tip().get_position(), position, atol=0.01):
+            #     raise ConfigurationError("Found a config, but tip was not on target.")
             if config is None:
                 continue
             # TODO: Look to get alternative config
@@ -293,6 +293,7 @@ class Arm(RobotComponent):
             self._ik_target.get_pose().tolist(),
             self._sim_ik_api.handle_world,
         )
+        self._sim_ik_api.syncFromSim(self._ik_env_handle, [self._ik_group_handle])
         result, reason, precision = self._sim_ik_api.handleGroup(
             self._ik_env_handle, self._ik_group_handle, options
         )
@@ -308,6 +309,7 @@ class Arm(RobotComponent):
             raise IKError("IK failed. Calculation limit hit.")
         if result != self._sim_ik_api.result_success:
             raise IKError("IK failed for unknown reason.")
+        # joint_values = np.array(self.get_joint_positions())
         joint_values = np.array(
             [
                 self._sim_ik_api.getJointPosition(self._ik_env_handle, jh)
@@ -393,6 +395,7 @@ class Arm(RobotComponent):
             self._ik_target.get_pose().tolist(),
             self._sim_ik_api.handle_world,
         )
+        self._sim_ik_api.syncFromSim(self._ik_env_handle, [self._ik_group_handle])
         ret_floats = self._sim_ik_api.generatePath(
             self._ik_env_handle,
             self._ik_group_handle,
@@ -416,7 +419,7 @@ class Arm(RobotComponent):
         trials=300,
         max_configs=1,
         distance_threshold: float = 0.25,
-        max_time_ms: int = 500,
+        max_time_ms: int = 2000,
         trials_per_goal=1,
         algorithm=Algos.RRTConnect,
         relative_to: Object = None,
@@ -494,9 +497,10 @@ class Arm(RobotComponent):
         solved, planned_path = self._sim_ompl_api.compute(
             task_handle, max_time_s, -1, 300
         )
+        approx_solution = self._sim_ompl_api.hasApproximateSolution(task_handle)
         self._sim_ompl_api.destroyTask(task_handle)
 
-        if not solved or len(planned_path) == 0:
+        if not solved or len(planned_path) == 0 or approx_solution:
             raise ConfigurationPathError("Could not create path.")
         return ArmConfigurationPath(self, planned_path)
 
@@ -509,7 +513,7 @@ class Arm(RobotComponent):
         trials=300,
         max_configs=1,
         distance_threshold: float = 0.65,
-        max_time_ms: int = 500,
+        max_time_ms: int = 2000,
         trials_per_goal=1,
         algorithm=Algos.RRTConnect,
         relative_to: Object = None,

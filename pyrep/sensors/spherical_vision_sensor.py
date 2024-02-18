@@ -12,18 +12,16 @@ MIN_DIVISOR = 1e-12
 class SphericalVisionSensor(Object):
     """An object able capture 360 degree omni-directional images."""
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # final omni-directional sensors
-        self._sensor_depth = VisionSensor("%s_sensorDepth" % (self.get_name()))
-        self._sensor_rgb = VisionSensor("%s_sensorRGB" % (self.get_name()))
+        self._sensor_depth = VisionSensor("sensorDepth", proxy=self)
+        self._sensor_rgb = VisionSensor("sensorRGB", proxy=self)
 
         # directed sub-sensors
         names = ["front", "top", "back", "bottom", "left", "right"]
-        self._six_sensors = [
-            VisionSensor("%s_%s" % (self.get_name(), n)) for n in names
-        ]
+        self._six_sensors = [VisionSensor(n, proxy=self) for n in names]
         self._front = self._six_sensors[0]
 
         # directed sub-sensor handles list

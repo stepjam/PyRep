@@ -106,11 +106,6 @@ class TestPyrep(TestCore):
                 dummys[:-1],
             )
 
-    def test_get_collection_by_name(self):
-        self.assertIsInstance(
-            self.pyrep.get_collection_handle_by_name("Panda_arm"), int
-        )
-
 
 if __name__ == "__main__":
     unittest.main()

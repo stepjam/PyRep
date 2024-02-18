@@ -12,14 +12,20 @@ class RobotComponent(Object):
     """Collection of joints representing arms, end effectors, mobile bases, etc."""
 
     def __init__(
-        self, count: int, name: str, joint_names: List[str], base_name: str = None
+        self,
+        count: int,
+        name: str,
+        joint_names: List[str],
+        base_name: str = None,
+        proxy: Object = None,
     ):
-        suffix = "" if count == 0 else "#%d" % (count - 1)
-        super().__init__(name + suffix if base_name is None else base_name + suffix)
+        base_name = name if base_name is None else base_name
+        super().__init__(base_name, count, proxy)
         self._num_joints = len(joint_names)
+        self._joint_names = joint_names
 
         # Joint handles
-        self.joints = [Joint(jname + suffix) for jname in joint_names]
+        self.joints = [Joint(jname, proxy=self) for jname in joint_names]
         self._joint_handles = [j.get_handle() for j in self.joints]
 
         self._collision_collection_handle = self._sim_api.createCollection(0)
@@ -40,15 +46,9 @@ class RobotComponent(Object):
         """
         # Copy whole model
         handle = self._sim_api.copyPasteObjects([self._handle], 1)[0]
-        name = self._sim_api.getObjectName(handle)
-        # Find the number of this arm
-        num = name[name.rfind("#") + 1 :]
-        if len(num) > 0:
-            num = int(num) + 1
-        else:
-            num = 0
-        # FIXME: Pass valid name and joint_names.
-        return self.__class__(num)  # type: ignore
+        name = self._sim_api.getObjectAlias(handle, 1)
+        count = int(name[name.rfind("[") + 1 : name.rfind("]")])
+        return RobotComponent(count, name, self._joint_names)  # type: ignore
 
     def _get_requested_type(self) -> ObjectType:
         """Gets the type of the object.

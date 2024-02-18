@@ -75,7 +75,9 @@ class TestArmsAndConfigurationPaths(TestCore):
         )
         arm.set_joint_positions(new_config)
         self.assertTrue(
-            np.allclose(arm.get_tip().get_pose(), waypoint.get_pose(), atol=0.001)
+            np.allclose(
+                arm.get_tip().get_position(), waypoint.get_position(), atol=0.001
+            )
         )
 
     def test_solve_ik_via_sampling(self):

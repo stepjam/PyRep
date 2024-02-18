@@ -1,5 +1,5 @@
 import math
-from typing import List, Union, Sequence
+from typing import List, Sequence
 from pyrep.backend.sim import SimBackend
 from pyrep.backend import sim_const as simc
 from pyrep.objects.object import Object, object_type_to_class
@@ -10,8 +10,8 @@ from pyrep.const import ObjectType, PerspectiveMode, RenderMode
 class VisionSensor(Object):
     """A camera-type sensor, reacting to light, colors and images."""
 
-    def __init__(self, name_or_handle: Union[str, int]):
-        super().__init__(name_or_handle)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.resolution = self._sim_api.getVisionSensorRes(self._handle)
 
     @staticmethod

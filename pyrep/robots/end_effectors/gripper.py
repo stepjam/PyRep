@@ -11,26 +11,17 @@ POSITION_ERROR = 0.001
 class Gripper(RobotComponent):
     """Represents all types of end-effectors, e.g. grippers."""
 
-    def __init__(self, count: int, name: str, joint_names: List[str]):
-        super().__init__(count, name, joint_names)
-        suffix = "" if count == 0 else "#%d" % (count - 1)
-        prox_name = "%s_attachProxSensor%s" % (name, suffix)
-        attach_name = "%s_attachPoint%s" % (name, suffix)
-        self._proximity_sensor = ProximitySensor(prox_name)
-        self._attach_point = ForceSensor(attach_name)
+    def __init__(
+        self, count: int, name: str, joint_names: List[str], proxy: Object = None
+    ):
+        super().__init__(count, name, joint_names, proxy=proxy)
+        self._proximity_sensor = ProximitySensor(f"{name}_attachProxSensor", proxy=self)
+        self._attach_point = ForceSensor(f"{name}_attachPoint", proxy=self)
         self._old_parents: List[Object] = []
         self._grasped_objects: List[Object] = []
         self._prev_positions = [None] * len(joint_names)
         self._prev_vels = [None] * len(joint_names)  # Used to stop oscillating
-
         self._touch_sensors = []
-        i = 0
-        while True:
-            fname = "%s_touchSensor%d%s" % (name, i, suffix)
-            if not ForceSensor.exists(fname):
-                break
-            self._touch_sensors.append(ForceSensor(fname))
-            i += 1
 
     def grasp(self, obj: Object) -> bool:
         """Grasp object if it is detected.

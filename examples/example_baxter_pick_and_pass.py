@@ -20,8 +20,8 @@ pr.start()
 
 baxter_left = BaxterLeft()
 baxter_right = BaxterRight()
-baxter_gripper_left = BaxterGripper(0)
-baxter_gripper_right = BaxterGripper(1)
+baxter_gripper_left = BaxterGripper(proxy=baxter_left.joints[0])
+baxter_gripper_right = BaxterGripper(proxy=baxter_right.joints[0])
 
 cup = Shape("Cup")
 waypoints = [Dummy("waypoint%d" % i) for i in range(7)]

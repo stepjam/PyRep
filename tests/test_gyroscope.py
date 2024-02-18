@@ -6,7 +6,7 @@ from pyrep.sensors.gyroscope import Gyroscope
 class TestGyroscope(TestCore):
     def setUp(self):
         super().setUp()
-        self.sensor = Gyroscope("gyroscope")
+        self.sensor = Gyroscope("GyroSensor")
 
     def test_read(self):
         angular_velocities = self.sensor.read()

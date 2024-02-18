@@ -16,14 +16,14 @@ ASSET_DIR = path.join(path.dirname(path.abspath(__file__)), "assets")
 GRIPPERS = [
     ("PandaGripper", PandaGripper, 0.04),
     ("BaxterGripper", BaxterGripper, 0.04),
-    ("MicoGripper", MicoGripper, 0.2),
-    ("JacoGripper", JacoGripper, 0.2),
+    ("MicoGripper", MicoGripper, 0.4),
+    ("JacoGripper", JacoGripper, 0.4),
     ("Robotiq85Gripper", Robotiq85Gripper, 0.04),
     ("XArmGripper", XArmGripper, 0.04),
 ]
 
 
-class TestArmsAndConfigurationPaths(TestCore):
+class TesGrippers(TestCore):
     def setUp(self):
         self.pyrep = PyRep()
         self.pyrep.launch(path.join(ASSET_DIR, "test_scene_robots.ttt"), headless=True)

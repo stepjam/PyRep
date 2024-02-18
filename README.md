@@ -5,6 +5,7 @@ __PyRep is a toolkit for robot learning research, built on top of [CoppeliaSim](
 
 __Announcement!__
 PyRep has undergone a __MAJOR__ update, and is now compatible with the most recent version of CoppeliaSim. Most importantly, it now has Mac and Windows support!
+Note: Support for mobile bases has temporality been removed as part of the update.
 
 
 - [Install](#install)
@@ -45,15 +46,6 @@ pip install git+https://github.com/stepjam/PyRep.git
 Try running one of the examples in the *examples/* folder.
 
 _Although you can use CoppeliaSim on any platform, communication via PyRep is currently only supported on Linux._
-
-#### Troubleshooting
-
-Below are some problems you may encounter during installation. If none of these solve your problem, please raise an issue.
-
-- ModuleNotFoundError: No module named 'pyrep.backend._v_rep_cffi'
-  - If you are getting this error, then please check that you are not running the interpreter from the project root. If you are, then your Python interpreter will try to import those files rather the installed files.
-- error: command 'x86_64-linux-gnu-gcc' failed
-  - You may be missing packages needed for building python extensions. Try: `sudo apt-get install python3-dev`, and then re-run the installation.
 
 ## Running Headless
 

@@ -279,14 +279,6 @@ class PyRep(object):
         """
         return Object._get_objects_in_tree(root_object, *args, **kwargs)
 
-    def get_collection_handle_by_name(self, collection_name: str) -> int:
-        """Retrieves the integer handle for a given collection.
-
-        :param collection_name: Name of the collection to retrieve the integer handle.
-        :return: An integer handle for the collection.
-        """
-        return self._sim_api.getCollectionHandle(collection_name)
-
     def set_configuration_tree(self, config_tree: bytes) -> None:
         """Restores configuration information previously retrieved.
 

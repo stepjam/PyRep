@@ -5,7 +5,6 @@ from pyrep.backend.sim import SimBackend
 from pyrep.const import ObjectType
 from pyrep.errors import (
     WrongObjectTypeError,
-    CoppeliaSimError,
     ObjectIsNotModelError,
     ObjectAlreadyRemovedError,
 )
@@ -22,15 +21,29 @@ class Object(object):
     Objects are visible in the scene hierarchy and in the scene view.
     """
 
-    def __init__(self, name_or_handle: Union[str, int]):
+    def __init__(
+        self, name_or_handle: Union[str, int], index: int = 0, proxy: "Object" = None
+    ):
         self._sim_api = SimBackend().sim_api
         if isinstance(name_or_handle, int):
             self._handle = name_or_handle
         else:
+            extra = {}
+            prefix = "/"
+            if index > 0:
+                extra["index"] = 0
+            if proxy is not None:
+                prefix = "./"
+                extra["proxy"] = proxy.get_handle()
             try:
-                self._handle = self._sim_api.getObjectHandle(name_or_handle)
-            except CoppeliaSimError:
-                raise ValueError(f"Object with name '{name_or_handle}' not found!")
+                self._handle = self._sim_api.getObject(name_or_handle, extra)
+            except Exception:
+                try:
+                    self._handle = self._sim_api.getObject(
+                        prefix + name_or_handle, extra
+                    )
+                except Exception:
+                    raise ValueError(f"Object with name '{name_or_handle}' not found!")
         assert_type = self._get_requested_type()
         actual = ObjectType(self._sim_api.getObjectType(self._handle))
         if actual != assert_type:
@@ -56,7 +69,7 @@ class Object(object):
         sim_api = SimBackend().sim_api
         handle = -1
         try:
-            handle = sim_api.getObjectHandle(name)
+            handle = sim_api.getObject("/" + name)
         except Exception:
             pass
         return handle >= 0
@@ -70,7 +83,7 @@ class Object(object):
         sim_api = SimBackend().sim_api
         handle = name_or_handle
         if not isinstance(name_or_handle, int):
-            handle = sim_api.getObjectHandle(name_or_handle)
+            handle = sim_api.getObject("/" + name_or_handle)
         return ObjectType(sim_api.getObjectType(handle))
 
     @staticmethod
@@ -129,11 +142,11 @@ class Object(object):
 
         :return: The objects name.
         """
-        return self._sim_api.getObjectName(self._handle)
+        return self._sim_api.getObjectAlias(self._handle, -1)
 
     def set_name(self, name: str) -> None:
         """Sets the objects name in the scene."""
-        self._sim_api.setObjectName(self._handle, name)
+        self._sim_api.setObjectAlias(self._handle, name)
 
     def scale_object(self, scale_x: float, scale_y: float, scale_z: float) -> None:
         """Scales the object by the given amounts in the x, y, z axes
