@@ -167,7 +167,8 @@ class ArmConfigurationPath(ConfigurationPath):
         if state >= 0:
             pos = posVelAccel[0]
             for i in range(len(lengths) - 1):
-                if lengths[i] <= pos <= lengths[i + 1]:
+                # Always execute the last point as pos might overshoot
+                if lengths[i] <= pos <= lengths[i + 1] or i == len(lengths) - 2:
                     t = (pos - lengths[i]) / (lengths[i + 1] - lengths[i])
                     # For each joint
                     offset = len(self._arm.joints) * i
