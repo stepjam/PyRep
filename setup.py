@@ -18,21 +18,6 @@ def get_version(rel_path):
         raise RuntimeError("Unable to find version string.")
 
 
-# Temp fix for CoppeliaSim 4.1
-if "COPPELIASIM_ROOT" not in os.environ:
-    raise RuntimeError("COPPELIASIM_ROOT not defined.")
-
-usrset_file = os.path.join(os.environ["COPPELIASIM_ROOT"], "system", "usrset.txt")
-usrset = ""
-if os.path.isfile(usrset_file):
-    with open(usrset_file, "r") as f:
-        usrset = f.read()
-
-if "allowOldEduRelease" not in usrset:
-    with open(usrset_file, "a+") as f:
-        f.write("\nallowOldEduRelease=7501\n")
-
-
 core_requirements = [
     "numpy",
     "cbor",

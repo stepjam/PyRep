@@ -24,13 +24,12 @@ coppeliasim_root = os.environ["COPPELIASIM_ROOT"]
 coppeliasim_library = ""
 plat = platform.system()
 if plat == "Windows":
-    raise NotImplementedError()
+    raise NotImplementedError("Windows not tested yet.")
     # coppeliasim_library /= f'{defaultLibNameBase}.dll'
 elif plat == "Linux":
     coppeliasim_library = os.path.join(coppeliasim_root, "libcoppeliaSim.so")
 elif plat == "Darwin":
-    raise NotImplementedError()
-    # coppeliasim_library /= f'../MacOS/lib{defaultLibNameBase}.dylib'
+    coppeliasim_library = os.path.join(coppeliasim_root, "libcoppeliaSim.dylib")
 if not os.path.isfile(coppeliasim_library):
     raise PyRepError(
         "COPPELIASIM_ROOT was not a correct path. " "See installation instructions"

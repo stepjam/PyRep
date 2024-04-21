@@ -30,6 +30,10 @@ Once you have downloaded CoppeliaSim, add the following to your *~/.bashrc* / *~
 ```bash
 export COPPELIASIM_ROOT=EDIT/ME/PATH/TO/COPPELIASIM/INSTALL/DIR
 ```
+Note for mac, this is usually:
+```bash
+export COPPELIASIM_ROOT=/Applications/coppeliaSim.app/Contents/MacOS
+```
 
 Install PyRep:
 
