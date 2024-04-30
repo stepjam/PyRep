@@ -201,7 +201,9 @@ class Arm(RobotComponent):
             self, position: Union[List[float], np.ndarray],
             euler: Union[List[float], np.ndarray] = None,
             quaternion: Union[List[float], np.ndarray] = None,
-            relative_to: Object = None) -> List[float]:
+            relative_to: Object = None,
+            locked_joints: List[int] = None,
+        ) -> List[float]:
         """Solves an IK group and returns the calculated joint values.
 
         This IK method performs a linearisation around the current robot
@@ -226,8 +228,15 @@ class Arm(RobotComponent):
         elif quaternion is not None:
             self._ik_target.set_quaternion(quaternion, relative_to)
 
+        joints = self.joints
+        if locked_joints is not None and len(locked_joints) > 0:
+            joints = []
+            for idx, j in enumerate(self.joints):
+                if idx not in locked_joints:
+                    joints.append(j)
+
         ik_result, joint_values = sim.simCheckIkGroup(
-            self._ik_group, [j.get_handle() for j in self.joints])
+            self._ik_group, [j.get_handle() for j in joints])
         if ik_result == sim.sim_ikresult_fail:
             raise IKError('IK failed. Perhaps the distance was between the tip '
                           ' and target was too large.')
