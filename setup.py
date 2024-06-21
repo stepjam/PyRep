@@ -57,7 +57,7 @@ setup(
         'pyrep.textures',
         'pyrep.misc',
         ],
-    setup_requires=["cffi<1.16"],
+    setup_requires=["cffi>=1.0.0"],
     cffi_modules=["cffi_build/cffi_build.py:ffibuilder"],
-    install_requires=["cffi<1.16"],
+    install_requires=["cffi>=1.0.0"],
 )
