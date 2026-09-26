@@ -47,6 +47,13 @@ class ArmConfigurationPath(ConfigurationPath):
         if self._path_done:
             raise RuntimeError('This path has already been completed. '
                                'If you want to re-run, then call set_to_start.')
+        # A stationary path needs no trajectory generation (e.g. gripper-only
+        # actions). Still expose and apply the final joint target to callers.
+        if len(self) > 0 and self._get_path_point_lengths()[-1] == 0:
+            self._joint_position_action = self._path_points[-self._num_joints:].copy()
+            self._arm.set_joint_target_positions(self._joint_position_action)
+            self._path_done = True
+            return True
         if self._rml_handle is None:
             self._rml_handle = self._get_rml_handle()
         done = self._step_motion() == 1
@@ -131,7 +138,8 @@ class ArmConfigurationPath(ConfigurationPath):
                     pos = pos_vel_accel[0]
                     for i in range(len(lengths)-1):
                         if lengths[i] <= pos <= lengths[i + 1]:
-                            t = (pos - lengths[i]) / (lengths[i + 1] - lengths[i])
+                            span = lengths[i + 1] - lengths[i]
+                            t = (pos - lengths[i]) / span if span > 0 else 0.
                             # For each joint
                             offset = len(self._arm.joints) * i
                             p1 = self._path_points[
@@ -169,7 +177,8 @@ class ArmConfigurationPath(ConfigurationPath):
             for i in range(len(lengths) - 1):
                 # Always execute the last point as pos might overshoot
                 if lengths[i] <= pos <= lengths[i + 1] or i == len(lengths) - 2:
-                    t = (pos - lengths[i]) / (lengths[i + 1] - lengths[i])
+                    span = lengths[i + 1] - lengths[i]
+                    t = (pos - lengths[i]) / span if span > 0 else 0.
                     # For each joint
                     offset = len(self._arm.joints) * i
                     p1 = self._path_points[
